@@ -1,0 +1,54 @@
+{
+    "name": "Input",
+    "maps": [
+        {
+            "name": "Measure",
+            "id": "e43bb808-8eb3-4dfb-8702-df1539dbf895",
+            "actions": [
+                {
+                    "name": "Measurements",
+                    "type": "Button",
+                    "id": "fdcf78fe-1e2c-4621-b712-40698de8839a",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Qubit",
+                    "type": "Button",
+                    "id": "e5465a6e-3b61-4cff-a250-d90b19a97889",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "b548bdc9-1ea7-4585-a8ca-835b8bcaa8c6",
+                    "path": "<Keyboard>/#(H)",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Measurements",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "191c92f4-352f-4c2d-92bd-1fb1b9a69358",
+                    "path": "<Keyboard>/#(9)",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Qubit",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
