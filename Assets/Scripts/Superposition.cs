@@ -1,9 +1,10 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.XR.Interaction.Toolkit;
-public class Qubit : MonoBehaviour
+public class Superposition : MonoBehaviour
 {
     [SerializeField] private InputActionAsset inputActions;
+    [SerializeField] private InputActionAsset measureActions;
     [SerializeField] private Transform qubit;
     [SerializeField] private XRGrabInteractable interactableObject;
     [SerializeField] private float rotationSpeed = 50.0f;
@@ -39,6 +40,7 @@ public class Qubit : MonoBehaviour
 
     private void Update()
     {
+        
         if (grabbedObject == qubit.name)
         {
             currAngle.y += rotate.ReadValue<Vector2>().x * rotationSpeed * Time.deltaTime;
@@ -46,6 +48,7 @@ public class Qubit : MonoBehaviour
             transform.position = qubit.position + (Quaternion.Euler(currAngle) * Vector3.forward) * radius;
             transform.LookAt(qubit);
         }
+
     }
 
     private void OnGrab(SelectEnterEventArgs args)
