@@ -510,10 +510,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   inputActions: {fileID: -944628639613478452, guid: c348712bda248c246b8c49b3db54643f, type: 3}
-  controller: {fileID: 0}
-  sphereCenter: {fileID: 51463517831623005}
-  rotationSpeed: 50
+  qubit: {fileID: 0}
   interactableObject: {fileID: 2874321949290932114}
+  rotationSpeed: 50
 --- !u!1 &5272759287672840127
 GameObject:
   m_ObjectHideFlags: 0
@@ -614,6 +613,7 @@ GameObject:
   - component: {fileID: 1360630766659733117}
   - component: {fileID: 7059985104342690611}
   - component: {fileID: 3126348004810959551}
+  - component: {fileID: 6703450165199027308}
   - component: {fileID: 687458895813270723}
   m_Layer: 0
   m_Name: Sphere Interactable
@@ -861,6 +861,10 @@ MonoBehaviour:
   m_SmoothRotation: 0
   m_SmoothRotationAmount: 1.57
   m_TightenRotation: 0.077
+  m_TrackScale: 1
+  m_SmoothScale: 0
+  m_SmoothScaleAmount: 8
+  m_TightenScale: 0.1
   m_ThrowOnDetach: 1
   m_ThrowSmoothingDuration: 0.25
   m_ThrowSmoothingCurve:
@@ -901,7 +905,9 @@ MonoBehaviour:
   m_PermittedDisplacementAxes: -1
   m_ConstrainedAxisDisplacementMode: 1
   m_TwoHandedRotationMode: 1
+  m_AllowOneHandedScaling: 1
   m_AllowTwoHandedScaling: 1
+  m_OneHandedScaleSpeed: 0.5
   m_ThresholdMoveRatioForScale: 0.01
   m_ClampScaling: 1
   m_MinimumScaleRatio: 0.25
@@ -957,6 +963,18 @@ MonoBehaviour:
   InLocalSpace: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &6703450165199027308
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7674694494287733247}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6311cbfa34d1f4acf925e32379a3268c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &687458895813270723
 MonoBehaviour:
   m_ObjectHideFlags: 0
