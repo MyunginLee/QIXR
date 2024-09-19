@@ -1,0 +1,44 @@
+using UnityEngine;
+using MathNet.Numerics.LinearAlgebra;
+
+public class MatrixExample : MonoBehaviour
+{
+    void Start()
+    {
+        //Docs : https://numerics.mathdotnet.com/Matrix
+
+        //2x2 Matrix
+        Matrix<double> Matrix2x2 = Matrix<double>.Build.DenseOfArray(new double[,]
+        {
+            { 1, 1},
+            { 1, 1},
+
+        });
+
+        //4x4 Matrix
+        Matrix<double> Matrix4x4 = Matrix<double>.Build.DenseOfArray(new double[,]
+        {
+            { 1, 1, 1, 1},
+            { 1, 1, 1, 1},
+            { 1, 1, 1, 1},
+            { 1, 1, 1, 1}
+        });
+
+        //Showcasing Matrix of nxm 
+        Matrix<double> Matrix4x5 = Matrix<double>.Build.DenseOfArray(new double[,]
+        {
+            { 1, 1, 1, 1, 2},
+            { 1, 1, 1, 1, 2},
+            { 1, 1, 1, 1, 2},
+            { 1, 1, 1, 1, 2}
+        });
+
+
+        Debug.Log("Matrix2x2\n" + Matrix2x2.ToString());
+        Debug.Log("Add\n" + (Matrix2x2 + Matrix2x2).ToString());
+        Debug.Log("Subtract\n" + (Matrix2x2 - Matrix2x2).ToString());
+        Debug.Log("Transpose\n" + (Matrix4x5.Transpose()).ToString());
+
+
+    }
+}
