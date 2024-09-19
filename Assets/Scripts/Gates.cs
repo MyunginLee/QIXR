@@ -1,12 +1,9 @@
 using UnityEngine;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics;
-using Unity.VisualScripting;
-using System.Numerics;
 public class Gates : MonoBehaviour
 {
     Complex32 i = Complex32.ImaginaryOne;
-
     void Start()
     {
         Matrix<Complex32> identityMatrix = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
@@ -32,5 +29,13 @@ public class Gates : MonoBehaviour
             { 1, 0},
             { 0, -1},
         });
+
+        Matrix<Complex32> hadamard = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
+        {
+            { 1, 1},
+            { 1, -1},
+        });
+        hadamard.Multiply(1/Mathf.Sqrt(2));
+
     }
 }
