@@ -1,6 +1,7 @@
 using UnityEngine;
 using MathNet.Numerics.LinearAlgebra;
-
+using static Gates;
+using MathNet.Numerics;
 public class MatrixExample : MonoBehaviour
 {
     void Start()
@@ -12,7 +13,6 @@ public class MatrixExample : MonoBehaviour
         {
             { 1, 1},
             { 1, 1},
-
         });
 
         //4x4 Matrix
@@ -38,6 +38,16 @@ public class MatrixExample : MonoBehaviour
         Debug.Log("Add\n" + (Matrix2x2 + Matrix2x2).ToString());
         Debug.Log("Subtract\n" + (Matrix2x2 - Matrix2x2).ToString());
         Debug.Log("Transpose\n" + (Matrix4x5.Transpose()).ToString());
+
+        Matrix<Complex32> gateExample = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
+        {
+            { 0.63f, 0},
+            { 0, 0.37f },
+        });
+
+        gateExample *= PauliX();
+
+        Debug.Log(gateExample);
 
 
     }
