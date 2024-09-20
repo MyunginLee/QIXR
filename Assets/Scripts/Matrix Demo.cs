@@ -1,7 +1,8 @@
 using UnityEngine;
+using MathNet.Numerics;
 using MathNet.Numerics.LinearAlgebra;
 using static Gates;
-using MathNet.Numerics;
+
 public class MatrixExample : MonoBehaviour
 {
     void Start()
@@ -49,6 +50,18 @@ public class MatrixExample : MonoBehaviour
 
         Debug.Log(gateExample);
 
+        var matrixA = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,] {
+            {0.5f, 0},
+            {0, 0.5f}
+        });
 
+        var matrixB = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,] {
+            {0.5f, 0},
+            {0, 0.5f}
+        });
+
+        Matrix<Complex32> tensorExample = matrixA.KroneckerProduct(matrixB);
+
+        Debug.Log(tensorExample);
     }
 }
