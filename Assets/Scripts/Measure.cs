@@ -1,8 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
-using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using MathNet.Numerics.LinearAlgebra;
+using MathNet.Numerics;
 
 public class Measure : MonoBehaviour
 {
@@ -15,6 +14,9 @@ public class Measure : MonoBehaviour
     private float inclination;
     private float azimuth;
     private float timer;
+    private float x, y, z, xSq, ySq, zSq, alpha, beta;
+    private Matrix<Complex32> qubitMatrix;
+
     private void OnEnable()
     {
         inputActions.Enable();
@@ -25,6 +27,7 @@ public class Measure : MonoBehaviour
         qubit = gameObject.transform.parent.gameObject;
         dot = gameObject;
         line = gameObject.transform.GetChild(0).gameObject;
+        qubitMatrix = Matrix<Complex32>.Build.Dense(2,2);
     }
 
     void Update()
@@ -37,15 +40,7 @@ public class Measure : MonoBehaviour
 
         if (((inputActions.FindActionMap("Measure")).FindAction("Measurements")).ReadValue<float>() != 0)
         {
-            float x = dot.transform.localPosition.x * 2;
-            float y = dot.transform.localPosition.y * 2;
-            float z = dot.transform.localPosition.z * 2;
-            float xSq = Mathf.Pow(x, 2);
-            float ySq = Mathf.Pow(y, 2);
-            float zSq = Mathf.Pow(z, 2);
-            radius = Mathf.Sqrt(xSq + ySq + zSq);
-            inclination = Mathf.Acos(z / radius);
-            azimuth = Mathf.Sign(y) * Mathf.Acos(x / Mathf.Sqrt(xSq + ySq));
+            UpdateValues();
 
             Debug.Log("X: " + x);
             Debug.Log("Y: " + y);
@@ -61,7 +56,6 @@ public class Measure : MonoBehaviour
 
             Debug.Log("Probability of 0: " + Mathf.Pow(Mathf.Abs(Mathf.Cos(inclination / 2)), 2));
             Debug.Log("Probability of 1: " + Mathf.Pow(Mathf.Abs(Mathf.Sin(inclination / 2)), 2));
-
 
 
 
@@ -95,5 +89,19 @@ public class Measure : MonoBehaviour
     public float GetBeta()
     {
         return Mathf.Sin(Mathf.Acos(dot.transform.localPosition.z * 2 / radius) / 2);
+    }
+    private void UpdateValues()
+    {
+        x = dot.transform.localPosition.x * 2;
+        y = dot.transform.localPosition.y * 2;
+        z = dot.transform.localPosition.z * 2;
+        xSq = Mathf.Pow(x, 2);
+        ySq = Mathf.Pow(y, 2);
+        zSq = Mathf.Pow(z, 2);
+        radius = Mathf.Sqrt(xSq + ySq + zSq);
+        inclination = Mathf.Acos(z / radius);
+        azimuth = Mathf.Sign(y) * Mathf.Acos(x / Mathf.Sqrt(xSq + ySq));
+        alpha =  Mathf.Pow(Mathf.Abs(Mathf.Cos(inclination / 2)), 2);
+        beta = Mathf.Pow(Mathf.Abs(Mathf.Sin(inclination / 2)), 2);
     }
 }
