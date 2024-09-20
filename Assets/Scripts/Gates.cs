@@ -3,48 +3,33 @@ using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics;
 public class Gates : MonoBehaviour
 {
-    Complex32 i = Complex32.ImaginaryOne;
+    static private Complex32 i = Complex32.ImaginaryOne;
 
-    static private Matrix<Complex32> identityMatrix;
-    static private Matrix<Complex32> pauliX;
-    static private Matrix<Complex32> pauliY;
-    static private Matrix<Complex32> pauliZ;
-    static private Matrix<Complex32> hadamard;
-
-
-    void Start()
-    {
-        identityMatrix = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
+    static private Matrix<Complex32> identityMatrix = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
         {
             { 1, 0 },
             { 0, 1 }
         });
-
-        pauliX = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
+    static private Matrix<Complex32> pauliX = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
         {
             { 0, 1 },
             { 1, 0 }
         });
-
-        pauliY = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
+    static private Matrix<Complex32> pauliY = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
         {
             { 0, -i },
             { i, 0 }
         });
-
-        pauliZ = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
+    static private Matrix<Complex32> pauliZ = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
         {
             { 1, 0},
             { 0, -1},
         });
-
-        hadamard = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
+    static private Matrix<Complex32> hadamard = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
         {
-            { 1, 1},
-            { 1, -1},
+            { 1/Mathf.Sqrt(2), 1/Mathf.Sqrt(2)},
+            { 1/Mathf.Sqrt(2), -(1/Mathf.Sqrt(2))},
         });
-        hadamard.Multiply(1/Mathf.Sqrt(2));
-    }
     public static Matrix<Complex32> IdentityMatrix()
     {
         return identityMatrix;
