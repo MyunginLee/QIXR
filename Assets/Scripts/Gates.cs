@@ -5,6 +5,18 @@ public class Gates : MonoBehaviour
 {
     static private Complex32 i = Complex32.ImaginaryOne;
 
+    static private Matrix<Complex32> upMatrix = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
+    {
+        { 1, 0 },
+        { 0, 0 }
+    });
+
+    static private Matrix<Complex32> zeroMatrix = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
+    {
+        { 0, 0 },
+        { 0, 0 }
+    });
+
     static private Matrix<Complex32> identityMatrix = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
         {
             { 1, 0 },
@@ -31,6 +43,21 @@ public class Gates : MonoBehaviour
             { 1, 0},
             { 0, i},
         });
+    static private Matrix<Complex32> phaseSDagger = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
+        {
+            { 1, 0},
+            { 0, i},
+        });
+
+
+    public static Matrix<Complex32> UpMatrix()
+    {
+        return upMatrix;
+    }   
+    public static Matrix<Complex32> ZeroMatrix()
+    {
+        return zeroMatrix;
+    }   
     public static Matrix<Complex32> IdentityMatrix()
     {
         return identityMatrix;
@@ -51,5 +78,9 @@ public class Gates : MonoBehaviour
     public static Matrix<Complex32> PhaseS()
     {
         return phaseS;
+    }
+    public static Matrix<Complex32> PhaseSDagger()
+    {
+        return phaseSDagger;
     }
 }
