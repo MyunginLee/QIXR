@@ -11,10 +11,12 @@ public class Qubit : MonoBehaviour
     private Matrix<Complex32> hadamard = Hadamard();
     private Matrix<Complex32> phaseS = PhaseS();
     private Matrix<Complex32> phaseSDagger = PhaseSDagger();
+
+    private int initQubits;
     public void Start()
     {
         IncrementInitQubits();
-        int initQubits = GetInitQubits();
+        initQubits = GetInitQubits();
         for (int i = 1; i < initQubits; i++)
         {
             identityMatrix = IdentityMatrix().KroneckerProduct(identityMatrix);
@@ -25,7 +27,7 @@ public class Qubit : MonoBehaviour
             phaseSDagger = IdentityMatrix().KroneckerProduct(phaseSDagger);
         }
 
-        for (int i = 0; i < GetQubits() - initQubits; i++)
+        for (int i = 1; i < GetQubits() - initQubits; i++)
         {
             identityMatrix = identityMatrix.KroneckerProduct(IdentityMatrix());
             pauliX = pauliX.KroneckerProduct(IdentityMatrix());
@@ -35,6 +37,22 @@ public class Qubit : MonoBehaviour
             phaseSDagger = phaseSDagger.KroneckerProduct(IdentityMatrix());
         }
     }
+
+    public void Update()
+    {
+        if (initQubits != GetInitQubits())
+        {
+            initQubits += 1;
+            identityMatrix = identityMatrix.KroneckerProduct(IdentityMatrix());
+            pauliX = pauliX.KroneckerProduct(IdentityMatrix());
+            pauliZ = pauliZ.KroneckerProduct(IdentityMatrix());
+            hadamard = hadamard.KroneckerProduct(IdentityMatrix());
+            phaseS = phaseS.KroneckerProduct(IdentityMatrix());
+            phaseSDagger = phaseSDagger.KroneckerProduct(IdentityMatrix());
+        }
+    }
+
+
     public Matrix<Complex32> GetIdentityMatrix()
     {
         return identityMatrix;
