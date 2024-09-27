@@ -44,4 +44,9 @@ public class QubitManager : MonoBehaviour
     {
         densityMatrix = gate * densityMatrix * gate;
     }
+
+    public static void ApplyPhaseGate(Matrix<Complex32> phase, Matrix<Complex32> phaseDagger)
+    {
+        densityMatrix = phase * densityMatrix * phaseDagger;
+    }
 }

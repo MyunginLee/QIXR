@@ -5,29 +5,37 @@ using static QubitManager;
 using static Gates;
 public class Qubit : MonoBehaviour
 {
-    private Matrix<Complex32> identityMatrix = IdentityMatrix();
-    private Matrix<Complex32> pauliX = PauliX();
-    private Matrix<Complex32> pauliZ = PauliZ();
-    private Matrix<Complex32> hadamard = Hadamard();
-    private Matrix<Complex32> phaseS = PhaseS();
-    private Matrix<Complex32> phaseSDagger = PhaseSDagger();
+    private Matrix<Complex32> identityMatrix;
+    private Matrix<Complex32> pauliX;
+    private Matrix<Complex32> pauliZ;
+    private Matrix<Complex32> hadamard;
+    private Matrix<Complex32> phaseS;
+    private Matrix<Complex32> phaseSDagger;
 
     private int initQubits;
     public void Start()
     {
         IncrementInitQubits();
-        initQubits = GetInitQubits();
-        for (int i = 1; i < initQubits; i++)
+        int initQubits = GetInitQubits();
+
+        identityMatrix = IdentityMatrix();
+        pauliX = (initQubits == 1) ? PauliX() : IdentityMatrix();
+        pauliZ = (initQubits == 1) ? PauliZ() : IdentityMatrix();
+        hadamard = (initQubits == 1) ? Hadamard() : IdentityMatrix();
+        phaseS = (initQubits == 1) ? PhaseS() : IdentityMatrix();
+        phaseSDagger = (initQubits == 1) ? PhaseSDagger() : IdentityMatrix();
+
+        for (int i = 2; i <= initQubits; i++)
         {
-            identityMatrix = IdentityMatrix().KroneckerProduct(identityMatrix);
-            pauliX = IdentityMatrix().KroneckerProduct(pauliX);
-            pauliZ = IdentityMatrix().KroneckerProduct(pauliZ);
-            hadamard = IdentityMatrix().KroneckerProduct(hadamard);
-            phaseS = IdentityMatrix().KroneckerProduct(phaseS);
-            phaseSDagger = IdentityMatrix().KroneckerProduct(phaseSDagger);
+            identityMatrix = identityMatrix.KroneckerProduct(IdentityMatrix());
+            pauliX = pauliX.KroneckerProduct(initQubits == i ? PauliX() : IdentityMatrix());
+            pauliZ = pauliZ.KroneckerProduct(initQubits == i ? PauliZ() : IdentityMatrix());
+            hadamard = hadamard.KroneckerProduct(initQubits == i ? Hadamard() : IdentityMatrix());
+            phaseS = phaseS.KroneckerProduct(initQubits == i ? PhaseS() : IdentityMatrix());
+            phaseSDagger = phaseSDagger.KroneckerProduct(initQubits == i ? PhaseSDagger() : IdentityMatrix());
         }
 
-        for (int i = 1; i < GetQubits() - initQubits; i++)
+        for (int i = 0; i < GetQubits() - initQubits; i++)
         {
             identityMatrix = identityMatrix.KroneckerProduct(IdentityMatrix());
             pauliX = pauliX.KroneckerProduct(IdentityMatrix());
