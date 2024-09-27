@@ -7,24 +7,17 @@ public class Superposition : MonoBehaviour
     [SerializeField] private InputActionAsset measureActions;
     [SerializeField] private Transform qubit;
     [SerializeField] private XRGrabInteractable interactableObject;
-    [SerializeField] private float rotationSpeed = 50.0f;
+    [SerializeField] private float rotationSpeed = 2000.0f;
     private InputAction rotate;
     private InputAction translate;
 
 
-    private float radius;
-    private Vector3 currAngle;
 
     private string grabbedObject = "";
 
 
     void Start()
     {
-
-        radius = Vector3.Distance(transform.position, qubit.position);
-        Vector3 direction = (transform.position - qubit.position).normalized;
-        currAngle = Quaternion.LookRotation(direction).eulerAngles;
-
         interactableObject.selectEntered.AddListener(OnGrab);
         interactableObject.selectExited.AddListener(OnRelease);
     }
@@ -43,10 +36,8 @@ public class Superposition : MonoBehaviour
         
         if (grabbedObject == qubit.name)
         {
-            currAngle.y += rotate.ReadValue<Vector2>().x * rotationSpeed * Time.deltaTime;
-            currAngle.x -= translate.ReadValue<Vector2>().y * rotationSpeed * Time.deltaTime;
-            transform.position = qubit.position + (Quaternion.Euler(currAngle) * Vector3.forward) * radius;
-            transform.LookAt(qubit);
+            qubit.transform.Rotate(Vector3.up, rotate.ReadValue<Vector2>().x * rotationSpeed * Time.deltaTime);
+            qubit.transform.Rotate(Vector3.right, -translate.ReadValue<Vector2>().y * rotationSpeed * Time.deltaTime);
         }
 
     }
