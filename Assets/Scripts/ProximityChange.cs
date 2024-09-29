@@ -5,8 +5,8 @@ using UnityEngine;
 public class ProximityChange : MonoBehaviour
 {
     private Material sphereMaterial;
-    private float minDistance = 1f;
-    private float maxDistance = 3f;
+    private float minDistance = 0.1f;
+    private float maxDistance = 0.5f;
 
     private Color startColor;
     private Color endColor = new Color(1f, 1f, 1f);
@@ -16,6 +16,8 @@ public class ProximityChange : MonoBehaviour
     {
         sphereMaterial = GetComponent<MeshRenderer>().material;
         startColor = sphereMaterial.color;
+
+        endColor = new Color(startColor.r, startColor.g, startColor.b, 0f);
     }
 
     // Update is called once per frame
