@@ -1,24 +1,31 @@
 using UnityEngine;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics;
+using System.Collections.Generic;
+using System.Linq;
+using NumpyDotNet;
 using static Gates;
 public class QubitManager : MonoBehaviour
 {
-    static private Matrix<Complex32> densityMatrix = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
-    {
-        { 1, 0 },
-        { 0, 0 }
-    });
+    static private Matrix<Complex32> densityMatrix;
     static int numQubits = 0;
     static int initQubits = 0;
-    public void Awake()
+
+    public static void UpdateDensityMatrix()
     {
-        Qubit[] qubits = FindObjectsOfType<Qubit>();
-        for (int i = 1; i < qubits.Length; i++)
+        if (densityMatrix == null)
+        {
+            densityMatrix = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
+            {
+                { 1, 0 },
+                { 0, 0 }
+            });
+        }
+        else
         {
             densityMatrix = densityMatrix.KroneckerProduct(UpMatrix());
         }
-        numQubits = qubits.Length;
+        numQubits++;
     }
 
     public static Matrix<Complex32> GetDensityMatrix()
@@ -40,13 +47,54 @@ public class QubitManager : MonoBehaviour
         initQubits += 1;
     }
 
-    public static void ApplyGate(Matrix<Complex32> gate)
+    public static void ApplyPauliX(Qubit qubit)
     {
-        densityMatrix = gate * densityMatrix * gate;
+        densityMatrix = qubit.GetPauliX() * densityMatrix * qubit.GetPauliX();
+    }
+    public static void ApplyPauliZ(Qubit qubit)
+    {
+        densityMatrix = qubit.GetPauliZ() * densityMatrix * qubit.GetPauliZ();
+    }
+    public static void ApplyHadamard(Qubit qubit)
+    {
+        densityMatrix = qubit.GetHadamard() * densityMatrix * qubit.GetHadamard();
+    }
+    public static void ApplyPhaseGate(Qubit qubit)
+    {
+        densityMatrix = qubit.GetPhaseS() * densityMatrix * qubit.GetPhaseSDagger();
     }
 
-    public static void ApplyPhaseGate(Matrix<Complex32> phase, Matrix<Complex32> phaseDagger)
+    public static ndarray PartialTrace(int index)
     {
-        densityMatrix = phase * densityMatrix * phaseDagger;
+        List<int> result = new List<int>();
+        List<int> qtrace = new List<int> {};
+        List<int> sel = new List<int> {index};
+        Complex32[,] array = densityMatrix.ToArray();
+        int[] dims = new int[numQubits];
+        int nd = numQubits;
+
+        for(int i = 0; i < numQubits; i++)
+        {
+            dims[i] = 2;
+        }
+        for (int i = 0; i < nd; i++)
+        {
+            if (i != index)
+            {
+                qtrace.Add(i);
+            }
+        }
+
+        //Based on Qutip's partial trace
+        result.AddRange(qtrace);
+        result.AddRange(qtrace.Select(q => nd + q));
+        result.AddRange(sel);
+        result.AddRange(sel.Select(q => nd + q));
+        long[] positions = result.Select(i => (long)i).ToArray();
+
+        ndarray matrix = np.array(array);
+        ndarray rhomat = np.trace(matrix.reshape(new shape(2, 2, 2, 2))
+                        .Transpose(positions));
+        return rhomat;
     }
 }

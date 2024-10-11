@@ -13,11 +13,11 @@ public class Qubit : MonoBehaviour
     private Matrix<Complex32> phaseSDagger;
 
     private int initQubits;
-    public void Start()
+    public void Awake()
     {
+        UpdateDensityMatrix();
         IncrementInitQubits();
-        int initQubits = GetInitQubits();
-
+        initQubits = GetInitQubits();
         identityMatrix = IdentityMatrix();
         pauliX = (initQubits == 1) ? PauliX() : IdentityMatrix();
         pauliZ = (initQubits == 1) ? PauliZ() : IdentityMatrix();
@@ -77,7 +77,6 @@ public class Qubit : MonoBehaviour
     {
         return hadamard;
     }
-
     public Matrix<Complex32> GetPhaseS()
     {
         return phaseS;
