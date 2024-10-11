@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NumpyDotNet;
 using static Gates;
+using System;
 public class QubitManager : MonoBehaviour
 {
     static private Matrix<Complex32> densityMatrix;
@@ -70,10 +71,10 @@ public class QubitManager : MonoBehaviour
         List<int> qtrace = new List<int> {};
         List<int> sel = new List<int> {index};
         Complex32[,] array = densityMatrix.ToArray();
-        int[] dims = new int[numQubits];
+        int[] dims = new int[2 * numQubits];
         int nd = numQubits;
 
-        for(int i = 0; i < numQubits; i++)
+        for(int i = 0; i < 2 * numQubits; i++)
         {
             dims[i] = 2;
         }
@@ -84,7 +85,6 @@ public class QubitManager : MonoBehaviour
                 qtrace.Add(i);
             }
         }
-
         //Based on Qutip's partial trace
         result.AddRange(qtrace);
         result.AddRange(qtrace.Select(q => nd + q));
@@ -93,8 +93,12 @@ public class QubitManager : MonoBehaviour
         long[] positions = result.Select(i => (long)i).ToArray();
 
         ndarray matrix = np.array(array);
-        ndarray rhomat = np.trace(matrix.reshape(new shape(2, 2, 2, 2))
+        ndarray rhomat = np.trace(matrix.reshape(new shape(dims))
                         .Transpose(positions));
+        while(rhomat.shape != new shape(2,2))
+        {
+            rhomat = np.trace(rhomat);
+        }  
         return rhomat;
     }
 }
