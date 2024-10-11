@@ -48,7 +48,43 @@ public class Gates : MonoBehaviour
             { 1, 0},
             { 0, i},
         });
+    
+    // hamilton matrix for 2 spins
+    public static Matrix<Complex32> Hamiltonian2Spins(float J)
+    {
+        return Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
+        {
+            { J/2, 0, 0, 0 },
+            { 0, -J/2, J/2, 0 },
+            { 0, J/2, -J/2, 0 },
+            { 0, 0, 0, J/2 }
+        });
+    }
+    
+    public static Matrix<Complex32> MatrixExponential(Matrix<Complex32> matrix, int terms = 10)
+    {
+        Matrix<Complex32> result = Matrix<Complex32>.Build.DenseIdentity(matrix.RowCount);
+        Matrix<Complex32> term = result; 
 
+        for (int i = 1; i <= terms; i++)
+        {
+            term = term * matrix / i; 
+            result += term; 
+        }
+
+        return result;
+    }
+
+    // compute the time evolution operator
+    public static Matrix<Complex32> SpinExchange(float J, float time)
+    {
+        Matrix<Complex32> H = Hamiltonian2Spins(J);
+        Matrix<Complex32> identity = Matrix<Complex32>.Build.DenseIdentity(4);
+
+        // calculate unitary evolution operator U(t) = exp(-iHt)
+        Matrix<Complex32> exponent = -Complex32.ImaginaryOne * H * time; 
+        return MatrixExponential(exponent); 
+    }
 
     public static Matrix<Complex32> UpMatrix()
     {

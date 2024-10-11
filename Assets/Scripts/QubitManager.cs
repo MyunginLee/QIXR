@@ -11,6 +11,7 @@ public class QubitManager : MonoBehaviour
     });
     static int numQubits = 0;
     static int initQubits = 0;
+
     public void Awake()
     {
         Qubit[] qubits = FindObjectsOfType<Qubit>();
@@ -48,5 +49,11 @@ public class QubitManager : MonoBehaviour
     public static void ApplyPhaseGate(Matrix<Complex32> phase, Matrix<Complex32> phaseDagger)
     {
         densityMatrix = phase * densityMatrix * phaseDagger;
+    }
+
+    public static void ApplySpinExchange(float J, float time)
+    {
+        Matrix<Complex32> U = SpinExchange(J, time);
+        densityMatrix = U * densityMatrix * U.ConjugateTranspose(); 
     }
 }
