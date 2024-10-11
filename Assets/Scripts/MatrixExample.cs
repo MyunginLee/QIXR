@@ -16,8 +16,11 @@ public class MatrixExample : MonoBehaviour
     }
     void TryExamples()
     {
-        ApplyPhaseGate(qubit1);
-        ApplyPauliX(qubit1);
+        ApplyHadamard(qubit1);
+        float J = 1.0f; 
+        float time = 0.1f; 
+        ApplySpinExchange(J, time);
+
         Debug.Log(GetDensityMatrix());
         Debug.Log(PartialTrace(0));
         Debug.Log(PartialTrace(1));

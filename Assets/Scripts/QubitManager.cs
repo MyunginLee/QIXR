@@ -101,4 +101,10 @@ public class QubitManager : MonoBehaviour
         }  
         return rhomat;
     }
+
+    public static void ApplySpinExchange(float J, float time)
+    {
+        Matrix<Complex32> U = SpinExchange(J, time);
+        densityMatrix = U * densityMatrix * U.ConjugateTranspose(); 
+    }
 }
