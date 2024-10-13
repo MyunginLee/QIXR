@@ -46,7 +46,7 @@ public class Gates : MonoBehaviour
     static private Matrix<Complex32> phaseSDagger = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
         {
             { 1, 0},
-            { 0, i},
+            { 0, -i},
         });
     
     // hamilton matrix for 2 spins

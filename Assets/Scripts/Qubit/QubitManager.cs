@@ -6,6 +6,7 @@ using System.Linq;
 using NumpyDotNet;
 using static Gates;
 using System;
+using NumpyLib;
 public class QubitManager : MonoBehaviour
 {
     static private Matrix<Complex32> densityMatrix;
@@ -51,6 +52,7 @@ public class QubitManager : MonoBehaviour
     public static void ApplyPauliX(Qubit qubit)
     {
         densityMatrix = qubit.GetPauliX() * densityMatrix * qubit.GetPauliX();
+        Debug.Log(densityMatrix);
     }
     public static void ApplyPauliZ(Qubit qubit)
     {
@@ -68,13 +70,13 @@ public class QubitManager : MonoBehaviour
     public static ndarray PartialTrace(int index)
     {
         List<int> result = new List<int>();
-        List<int> qtrace = new List<int> {};
-        List<int> sel = new List<int> {index};
+        List<int> qtrace = new List<int> { };
+        List<int> sel = new List<int> { index };
         Complex32[,] array = densityMatrix.ToArray();
         int[] dims = new int[2 * numQubits];
         int nd = numQubits;
 
-        for(int i = 0; i < 2 * numQubits; i++)
+        for (int i = 0; i < 2 * numQubits; i++)
         {
             dims[i] = 2;
         }
@@ -92,19 +94,22 @@ public class QubitManager : MonoBehaviour
         result.AddRange(sel.Select(q => nd + q));
         long[] positions = result.Select(i => (long)i).ToArray();
 
-        ndarray matrix = np.array(array);
+        ndarray matrix = np.array(array) / np.trace(np.array(array));
+
         ndarray rhomat = np.trace(matrix.reshape(new shape(dims))
                         .Transpose(positions));
-        while(rhomat.shape != new shape(2,2))
+        while (rhomat.shape != new shape(2, 2))
         {
             rhomat = np.trace(rhomat);
-        }  
+        }
+        rhomat = rhomat / np.trace(rhomat);
+
         return rhomat;
     }
 
     public static void ApplySpinExchange(float J, float time)
     {
         Matrix<Complex32> U = SpinExchange(J, time);
-        densityMatrix = U * densityMatrix * U.ConjugateTranspose(); 
+        densityMatrix = U * densityMatrix * U.ConjugateTranspose();
     }
 }

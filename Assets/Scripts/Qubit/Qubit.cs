@@ -3,48 +3,17 @@ using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics;
 using static QubitManager;
 using static Gates;
+using NumpyDotNet;
 public class Qubit : MonoBehaviour
 {
+    [SerializeField] GameObject dot;
+    [SerializeField] LineRenderer lineRenderer;
     private Matrix<Complex32> identityMatrix;
     private Matrix<Complex32> pauliX;
     private Matrix<Complex32> pauliZ;
     private Matrix<Complex32> hadamard;
     private Matrix<Complex32> phaseS;
     private Matrix<Complex32> phaseSDagger;
-
-    // set default density matrix
-    // private Matrix<Complex32> densityMatrix;
-
-    // public void Initialize(string state)
-    // {
-    //     if (state == "0") // For |0⟩
-    //     {
-    //         densityMatrix = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
-    //         {
-    //             { 1, 0 },
-    //             { 0, 0 }
-    //         });
-    //     }
-    //     else if (state == "1") // For |1⟩
-    //     {
-    //         densityMatrix = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
-    //         {
-    //             { 0, 0 },
-    //             { 0, 1 }
-    //         });
-    //     }
-    //     else
-    //     {
-    //         Debug.LogError("Invalid state. Use '0' for |0⟩ or '1' for |1⟩.");
-    //     }
-    // }
-
-    // public Matrix<Complex32> GetDensityMatrix()
-    // {
-    //     return densityMatrix;
-    // }
-    // end set density matrix
-
     private int initQubits;
     public void Awake()
     {
@@ -77,6 +46,10 @@ public class Qubit : MonoBehaviour
             phaseS = phaseS.KroneckerProduct(IdentityMatrix());
             phaseSDagger = phaseSDagger.KroneckerProduct(IdentityMatrix());
         }
+
+        lineRenderer.positionCount = 2;
+        lineRenderer.SetPosition(0, transform.position);
+        lineRenderer.SetPosition(1, dot.transform.position);
     }
 
     public void Update()
@@ -91,6 +64,8 @@ public class Qubit : MonoBehaviour
             phaseS = phaseS.KroneckerProduct(IdentityMatrix());
             phaseSDagger = phaseSDagger.KroneckerProduct(IdentityMatrix());
         }
+        lineRenderer.SetPosition(0, transform.position);
+        lineRenderer.SetPosition(1, dot.transform.position);
     }
 
 
@@ -117,6 +92,31 @@ public class Qubit : MonoBehaviour
     public Matrix<Complex32> GetPhaseSDagger()
     {
         return phaseSDagger;
+    }
+
+    public void UpdatePosition()
+    {
+        if(GetDensityMatrix().ColumnCount > 2)
+        {
+            ndarray array = PartialTrace(0);
+            Complex32 p10 = (Complex32)array[1,0];
+            Complex32 p01 = (Complex32)array[0,1];
+            Complex32 p00 = (Complex32)array[0,0];
+            Complex32 p11 = (Complex32)array[1,1];
+            dot.transform.localPosition = new Vector3(2*p01.Real,2*p10.Imaginary,p00.Real - p11.Real)/2;
+            dot.transform.LookAt(transform);
+            Debug.Log(dot.transform.localPosition);
+        }
+        else
+        {
+            Matrix<Complex32> matrix = GetDensityMatrix();
+            Complex32 p10 = matrix[1,0];
+            Complex32 p01 = matrix[0,1];
+            Complex32 p00 = matrix[0,0];
+            Complex32 p11 = matrix[1,1];
+            dot.transform.localPosition = new Vector3(2*p01.Real,2*p10.Imaginary,p00.Real - p11.Real)/2;
+            dot.transform.LookAt(transform);
+        }
     }
 
 }
