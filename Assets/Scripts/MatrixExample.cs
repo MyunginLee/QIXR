@@ -15,27 +15,27 @@ public class MatrixExample : MonoBehaviour
     private List<Qubit> allQubits = new List<Qubit>();
     private float time = 1f;
     private float THRESHOLD_DISTANCE = 3f;
-    private Qubit qubit1;
-    private Qubit qubit2;
-    private Qubit qubit3;
+    // private Qubit qubit1;
+    // private Qubit qubit2;
+    // private Qubit qubit3;
 
 
     void Start()
     {
         //Docs : https://numerics.mathdotnet.com/Matrix
         Invoke("TryExamples", 0.5f);
-        qubit1 = Instantiate(prefab).GetComponent<Qubit>();
-        qubit2 = Instantiate(prefab).GetComponent<Qubit>();
-        qubit3 = Instantiate(prefab).GetComponent<Qubit>();
-        // allQubits.Add(Instantiate(prefab).GetComponent<Qubit>());
-        // allQubits.Add(Instantiate(prefab).GetComponent<Qubit>());
-        // allQubits.Add(Instantiate(prefab).GetComponent<Qubit>());
+        // qubit1 = Instantiate(prefab).GetComponent<Qubit>();
+        // qubit2 = Instantiate(prefab).GetComponent<Qubit>();
+        // qubit3 = Instantiate(prefab).GetComponent<Qubit>();
+        allQubits.Add(Instantiate(prefab).GetComponent<Qubit>());
+        allQubits.Add(Instantiate(prefab).GetComponent<Qubit>());
+        allQubits.Add(Instantiate(prefab).GetComponent<Qubit>());
     }
 
     void TryExamples()
     {
         // ApplyHadamard(allQubits[0]);
-        ApplyHadamard(qubit1);
+        ApplyHadamard(allQubits[0]);
         
         float J = Mathf.PI;
         // Matrix<Complex32> abc = ApplySpinExchange(J, time, PartialTrace(0),PartialTrace(1));
