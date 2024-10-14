@@ -18,9 +18,10 @@ GameObject:
   - component: {fileID: 1760201596815704323}
   - component: {fileID: 2140175475108520250}
   - component: {fileID: 1528548390520204181}
+  - component: {fileID: 1886846635213060792}
   m_Layer: 0
   m_Name: Qubit
-  m_TagString: Untagged
+  m_TagString: Qubit
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -262,6 +263,10 @@ MonoBehaviour:
   m_SmoothRotation: 0
   m_SmoothRotationAmount: 5
   m_TightenRotation: 0.5
+  m_TrackScale: 1
+  m_SmoothScale: 0
+  m_SmoothScaleAmount: 8
+  m_TightenScale: 0.1
   m_ThrowOnDetach: 1
   m_ThrowSmoothingDuration: 0.25
   m_ThrowSmoothingCurve:
@@ -302,7 +307,9 @@ MonoBehaviour:
   m_PermittedDisplacementAxes: -1
   m_ConstrainedAxisDisplacementMode: 1
   m_TwoHandedRotationMode: 1
+  m_AllowOneHandedScaling: 1
   m_AllowTwoHandedScaling: 0
+  m_OneHandedScaleSpeed: 0.5
   m_ThresholdMoveRatioForScale: 0.05
   m_ClampScaling: 1
   m_MinimumScaleRatio: 0.25
@@ -368,6 +375,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f6c0be61502bb534f922ebb746851216, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1886846635213060792
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 271425841559563672}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6311cbfa34d1f4acf925e32379a3268c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &1744053505410640929
@@ -485,9 +504,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eab376b3440ee884997e00f0368af62b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  qubit: {fileID: 271425841559563672}
-  dot: {fileID: 1744053505410640929}
-  line: {fileID: 3481252166467003047}
   inputActions: {fileID: -944628639613478452, guid: 7a9b56bde7766b3419b01d1063b4ab56, type: 3}
 --- !u!1 &3481252166467003047
 GameObject:
