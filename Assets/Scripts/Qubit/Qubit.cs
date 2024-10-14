@@ -46,10 +46,12 @@ public class Qubit : MonoBehaviour
             phaseS = phaseS.KroneckerProduct(IdentityMatrix());
             phaseSDagger = phaseSDagger.KroneckerProduct(IdentityMatrix());
         }
-
-        lineRenderer.positionCount = 2;
-        lineRenderer.SetPosition(0, transform.position);
-        lineRenderer.SetPosition(1, dot.transform.position);
+        if(lineRenderer != null)
+        {
+            lineRenderer.positionCount = 2;
+            lineRenderer.SetPosition(0, transform.position);
+            lineRenderer.SetPosition(1, dot.transform.position);
+        }
     }
 
     public void Update()
@@ -64,8 +66,11 @@ public class Qubit : MonoBehaviour
             phaseS = phaseS.KroneckerProduct(IdentityMatrix());
             phaseSDagger = phaseSDagger.KroneckerProduct(IdentityMatrix());
         }
-        lineRenderer.SetPosition(0, transform.position);
-        lineRenderer.SetPosition(1, dot.transform.position);
+        if(lineRenderer != null)
+        {
+            lineRenderer.SetPosition(0, transform.position);
+            lineRenderer.SetPosition(1, dot.transform.position);
+        }
     }
 
 
