@@ -1,6 +1,7 @@
 using UnityEngine;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics;
+// using NumSharp;
 using System.Collections.Generic;
 using System.Linq;
 using NumpyDotNet;
@@ -98,13 +99,38 @@ public class QubitManager : MonoBehaviour
         while(rhomat.shape != new shape(2,2))
         {
             rhomat = np.trace(rhomat);
-        }  
+        }
         return rhomat;
     }
 
-    public static void ApplySpinExchange(float J, float time)
+    private static Matrix<Complex32> ConvertNdArrayToMatrix(ndarray toConvert)
     {
+        Complex32[,] converted = new Complex32[toConvert.shape[0], toConvert.shape[1]];
+        for (int i = 0; i < toConvert.shape[0]; i++)
+        {
+            for (int j = 0; j < toConvert.shape[1]; j++)
+            {
+                converted[i, j] = (Complex32)toConvert[i, j];
+            }
+        }
+        return Matrix<Complex32>.Build.DenseOfArray(converted);
+    }
+
+    public static Matrix<Complex32> ApplySpinExchange(float J, float time, ndarray q1Trace, ndarray q2Trace)
+    {
+        Matrix<Complex32> localDensityMatrix; 
+        
+        Matrix<Complex32> q1TraceMatrix = ConvertNdArrayToMatrix(q1Trace);
+        Matrix<Complex32> q2TraceMatrix = ConvertNdArrayToMatrix(q2Trace);
+
+        Debug.Log(q1TraceMatrix);
+        Debug.Log(q2TraceMatrix);
+
+        localDensityMatrix = q1TraceMatrix;
+        localDensityMatrix = localDensityMatrix.KroneckerProduct(q2TraceMatrix);
+
         Matrix<Complex32> U = SpinExchange(J, time);
-        densityMatrix = U * densityMatrix * U.ConjugateTranspose(); 
+        localDensityMatrix = U * localDensityMatrix * U.ConjugateTranspose();
+        return localDensityMatrix;
     }
 }

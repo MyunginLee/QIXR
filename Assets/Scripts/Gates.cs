@@ -54,10 +54,10 @@ public class Gates : MonoBehaviour
     {
         return Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
         {
-            { J/2, 0, 0, 0 },
-            { 0, -J/2, J/2, 0 },
-            { 0, J/2, -J/2, 0 },
-            { 0, 0, 0, J/2 }
+            { J/4, 0, 0, 0 },
+            { 0, -J/4, J/2, 0 },
+            { 0, J/2, -J/4, 0 },
+            { 0, 0, 0, J/4 }
         });
     }
     

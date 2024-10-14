@@ -12,39 +12,6 @@ public class Qubit : MonoBehaviour
     private Matrix<Complex32> phaseS;
     private Matrix<Complex32> phaseSDagger;
 
-    // set default density matrix
-    // private Matrix<Complex32> densityMatrix;
-
-    // public void Initialize(string state)
-    // {
-    //     if (state == "0") // For |0⟩
-    //     {
-    //         densityMatrix = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
-    //         {
-    //             { 1, 0 },
-    //             { 0, 0 }
-    //         });
-    //     }
-    //     else if (state == "1") // For |1⟩
-    //     {
-    //         densityMatrix = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
-    //         {
-    //             { 0, 0 },
-    //             { 0, 1 }
-    //         });
-    //     }
-    //     else
-    //     {
-    //         Debug.LogError("Invalid state. Use '0' for |0⟩ or '1' for |1⟩.");
-    //     }
-    // }
-
-    // public Matrix<Complex32> GetDensityMatrix()
-    // {
-    //     return densityMatrix;
-    // }
-    // end set density matrix
-
     private int initQubits;
     public void Awake()
     {
@@ -118,5 +85,4 @@ public class Qubit : MonoBehaviour
     {
         return phaseSDagger;
     }
-
 }
