@@ -34,10 +34,9 @@ public class MatrixExample : MonoBehaviour
 
     void TryExamples()
     {
-        // ApplyHadamard(allQubits[0]);
         ApplyHadamard(allQubits[0]);
         
-        float J = Mathf.PI;
+        // float J = Mathf.PI;
         // Matrix<Complex32> abc = ApplySpinExchange(J, time, PartialTrace(0),PartialTrace(1));
         // Debug.Log(abc);
     
@@ -76,6 +75,6 @@ public class MatrixExample : MonoBehaviour
 
     void Update()
     {
-        // CalculateProximity(allQubits, time, THRESHOLD_DISTANCE);
+        CalculateProximity(allQubits, time, THRESHOLD_DISTANCE);
     }
 }

@@ -8,11 +8,33 @@ using NumpyDotNet;
 using static Gates;
 using System;
 using NumpyLib;
+using static Qubit;
 public class QubitManager : MonoBehaviour
 {
     static private Matrix<Complex32> densityMatrix;
     static int numQubits = 0;
     static int initQubits = 0;
+    private List<Qubit> allQubits = new List<Qubit>();
+    private float time = 1f;
+    private float THRESHOLD_DISTANCE = 2f;
+
+    void Start() 
+    {
+        GameObject[] qubits = GameObject.FindGameObjectsWithTag("Qubit");
+
+        foreach (GameObject qubit in qubits)
+        {
+            Qubit qubitComponent = qubit.GetComponent<Qubit>();
+            allQubits.Add(qubitComponent);
+        }
+
+        ApplyHadamard(allQubits[0]);
+    }
+
+    void Update()
+    {
+        CalculateProximity(allQubits, time, THRESHOLD_DISTANCE);
+    }
 
     public static void UpdateDensityMatrix()
     {
@@ -136,6 +158,34 @@ public class QubitManager : MonoBehaviour
 
         Matrix<Complex32> U = SpinExchange(J, time);
         localDensityMatrix = U * localDensityMatrix * U.ConjugateTranspose();
+        Debug.Log(localDensityMatrix);
         return localDensityMatrix;
+    }
+
+    void CalculateProximity(List<Qubit> qList, float time, float THRESHOLD_DISTANCE) 
+    {
+        for (int i = 0; i < qList.Count-1; i++) 
+        {
+            for (int j = i+1; j < qList.Count; j++) 
+            {
+                Qubit qubitA;
+                Qubit qubitB;
+                float distance;
+                float scalingFactor;
+                float J;
+
+                qubitA = qList[i];
+                qubitB = qList[j];
+
+                distance = Vector3.Distance(qubitA.transform.position, qubitB.transform.position);
+                if (distance <= THRESHOLD_DISTANCE) 
+                {
+                    scalingFactor = distance/THRESHOLD_DISTANCE;
+                    J = Mathf.PI * scalingFactor;
+                    ApplySpinExchange(J, time, PartialTrace(i),PartialTrace(j));
+                    Debug.Log("Distance: " + distance + ", J: " + J);
+                }
+            }
+        }
     }
 }
