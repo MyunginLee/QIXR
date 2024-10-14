@@ -14,6 +14,7 @@ public class Qubit : MonoBehaviour
     private Matrix<Complex32> hadamard;
     private Matrix<Complex32> phaseS;
     private Matrix<Complex32> phaseSDagger;
+
     private int initQubits;
     public void Awake()
     {
