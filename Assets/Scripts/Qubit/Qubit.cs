@@ -16,10 +16,12 @@ public class Qubit : MonoBehaviour
     private Matrix<Complex32> phaseSDagger;
 
     private int initQubits;
+    private int index;
     public void Awake()
     {
         UpdateDensityMatrix();
         IncrementInitQubits();
+        index = GetInitQubits() - 1;
         initQubits = GetInitQubits();
         identityMatrix = IdentityMatrix();
         pauliX = (initQubits == 1) ? PauliX() : IdentityMatrix();
@@ -27,7 +29,6 @@ public class Qubit : MonoBehaviour
         hadamard = (initQubits == 1) ? Hadamard() : IdentityMatrix();
         phaseS = (initQubits == 1) ? PhaseS() : IdentityMatrix();
         phaseSDagger = (initQubits == 1) ? PhaseSDagger() : IdentityMatrix();
-
         for (int i = 2; i <= initQubits; i++)
         {
             identityMatrix = identityMatrix.KroneckerProduct(IdentityMatrix());
@@ -104,7 +105,7 @@ public class Qubit : MonoBehaviour
     {
         if(GetDensityMatrix().ColumnCount > 2)
         {
-            ndarray array = PartialTrace(0);
+            ndarray array = PartialTrace(index);
             Complex32 p10 = (Complex32)array[1,0];
             Complex32 p01 = (Complex32)array[0,1];
             Complex32 p00 = (Complex32)array[0,0];
