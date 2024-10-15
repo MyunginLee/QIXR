@@ -11,6 +11,7 @@ public class QubitInput : MonoBehaviour
     [SerializeField] private InputActionAsset inputActions;
     [SerializeField] private InputActionAsset measureActions;
     [SerializeField] private Qubit qubit;
+    [SerializeField] private Transform innerSphere;
     [SerializeField] private XRGrabInteractable interactableObject;
     [SerializeField] private float rotationSpeed = 2000.0f;
     private InputAction rotate;
@@ -48,8 +49,8 @@ public class QubitInput : MonoBehaviour
 
         if (grabbedObject == qubit.name)
         {
-            qubit.transform.Rotate(Vector3.up, rotate.ReadValue<Vector2>().x * rotationSpeed * Time.deltaTime);
-            qubit.transform.Rotate(Vector3.right, -translate.ReadValue<Vector2>().y * rotationSpeed * Time.deltaTime);
+            innerSphere.transform.Rotate(Vector3.up, rotate.ReadValue<Vector2>().x * rotationSpeed * Time.deltaTime);
+            innerSphere.transform.Rotate(Vector3.right, -translate.ReadValue<Vector2>().y * rotationSpeed * Time.deltaTime);
             if (leftHand.FindAction("X").WasReleasedThisFrame() && buttonReleased)
             {
                 ApplyPauliX(qubit);
