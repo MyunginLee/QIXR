@@ -101,10 +101,10 @@ public class Entanglement : MonoBehaviour
                         bp[i].velocity += bp[i].acceleration * Time.deltaTime;
                     }
 
-                    //if (bp[i].velocity.sqrMagnitude > QubitManager.J[j] * QubitManager.J[j])
-                    //{
-                    //    bp[i].velocity = bp[i].velocity.normalized * QubitManager.J[j];
-                    //}
+                    if (bp[i].velocity.sqrMagnitude > QubitManager.J[j] * QubitManager.J[j])
+                    {
+                        bp[i].velocity = bp[i].velocity.normalized * QubitManager.J[j];
+                    }
                     if (bp[i].velocity.sqrMagnitude > 36)
                     {
                         bp[i].velocity = bp[i].velocity.normalized * 6;
@@ -112,14 +112,14 @@ public class Entanglement : MonoBehaviour
 
                     strings[i].transform.position += bp[i].velocity * Time.deltaTime;
 
-                    //// Trail color according to J
-                    //Gradient gradient = new Gradient();
-                    //gradient.SetKeys(
-                    //    //new GradientColorKey[] { new GradientColorKey(new Color((Mathf.Sin(Mathf.PI * 2f / numberOfSphere * i) + 1) / 2f, (Mathf.Cos(Mathf.PI * 2f / numberOfSphere * i) + 1) / 2f, Mathf.Tan(Mathf.PI * 2 / numberOfSphere * i)), 0.80f), new GradientColorKey(new Color((Mathf.Cos(Mathf.PI * 2 / numberOfSphere * i) + 1) / 5f, (Mathf.Sin(Mathf.PI * 2 / numberOfSphere * i) + 1) / 3f, Mathf.Tan(Mathf.PI * 2 / numberOfSphere * i)), 0.05f) },
-                    //    new GradientColorKey[] { new GradientColorKey(new Color(0f, 0f, 0f), 0f), new GradientColorKey(new Color((Mathf.Cos(Mathf.PI * 2 / numberOfSphere * i) + 1) / 5f, 0.1f - (Mathf.Cos(Mathf.PI * 2 / numberOfSphere * i) / 10f), 0.5f + (Mathf.Sin(Mathf.PI * 2 / numberOfSphere * i) ) / 9f), QubitManager.J[j] / 10f) },
-                    //    new GradientAlphaKey[] { new GradientAlphaKey(0.1f, 0.1f), new GradientAlphaKey(QubitManager.J[j]/5f, QubitManager.J[j] / 5f) }
-                    //);
-                    //trailRenderer.colorGradient = gradient;
+                    // Trail color according to J
+                    Gradient gradient = new Gradient();
+                    gradient.SetKeys(
+                        //new GradientColorKey[] { new GradientColorKey(new Color((Mathf.Sin(Mathf.PI * 2f / numberOfSphere * i) + 1) / 2f, (Mathf.Cos(Mathf.PI * 2f / numberOfSphere * i) + 1) / 2f, Mathf.Tan(Mathf.PI * 2 / numberOfSphere * i)), 0.80f), new GradientColorKey(new Color((Mathf.Cos(Mathf.PI * 2 / numberOfSphere * i) + 1) / 5f, (Mathf.Sin(Mathf.PI * 2 / numberOfSphere * i) + 1) / 3f, Mathf.Tan(Mathf.PI * 2 / numberOfSphere * i)), 0.05f) },
+                        new GradientColorKey[] { new GradientColorKey(new Color(0f, 0f, 0f), 0f), new GradientColorKey(new Color((Mathf.Cos(Mathf.PI * 2 / numberOfSphere * i) + 1) / 5f, 0.1f - (Mathf.Cos(Mathf.PI * 2 / numberOfSphere * i) / 10f), 0.5f + (Mathf.Sin(Mathf.PI * 2 / numberOfSphere * i)) / 9f), QubitManager.J[j] / 10f) },
+                        new GradientAlphaKey[] { new GradientAlphaKey(0.1f, 0.1f), new GradientAlphaKey(QubitManager.J[j] / 5f, QubitManager.J[j] / 5f) }
+                    );
+                    trailRenderer.colorGradient = gradient;
                 }
             }
             else // unentangled

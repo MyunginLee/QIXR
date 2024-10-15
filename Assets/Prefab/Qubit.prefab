@@ -413,11 +413,11 @@ MonoBehaviour:
   qubit: {fileID: 2987151420045454858}
   interactableObject: {fileID: 4814463557117653112}
   rotationSpeed: 50
-  audioClips:
-  - {fileID: 8300000, guid: 8f15743395e4ee3469a2ff90d15e815d, type: 3}
-  - {fileID: 8300000, guid: 4c5b6334f8d0e5c4e9df6f8af7c0a8e1, type: 3}
-  - {fileID: 8300000, guid: 89b4153bb7c7c0d4f8c6e0c148679be3, type: 3}
-  - {fileID: 8300000, guid: 8216ae01316e33d44a94baf89b4f6963, type: 3}
+  audioSource: {fileID: 0}
+  audioClipX: {fileID: 8300000, guid: 8f15743395e4ee3469a2ff90d15e815d, type: 3}
+  audioClipY: {fileID: 8300000, guid: 4c5b6334f8d0e5c4e9df6f8af7c0a8e1, type: 3}
+  audioClipA: {fileID: 8300000, guid: 89b4153bb7c7c0d4f8c6e0c148679be3, type: 3}
+  audioClipB: {fileID: 8300000, guid: 8216ae01316e33d44a94baf89b4f6963, type: 3}
 --- !u!120 &658175905591168239
 LineRenderer:
   serializedVersion: 2

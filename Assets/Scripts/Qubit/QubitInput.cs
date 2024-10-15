@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.XR.Interaction.Toolkit;
 using static QubitManager;
+using System.Collections;
+[RequireComponent(typeof(AudioSource))]
 
 public class QubitInput : MonoBehaviour
 {
@@ -18,9 +20,10 @@ public class QubitInput : MonoBehaviour
     private bool buttonReleased = true;
     private string grabbedObject = "";
 
-    public static AudioSource audioSource;
+    AudioSource audioSource;
+
     [SerializeField]
-    private AudioClip[] audioClips = new AudioClip[4];
+    public AudioClip audioClipX, audioClipY, audioClipA, audioClipB;
 
     void Start()
     {
@@ -52,7 +55,7 @@ public class QubitInput : MonoBehaviour
                 ApplyPauliX(qubit);
                 qubit.UpdatePosition();
                 buttonReleased = false;
-                audioSource.PlayOneShot(audioClips[0]);
+                audioSource.PlayOneShot(audioClipX, 1f);
             }
             if (leftHand.FindAction("X").WasReleasedThisFrame())
             {
@@ -63,7 +66,7 @@ public class QubitInput : MonoBehaviour
                 ApplyPauliZ(qubit);
                 qubit.UpdatePosition();
                 buttonReleased = false;
-                audioSource.PlayOneShot(audioClips[1]);
+                audioSource.PlayOneShot(audioClipY, 1f);
             }
             if (leftHand.FindAction("Y").WasReleasedThisFrame())
             {
@@ -74,7 +77,8 @@ public class QubitInput : MonoBehaviour
                 ApplyHadamard(qubit);
                 qubit.UpdatePosition();
                 buttonReleased = false;
-                audioSource.PlayOneShot(audioClips[2]);
+                audioSource.PlayOneShot(audioClipA, 1f) ;
+                Debug.Log("A");
             }
             if (rightHand.FindAction("A").WasReleasedThisFrame())
             {
@@ -85,7 +89,8 @@ public class QubitInput : MonoBehaviour
                 ApplyPhaseGate(qubit);
                 qubit.UpdatePosition();
                 buttonReleased = false;
-                audioSource.PlayOneShot(audioClips[3]);
+                audioSource.PlayOneShot(audioClipB, 1f);
+                Debug.Log("B");
             }
             if (rightHand.FindAction("B").WasReleasedThisFrame())
             {
