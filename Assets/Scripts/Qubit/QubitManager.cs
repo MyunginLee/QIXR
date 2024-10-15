@@ -16,24 +16,27 @@ public class QubitManager : MonoBehaviour
     static int initQubits = 0;
     private List<Qubit> allQubits = new List<Qubit>();
     private float time = 1f;
-    private float THRESHOLD_DISTANCE = 2f;
+    public static float THRESHOLD_DISTANCE = 2.5f;
+    public static float[] J;
 
+    public static float volume = 0.8f;
     void Start() 
     {
         GameObject[] qubits = GameObject.FindGameObjectsWithTag("Qubit");
 
+        J = new float[qubits.Length];
         foreach (GameObject qubit in qubits)
         {
             Qubit qubitComponent = qubit.GetComponent<Qubit>();
             allQubits.Add(qubitComponent);
         }
 
-        ApplyHadamard(allQubits[0]);
+        //ApplyHadamard(allQubits[0]);
     }
 
     void Update()
     {
-        CalculateProximity(allQubits, time, THRESHOLD_DISTANCE);
+        J = CalculateProximity(allQubits, time, THRESHOLD_DISTANCE);
     }
 
     public static void UpdateDensityMatrix()
@@ -162,9 +165,10 @@ public class QubitManager : MonoBehaviour
         return localDensityMatrix;
     }
 
-    void CalculateProximity(List<Qubit> qList, float time, float THRESHOLD_DISTANCE) 
+    float[] CalculateProximity(List<Qubit> qList, float time, float THRESHOLD_DISTANCE)
     {
-        for (int i = 0; i < qList.Count-1; i++) 
+        float[] J = new float[qList.Count];
+        for (int i = 0; i < qList.Count; i++) 
         {
             for (int j = i+1; j < qList.Count; j++) 
             {
@@ -172,7 +176,6 @@ public class QubitManager : MonoBehaviour
                 Qubit qubitB;
                 float distance;
                 float scalingFactor;
-                float J;
 
                 qubitA = qList[i];
                 qubitB = qList[j];
@@ -181,11 +184,13 @@ public class QubitManager : MonoBehaviour
                 if (distance <= THRESHOLD_DISTANCE) 
                 {
                     scalingFactor = distance/THRESHOLD_DISTANCE;
-                    J = Mathf.PI * scalingFactor;
-                    ApplySpinExchange(J, time, PartialTrace(i),PartialTrace(j));
-                    Debug.Log("Distance: " + distance + ", J: " + J);
+                    J[i] = Mathf.PI * scalingFactor;
+                    J[j] = J[i];
+                    ApplySpinExchange(J[i], time, PartialTrace(i),PartialTrace(j));
+                    //Debug.Log("Distance: " + distance + ", J: " + J[i]);
                 }
             }
         }
+        return J;
     }
 }

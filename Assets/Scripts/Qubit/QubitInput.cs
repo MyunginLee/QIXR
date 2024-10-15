@@ -1,3 +1,4 @@
+using System.Net.NetworkInformation;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.XR.Interaction.Toolkit;
@@ -17,11 +18,15 @@ public class QubitInput : MonoBehaviour
     private bool buttonReleased = true;
     private string grabbedObject = "";
 
+    public static AudioSource audioSource;
+    [SerializeField]
+    private AudioClip[] audioClips = new AudioClip[4];
 
     void Start()
     {
         interactableObject.selectEntered.AddListener(OnGrab);
         interactableObject.selectExited.AddListener(OnRelease);
+        audioSource = GetComponent<AudioSource>();
     }
 
     private void OnEnable()
@@ -47,6 +52,7 @@ public class QubitInput : MonoBehaviour
                 ApplyPauliX(qubit);
                 qubit.UpdatePosition();
                 buttonReleased = false;
+                audioSource.PlayOneShot(audioClips[0]);
             }
             if (leftHand.FindAction("X").WasReleasedThisFrame())
             {
@@ -57,6 +63,7 @@ public class QubitInput : MonoBehaviour
                 ApplyPauliZ(qubit);
                 qubit.UpdatePosition();
                 buttonReleased = false;
+                audioSource.PlayOneShot(audioClips[1]);
             }
             if (leftHand.FindAction("Y").WasReleasedThisFrame())
             {
@@ -67,6 +74,7 @@ public class QubitInput : MonoBehaviour
                 ApplyHadamard(qubit);
                 qubit.UpdatePosition();
                 buttonReleased = false;
+                audioSource.PlayOneShot(audioClips[2]);
             }
             if (rightHand.FindAction("A").WasReleasedThisFrame())
             {
@@ -77,6 +85,7 @@ public class QubitInput : MonoBehaviour
                 ApplyPhaseGate(qubit);
                 qubit.UpdatePosition();
                 buttonReleased = false;
+                audioSource.PlayOneShot(audioClips[3]);
             }
             if (rightHand.FindAction("B").WasReleasedThisFrame())
             {
