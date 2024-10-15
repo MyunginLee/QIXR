@@ -1990,6 +1990,10 @@ PrefabInstance:
       propertyPath: GlobalObjectIdHash
       value: 976802222
       objectReference: {fileID: 0}
+    - target: {fileID: 1817877734419485206, guid: 02f458ae60c44b242acfae69670f3cd6, type: 3}
+      propertyPath: m_TagString
+      value: Core
+      objectReference: {fileID: 0}
     - target: {fileID: 2099626127161024996, guid: 02f458ae60c44b242acfae69670f3cd6, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -3762,10 +3766,14 @@ PrefabInstance:
       propertyPath: GlobalObjectIdHash
       value: 1699968008
       objectReference: {fileID: 0}
+    - target: {fileID: 1817877734419485206, guid: 02f458ae60c44b242acfae69670f3cd6, type: 3}
+      propertyPath: m_TagString
+      value: Core
+      objectReference: {fileID: 0}
     - target: {fileID: 4143553236259810847, guid: 02f458ae60c44b242acfae69670f3cd6, type: 3}
       propertyPath: audioClips.Array.data[0]
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 8300000, guid: 8f15743395e4ee3469a2ff90d15e815d, type: 3}
     - target: {fileID: 5876169162152079116, guid: 02f458ae60c44b242acfae69670f3cd6, type: 3}
       propertyPath: m_LocalScale.y
       value: 0.30000007

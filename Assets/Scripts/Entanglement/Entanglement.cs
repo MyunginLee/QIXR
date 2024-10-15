@@ -11,6 +11,7 @@ public class Entanglement : MonoBehaviour
     private int numberOfSphere = 300;
     TrailRenderer trailRenderer;
     GameObject[] qubits;
+    GameObject[] sphere;
     float qubitWeight = 10f; // qubit weight
     float stringWeight = 1f;
     public float trailtime = 1f;
@@ -24,7 +25,7 @@ public class Entanglement : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        qubits = GameObject.FindGameObjectsWithTag("Qubit");
+        qubits = GameObject.FindGameObjectsWithTag("Core");
         bp = new BodyProperty[numberOfSphere];
         strings = new GameObject[numberOfSphere];
         entangled = new bool[qubits.Length];
@@ -82,6 +83,8 @@ public class Entanglement : MonoBehaviour
         {
             if (entangled[j])
             {
+                float qubitScale = QubitManager.J[j] / 3.15f;
+                qubits[j].transform.localScale  = new Vector3(qubitScale, qubitScale, qubitScale);
                 for (int i = 0; i < numberOfSphere; i++)
                 {
                     trailRenderer.time = trailtime;
@@ -91,28 +94,32 @@ public class Entanglement : MonoBehaviour
                     if (distance.sqrMagnitude > 0.05f)
                     {
                         bp[i].acceleration += gravity / stringWeight;
-                        if (bp[i].acceleration.sqrMagnitude > 36)
+                        if (bp[i].acceleration.sqrMagnitude > 25)
                         {
-                            bp[i].acceleration = bp[i].acceleration.normalized * 36f;
+                            bp[i].acceleration = bp[i].acceleration.normalized * 5f;
                         }
                         bp[i].velocity += bp[i].acceleration * Time.deltaTime;
                     }
 
-                    if (bp[i].velocity.sqrMagnitude > QubitManager.J[j] * QubitManager.J[j])
+                    //if (bp[i].velocity.sqrMagnitude > QubitManager.J[j] * QubitManager.J[j])
+                    //{
+                    //    bp[i].velocity = bp[i].velocity.normalized * QubitManager.J[j];
+                    //}
+                    if (bp[i].velocity.sqrMagnitude > 36)
                     {
-                        bp[i].velocity = bp[i].velocity.normalized * QubitManager.J[j];
+                        bp[i].velocity = bp[i].velocity.normalized * 6;
                     }
 
                     strings[i].transform.position += bp[i].velocity * Time.deltaTime;
 
-                    // Trail color according to J
-                    Gradient gradient = new Gradient();
-                    gradient.SetKeys(
-                        //new GradientColorKey[] { new GradientColorKey(new Color((Mathf.Sin(Mathf.PI * 2f / numberOfSphere * i) + 1) / 2f, (Mathf.Cos(Mathf.PI * 2f / numberOfSphere * i) + 1) / 2f, Mathf.Tan(Mathf.PI * 2 / numberOfSphere * i)), 0.80f), new GradientColorKey(new Color((Mathf.Cos(Mathf.PI * 2 / numberOfSphere * i) + 1) / 5f, (Mathf.Sin(Mathf.PI * 2 / numberOfSphere * i) + 1) / 3f, Mathf.Tan(Mathf.PI * 2 / numberOfSphere * i)), 0.05f) },
-                        new GradientColorKey[] { new GradientColorKey(new Color(0f, 0f, 0f), 0f), new GradientColorKey(new Color((Mathf.Cos(Mathf.PI * 2 / numberOfSphere * i) + 1) / 5f, 0.1f - (Mathf.Cos(Mathf.PI * 2 / numberOfSphere * i) / 10f), 0.5f + (Mathf.Sin(Mathf.PI * 2 / numberOfSphere * i) ) / 9f), QubitManager.J[j] / 10f) },
-                        new GradientAlphaKey[] { new GradientAlphaKey(0.1f, 0.1f), new GradientAlphaKey(QubitManager.J[j]/5f, QubitManager.J[j] / 5f) }
-                    );
-                    trailRenderer.colorGradient = gradient;
+                    //// Trail color according to J
+                    //Gradient gradient = new Gradient();
+                    //gradient.SetKeys(
+                    //    //new GradientColorKey[] { new GradientColorKey(new Color((Mathf.Sin(Mathf.PI * 2f / numberOfSphere * i) + 1) / 2f, (Mathf.Cos(Mathf.PI * 2f / numberOfSphere * i) + 1) / 2f, Mathf.Tan(Mathf.PI * 2 / numberOfSphere * i)), 0.80f), new GradientColorKey(new Color((Mathf.Cos(Mathf.PI * 2 / numberOfSphere * i) + 1) / 5f, (Mathf.Sin(Mathf.PI * 2 / numberOfSphere * i) + 1) / 3f, Mathf.Tan(Mathf.PI * 2 / numberOfSphere * i)), 0.05f) },
+                    //    new GradientColorKey[] { new GradientColorKey(new Color(0f, 0f, 0f), 0f), new GradientColorKey(new Color((Mathf.Cos(Mathf.PI * 2 / numberOfSphere * i) + 1) / 5f, 0.1f - (Mathf.Cos(Mathf.PI * 2 / numberOfSphere * i) / 10f), 0.5f + (Mathf.Sin(Mathf.PI * 2 / numberOfSphere * i) ) / 9f), QubitManager.J[j] / 10f) },
+                    //    new GradientAlphaKey[] { new GradientAlphaKey(0.1f, 0.1f), new GradientAlphaKey(QubitManager.J[j]/5f, QubitManager.J[j] / 5f) }
+                    //);
+                    //trailRenderer.colorGradient = gradient;
                 }
             }
             else // unentangled
@@ -122,7 +129,7 @@ public class Entanglement : MonoBehaviour
                     bp[i].acceleration = new Vector3(Random.Range(-0.1f, 0.1f), Random.Range(-0.1f, 0.1f), Random.Range(-0.1f, 0.1f));
                     bp[i].velocity += bp[i].acceleration * Time.deltaTime;
                     strings[i].transform.position += bp[i].velocity * Time.deltaTime;
-                    trailRenderer.time = trailRenderer.time * 0.3f; ;  // Duration of the trail
+                    //trailRenderer.time = trailRenderer.time * 0.3f; ;  // Duration of the trail
 
                 }
 
