@@ -1,7 +1,6 @@
 using UnityEngine;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics;
-// using NumSharp;
 using System.Collections.Generic;
 using System.Linq;
 using NumpyDotNet;
@@ -9,6 +8,8 @@ using static Gates;
 using System;
 using NumpyLib;
 using static Qubit;
+
+using TMPro;
 public class QubitManager : MonoBehaviour
 {
     static private Matrix<Complex32> densityMatrix;
@@ -18,6 +19,7 @@ public class QubitManager : MonoBehaviour
     private float time = 1f;
     public static float THRESHOLD_DISTANCE = 2.5f;
     public static float[] J;
+    public TMP_Text textMeshPro;
 
     public static float volume = 0.8f;
     void Start() 
@@ -31,12 +33,18 @@ public class QubitManager : MonoBehaviour
             allQubits.Add(qubitComponent);
         }
 
-        //ApplyHadamard(allQubits[0]);
+        // Invoke("ApplyGate", 1f);
     }
 
     void Update()
     {
+        // time += Time.deltaTime;
         J = CalculateProximity(allQubits, time, THRESHOLD_DISTANCE);
+    }
+
+    void ApplyGate() {
+        ApplyHadamard(allQubits[0]);
+        ApplySpinExchange(Mathf.PI/2, time);
     }
 
     public static void UpdateDensityMatrix()
@@ -78,7 +86,7 @@ public class QubitManager : MonoBehaviour
     public static void ApplyPauliX(Qubit qubit)
     {
         densityMatrix = qubit.GetPauliX() * densityMatrix * qubit.GetPauliX();
-        Debug.Log(densityMatrix);
+        // Debug.Log(densityMatrix);
     }
     public static void ApplyPauliZ(Qubit qubit)
     {
@@ -133,37 +141,79 @@ public class QubitManager : MonoBehaviour
         return rhomat;
     }
 
-    private static Matrix<Complex32> ConvertNdArrayToMatrix(ndarray toConvert)
-    {
-        Complex32[,] converted = new Complex32[toConvert.shape[0], toConvert.shape[1]];
-        for (int i = 0; i < toConvert.shape[0]; i++)
-        {
-            for (int j = 0; j < toConvert.shape[1]; j++)
-            {
-                converted[i, j] = (Complex32)toConvert[i, j];
-            }
-        }
-        return Matrix<Complex32>.Build.DenseOfArray(converted);
-    }
+    // private static Matrix<Complex32> ConvertNdArrayToMatrix(ndarray toConvert)
+    // {
+    //     Complex32[,] converted = new Complex32[toConvert.shape[0], toConvert.shape[1]];
+    //     for (int i = 0; i < toConvert.shape[0]; i++)
+    //     {
+    //         for (int j = 0; j < toConvert.shape[1]; j++)
+    //         {
+    //             converted[i, j] = (Complex32)toConvert[i, j];
+    //         }
+    //     }
+    //     return Matrix<Complex32>.Build.DenseOfArray(converted);
+    // }
 
-    public static Matrix<Complex32> ApplySpinExchange(float J, float time, ndarray q1Trace, ndarray q2Trace)
-    {
-        Matrix<Complex32> localDensityMatrix; 
+    // private static ndarray ConvertMatrixToNdArray(Matrix<Complex32> matrix)
+    // {
+    //     Complex32[,] array = matrix.ToArray(); 
+    //     return np.array(array);
+    // }
+
+    // public static (Matrix<Complex32> localDensityMatrix, ndarray q1Trace, ndarray q2Trace) ApplySpinExchange(float J, float time, ref ndarray q1Trace, ref ndarray q2Trace)
+    // {
+    //     Matrix<Complex32> localDensityMatrix; 
         
-        Matrix<Complex32> q1TraceMatrix = ConvertNdArrayToMatrix(q1Trace);
-        Matrix<Complex32> q2TraceMatrix = ConvertNdArrayToMatrix(q2Trace);
+    //     Matrix<Complex32> q1TraceMatrix = ConvertNdArrayToMatrix(q1Trace);
+    //     Matrix<Complex32> q2TraceMatrix = ConvertNdArrayToMatrix(q2Trace);
 
-        Debug.Log(q1TraceMatrix);
-        Debug.Log(q2TraceMatrix);
+    //     localDensityMatrix = q1TraceMatrix;
+    //     localDensityMatrix = localDensityMatrix.KroneckerProduct(q2TraceMatrix);
 
-        localDensityMatrix = q1TraceMatrix;
-        localDensityMatrix = localDensityMatrix.KroneckerProduct(q2TraceMatrix);
+    //     Matrix<Complex32> U = SpinExchange(J, time);
+    //     localDensityMatrix = U * localDensityMatrix * U.ConjugateTranspose();
+    //     var subMatrices = BreakDownMatrix(localDensityMatrix);
 
+    //     q1Trace = ConvertMatrixToNdArray(subMatrices[0]);
+    //     q2Trace = ConvertMatrixToNdArray(subMatrices[1]);
+    
+    //     // Debug.Log("[+] LOG 1: SHAPE = (" + a.shape[0] + ", " + a.shape[1] + ")\tDATA TYPE: " + a.GetType());
+    //     Debug.Log("DS: " + localDensityMatrix);
+    //     Debug.Log("q1trace" + q1Trace + "q2trace" + q2Trace);
+    //     // Debug.Log(q2Trace);
+
+    //     return (localDensityMatrix, q1Trace, q2Trace);
+    // }
+
+    public static void ApplySpinExchange (float J, float time)
+    {
         Matrix<Complex32> U = SpinExchange(J, time);
-        localDensityMatrix = U * localDensityMatrix * U.ConjugateTranspose();
-        Debug.Log(localDensityMatrix);
-        return localDensityMatrix;
+        densityMatrix = U * densityMatrix * U.ConjugateTranspose();
     }
+
+    // private static Matrix<Complex32>[] BreakDownMatrix(Matrix<Complex32> combinedMatrix)
+    // {
+    //     var subMatrices = new Matrix<Complex32>[2];
+
+    //     Complex32[,] subMatrix1 = new Complex32[2, 2];
+    //     Complex32[,] subMatrix2 = new Complex32[2, 2];
+
+    //     subMatrix1[0, 0] = combinedMatrix[0, 0] + combinedMatrix[2, 2];
+    //     subMatrix1[0, 1] = combinedMatrix[0, 1] + combinedMatrix[2, 3];
+    //     subMatrix1[1, 0] = combinedMatrix[1, 0] + combinedMatrix[3, 2];
+    //     subMatrix1[1, 1] = combinedMatrix[1, 1] + combinedMatrix[3, 3];
+
+    //     subMatrix2[0, 0] = combinedMatrix[0, 0] + combinedMatrix[1, 1];
+    //     subMatrix2[0, 1] = combinedMatrix[0, 2] + combinedMatrix[1, 3];
+    //     subMatrix2[1, 0] = combinedMatrix[2, 0] + combinedMatrix[3, 1];
+    //     subMatrix2[1, 1] = combinedMatrix[2, 2] + combinedMatrix[3, 3];
+
+    //     subMatrices[0] = Matrix<Complex32>.Build.DenseOfArray(subMatrix1); 
+    //     subMatrices[1] = Matrix<Complex32>.Build.DenseOfArray(subMatrix2); 
+
+    //     return subMatrices;
+    // }
+
 
     float[] CalculateProximity(List<Qubit> qList, float time, float THRESHOLD_DISTANCE)
     {
@@ -172,13 +222,10 @@ public class QubitManager : MonoBehaviour
         {
             for (int j = i+1; j < qList.Count; j++) 
             {
-                Qubit qubitA;
-                Qubit qubitB;
+                Qubit qubitA = qList[i];
+                Qubit qubitB = qList[j];
                 float distance;
                 float scalingFactor;
-
-                qubitA = qList[i];
-                qubitB = qList[j];
 
                 distance = Vector3.Distance(qubitA.transform.position, qubitB.transform.position);
                 if (distance <= THRESHOLD_DISTANCE) 
@@ -186,8 +233,7 @@ public class QubitManager : MonoBehaviour
                     scalingFactor = distance/THRESHOLD_DISTANCE;
                     J[i] = Mathf.PI * scalingFactor;
                     J[j] = J[i];
-                    ApplySpinExchange(J[i], time, PartialTrace(i),PartialTrace(j));
-                    //Debug.Log("Distance: " + distance + ", J: " + J[i]);
+                    ApplySpinExchange(J[i], time);
                 }
             }
         }
