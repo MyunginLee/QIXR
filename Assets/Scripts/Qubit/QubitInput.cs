@@ -20,30 +20,36 @@ public class QubitInput : MonoBehaviour
     private InputActionMap rightHand;
     private bool buttonReleased = true;
     private string grabbedObject = "";
-    public bool[] triggered;
+    public float[] triggered;
     private Quaternion[] gatespin;
     AudioSource audioSource;
     static int numberofCommands = 4;
     private float time;
-
+    private float initAngle = 3.14f;
     [SerializeField]
     public AudioClip audioClipX, audioClipY, audioClipA, audioClipB;
-
-    public GameObject[] gates;
+    private GameObject[] gates, activeGates;
+    private int activeGateIdx, nubmerofActiveGates;
+    private int maxGates = 20;
 
     void Start()
     {
-        triggered = new bool[numberofCommands]; // number of commands
+        triggered = new float[maxGates]; // number of commands
         gates = new GameObject[numberofCommands];
-        gatespin = new Quaternion[numberofCommands];
+        activeGates = new GameObject[maxGates];
+        gatespin = new Quaternion[maxGates];
         interactableObject.selectEntered.AddListener(OnGrab);
         interactableObject.selectExited.AddListener(OnRelease);
         audioSource = GetComponent<AudioSource>();
 
-        for (int i = 0; i < numberofCommands; i++)
-        {
-            gates[i].SetActive(false);
-        }
+        gates[0] = GameObject.Find("Gate 1");
+        gates[1] = GameObject.Find("Gate 2");
+        gates[2] = GameObject.Find("Gate 3");
+        gates[3] = GameObject.Find("Gate 4");
+        //for (int i = 0; i < numberofCommands; i++)
+        //{
+        //    gates[i].SetActive(false);
+        //}
     }
 
     private void OnEnable()
@@ -78,17 +84,17 @@ public class QubitInput : MonoBehaviour
                 qubit.UpdatePosition();
                 buttonReleased = false;
                 audioSource.PlayOneShot(audioClipX, 1f);
-                triggered[c] = true; // can be used to draw the gates
-                Instantiate(gates[c], innerSphere.transform.position, Quaternion.identity);
+                triggered[activeGateIdx] = initAngle; // can be used to draw the gates
+                activeGates[activeGateIdx] = Instantiate(gates[c], innerSphere.transform.position, Quaternion.identity);
                 gates[c].transform.position = innerSphere.transform.position;
                 gates[c].transform.rotation = gatespin[c];
+                nubmerofActiveGates++;
+                activeGateIdx++;
             }
             if (leftHand.FindAction("X").WasReleasedThisFrame())
             {
                 int c = 0;
                 buttonReleased = true;
-                triggered[c] = false;
-                //gates[c].SetActive(triggered[c]);
             }
             if (leftHand.FindAction("Y").WasPressedThisFrame() && buttonReleased)
             {
@@ -97,17 +103,17 @@ public class QubitInput : MonoBehaviour
                 qubit.UpdatePosition();
                 buttonReleased = false;
                 audioSource.PlayOneShot(audioClipY, 1f);
-                triggered[c] = true;
-                Instantiate(gates[c], innerSphere.transform.position, Quaternion.identity);
+                triggered[activeGateIdx] = initAngle;
+                activeGates[activeGateIdx] = Instantiate(gates[c], innerSphere.transform.position, Quaternion.identity);
                 gates[c].transform.position = innerSphere.transform.position;
                 gates[c].transform.rotation = gatespin[c];
+                nubmerofActiveGates++;
+                activeGateIdx++;
             }
             if (leftHand.FindAction("Y").WasReleasedThisFrame())
             {
                 int c = 1;
                 buttonReleased = true;
-                triggered[c] = false;
-                //gates[c].SetActive(triggered[c]);
             }
             if (rightHand.FindAction("A").WasPressedThisFrame() && buttonReleased)
             {
@@ -117,17 +123,17 @@ public class QubitInput : MonoBehaviour
                 buttonReleased = false;
                 audioSource.PlayOneShot(audioClipA, 1f) ;
                 Debug.Log("A");
-                triggered[c] = true;
-                Instantiate(gates[c], innerSphere.transform.position, Quaternion.identity);
+                triggered[activeGateIdx] = initAngle;
+                activeGates[activeGateIdx] = Instantiate(gates[c], innerSphere.transform.position, Quaternion.identity);
                 gates[c].transform.position = innerSphere.transform.position;
                 gates[c].transform.rotation = gatespin[c];
+                nubmerofActiveGates++;
+                activeGateIdx++;
             }
             if (rightHand.FindAction("A").WasReleasedThisFrame())
             {
                 int c = 2;
                 buttonReleased = true;
-                triggered[c] = false;
-                //gates[c].SetActive(triggered[c]);
             }
             if (rightHand.FindAction("B").WasPressedThisFrame() && buttonReleased)
             {
@@ -137,19 +143,50 @@ public class QubitInput : MonoBehaviour
                 buttonReleased = false;
                 audioSource.PlayOneShot(audioClipB, 1f);
                 Debug.Log("B");
-                triggered[c] = true;
-                Instantiate(gates[c], innerSphere.transform.position, Quaternion.identity);
+                triggered[activeGateIdx] = initAngle;
+                activeGates[activeGateIdx] = Instantiate(gates[c], innerSphere.transform.position, Quaternion.identity);
                 gates[c].transform.position = innerSphere.transform.position;
                 gates[c].transform.rotation = gatespin[c];
+                nubmerofActiveGates++;
+                activeGateIdx++;
             }
             if (rightHand.FindAction("B").WasReleasedThisFrame())
             {
                 int c = 3;
                 buttonReleased = true;
-                triggered[c] = false;
-                //gates[c].SetActive(triggered[c]);
             }
         }
+        // loop maximized gates
+
+
+        if(activeGates.Length > 0)
+        {
+            for (int i = 0; i < activeGates.Length; i++)
+            {   // Gates rotate for about 3 sec and destroy
+                if (triggered[i] > 0f)
+                {
+                    //Debug.Log(triggered[i]);
+                    triggered[i] -= Time.deltaTime;
+                    gatespin[i] = new Quaternion(180f * Mathf.Sin(triggered[i] + i * Mathf.Cos(triggered[i])),
+                                                  180f * Mathf.Sin(triggered[i] * Mathf.Sin(triggered[i])),
+                                                  180f * Mathf.Cos(triggered[i]), 1);
+                    activeGates[i].transform.rotation = gatespin[i];
+                    //Debug.Log(" " + gatespin[i]);
+                }
+                else
+                {
+                    Destroy(activeGates[i]);
+                }
+            }
+        }
+
+        // fix model gates position..
+        for (int i = 0; i < numberofCommands; i++)
+        {
+            gates[i].transform.position = new Vector3(-3f + i, 0.6f, 7f);
+        }
+
+
     }
 
     private void OnGrab(SelectEnterEventArgs args)

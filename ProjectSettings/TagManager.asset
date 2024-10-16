@@ -9,6 +9,7 @@ TagManager:
   - Core
   - Dot
   - Shell
+  - Gate
   layers:
   - Default
   - TransparentFX
