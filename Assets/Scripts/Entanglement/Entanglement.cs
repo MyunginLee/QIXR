@@ -133,7 +133,8 @@ public class Entanglement : MonoBehaviour
             {
                 for (int i = 0; i < numberOfStrings; i++)
                 {
-                    bp[i].acceleration = new Vector3(Random.Range(-0.1f, 0.1f), Random.Range(-0.1f, 0.1f), Random.Range(-0.1f, 0.1f));
+                    bp[i].velocity = Vector3.zero;
+                    bp[i].acceleration = new Vector3(Random.Range(-0.01f, 0.01f), Random.Range(-0.01f, 0.01f), Random.Range(-0.01f, 0.01f));
                     bp[i].velocity += bp[i].acceleration * Time.deltaTime;
                     strings[i].transform.position += bp[i].velocity * Time.deltaTime;
                     //trailRenderer.time = trailRenderer.time * 0.3f; ;  // Duration of the trail

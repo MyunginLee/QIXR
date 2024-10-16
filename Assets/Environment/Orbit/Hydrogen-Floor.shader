@@ -5,9 +5,8 @@ Shader "Custom/MultipleHydrogen"
         _NumQubits ("Number of Qubits", Int) = 2 // Number of Qubits
         // _OrbitColor ("Color", Color) = (0.4, -0.3, 0.2, 1.0) 
         _MainTex ("Texture", 2D) = "white" {}
-        _TimeScale ("Time Scale", Float) = 1.0
-        _WaveFunctionParams ("Wave Function Parameters", Vector) = (1.0, 0.0, 0.0, 1.0)
-
+        _TimeScale ("Time Scale", Float) = 1
+        // _WaveFunctionParams ("Wave Function Parameters", Vector) = (1.0, 0.0, 0.0, 1.0)
     }
     SubShader
     {
@@ -26,9 +25,9 @@ Shader "Custom/MultipleHydrogen"
             #include "UnityCG.cginc"
 
             int _NumQubits;
-            float4 _Centers[5];  
+            float4 _Centers[2];  
             float4 _OrbitColor;
-            float4 _WaveFunctionParams;
+            float4 _WaveFunctionParams[2];
             float _TimeScale;
             sampler2D _MainTex;
             float4 _MainTex_ST;
@@ -82,10 +81,10 @@ Shader "Custom/MultipleHydrogen"
                     float t = _Time.y * _TimeScale;
                     float timeFactor = sin(t * 10.0) * cos(t * 3.0) + 1.0;
                     // Parameters
-                    float n = _WaveFunctionParams.x; // Principal quantum number
-                    float l = _WaveFunctionParams.y; // Azimuthal quantum number
-                    float m = _WaveFunctionParams.z; // Magnetic quantum number
-                    float a0 = _WaveFunctionParams.w; // Bohr radius - scale
+                    float n = _WaveFunctionParams[j].x; // Principal quantum number
+                    float l = _WaveFunctionParams[j].y; // Azimuthal quantum number
+                    float m = _WaveFunctionParams[j].z; // Magnetic quantum number
+                    float a0 = _WaveFunctionParams[j].w; // Bohr radius - scale
                     // Radial component
                     float2 position = i.uv + center;
                     // float2 base = float2(j*10, j);
@@ -109,7 +108,7 @@ Shader "Custom/MultipleHydrogen"
                     color.a = probabilityDensity > 0.0 ? probabilityDensity : 0.0;
                     value +=color;
                 }
-                // value = saturate(value)*0.5;  // Ensure output stays within 0-1 range
+                value = saturate(value);  // ensure output stays within 0-1 range
 
                 // Output the Gaussian value with an orange color
                 return value;  // Apply the orange color and alpha
