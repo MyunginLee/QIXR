@@ -79,7 +79,7 @@ Shader "Custom/MultipleHydrogen"
                     float2 center = _Centers[j].xy;
                     // Time
                     float t = _Time.y * _TimeScale;
-                    float timeFactor = sin(t * 10.0) * cos(t * 3.0) + 1.0;
+                    float timeFactor = 0.1*cos(t * 2.0) + 1.0;
                     // Parameters
                     float n = _WaveFunctionParams[j].x; // Principal quantum number
                     float l = _WaveFunctionParams[j].y; // Azimuthal quantum number
@@ -93,9 +93,10 @@ Shader "Custom/MultipleHydrogen"
                     float radialPart = exp(-r / n) * pow(r, l) * timeFactor;
                     // Angular component
                     float theta = atan2(position.y, position.x);
-                    float angularPart = cos(m * theta + t) * pow(abs(sin(position.y * timeFactor)), abs(m));
+                    float angularPart = cos(m * theta) * pow(abs(sin(position.y * timeFactor)), abs(m));
                     // Time-dependent part
-                    float2 waveFunction = radialPart * angularPart * float2(cos(t * 2.0), sin(t * 2.0));
+                    // float2 waveFunction = radialPart * angularPart * float2(cos(t * 2.0), sin(t * 2.0));
+                    float2 waveFunction = radialPart * angularPart * float2(0.9+0.1*cos(t), 0.1*sin(t));
                     // Probability density (modulus squared of wave function)
                     float probabilityDensity = ComplexModulus(waveFunction);
                     probabilityDensity *= probabilityDensity;
