@@ -8,6 +8,7 @@ TagManager:
   - Anchor
   - Core
   - Dot
+  - Shell
   layers:
   - Default
   - TransparentFX
