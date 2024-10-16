@@ -30,7 +30,7 @@ public class QubitInput : MonoBehaviour
     public AudioClip audioClipX, audioClipY, audioClipA, audioClipB;
     private GameObject[] gates, activeGates;
     private int activeGateIdx, nubmerofActiveGates;
-    private int maxGates = 20;
+    private int maxGates = 50;
 
     void Start()
     {
@@ -158,6 +158,10 @@ public class QubitInput : MonoBehaviour
         }
         // loop maximized gates
 
+        if (activeGateIdx > maxGates-10)
+        {
+            activeGateIdx = 0;
+        }
 
         if(activeGates.Length > 0)
         {
@@ -176,6 +180,7 @@ public class QubitInput : MonoBehaviour
                 else
                 {
                     Destroy(activeGates[i]);
+                    nubmerofActiveGates--;
                 }
             }
         }
@@ -183,7 +188,7 @@ public class QubitInput : MonoBehaviour
         // fix model gates position..
         for (int i = 0; i < numberofCommands; i++)
         {
-            gates[i].transform.position = new Vector3(-3f + i, 0.6f, 7f);
+            gates[i].transform.position = new Vector3(-3f + i*1.7f, 0.6f, 7f);
         }
 
 

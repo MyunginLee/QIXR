@@ -62,8 +62,8 @@ public class Entanglement : MonoBehaviour
                 //new GradientColorKey[] { new GradientColorKey(new Color((Mathf.Sin(Mathf.PI * 2f / numberOfStrings * i) + 1) / 2f, (Mathf.Cos(Mathf.PI * 2f / numberOfStrings * i) + 1) / 2f, Mathf.Tan(Mathf.PI * 2 / numberOfStrings * i)), 0.80f), new GradientColorKey(new Color((Mathf.Cos(Mathf.PI * 2 / numberOfStrings * i) + 1) / 5f, (Mathf.Sin(Mathf.PI * 2 / numberOfStrings * i) + 1) / 3f, Mathf.Tan(Mathf.PI * 2 / numberOfStrings * i)), 0.05f) },
                 new GradientColorKey[] { new GradientColorKey(new Color(0f,0f, 0f), 0f), 
                                                         new GradientColorKey(new Color((float)(Mathf.Cos(Mathf.PI * 2f / numberOfStrings * i) + 1f) / 3f, 
-                                                        0.2f - (float)( (Mathf.Cos(Mathf.PI * 2f / numberOfStrings * i) +1f) / 1.5f), 
-                                                        0.3f+ (float)(Mathf.Sin(Mathf.PI * 2f / numberOfStrings * i) + 1f) / 3f), 
+                                                        0.3f - (float)( (Mathf.Cos(Mathf.PI * 2f / numberOfStrings * i) +1f) / 1.5f), 
+                                                        0.5f+ (float)(Mathf.Sin(Mathf.PI * 2f / numberOfStrings * i) + 1f) / 3f), 
                                                         0.05f) },
                 new GradientAlphaKey[] { new GradientAlphaKey(0.1f, 0.1f), new GradientAlphaKey(0.1f, 0.1f) }            );
             trailRenderer.colorGradient = gradient;
@@ -132,8 +132,8 @@ public class Entanglement : MonoBehaviour
                     gradient.SetKeys(
                         //new GradientColorKey[] { new GradientColorKey(new Color((Mathf.Sin(Mathf.PI * 2f / numberOfStrings * i) + 1) / 2f, (Mathf.Cos(Mathf.PI * 2f / numberOfStrings * i) + 1) / 2f, Mathf.Tan(Mathf.PI * 2 / numberOfStrings * i)), 0.80f), new GradientColorKey(new Color((Mathf.Cos(Mathf.PI * 2 / numberOfStrings * i) + 1) / 5f, (Mathf.Sin(Mathf.PI * 2 / numberOfStrings * i) + 1) / 3f, Mathf.Tan(Mathf.PI * 2 / numberOfStrings * i)), 0.05f) },
                         new GradientColorKey[] { new GradientColorKey(new Color(0f, 0f, 0f), 0f),
-                            new GradientColorKey(new Color((float)(Mathf.Cos(Mathf.PI * 2f / (float)numberOfStrings * i) + 1f) / 5f,
-                                                                   0.1f - (float)( (Mathf.Cos(Mathf.PI * 2f / (float)numberOfStrings * i) +1f )/ 10f),
+                            new GradientColorKey(new Color((float)(Mathf.Cos(Mathf.PI * 2f / (float)numberOfStrings * i) + 1f) / 3f,
+                                                                   0.3f - (float)( (Mathf.Cos(Mathf.PI * 2f / (float)numberOfStrings * i) +1f )/ 10f),
                                                                    0.5f + (float) (Mathf.Sin(Mathf.PI * 2f / (float)numberOfStrings * i) +1f) / 9f),
                                                                    QubitManager.J[j] / 10f) },
                         new GradientAlphaKey[] { new GradientAlphaKey(0.1f, 0.1f),
