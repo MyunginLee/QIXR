@@ -66,7 +66,8 @@ public class MatrixExample : MonoBehaviour
                 {
                     scalingFactor = distance/THRESHOLD_DISTANCE;
                     J = Mathf.PI * scalingFactor;
-                    ApplySpinExchange(J, time, PartialTrace(i),PartialTrace(j));
+                    //ApplySpinExchange(J, time, PartialTrace(i),PartialTrace(j));
+                    ApplySpinExchange(J, time);
                     Debug.Log("Distance: " + distance + ", J: " + J);
                 }
             }

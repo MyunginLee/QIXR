@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+[RequireComponent(typeof(AudioSource))]
 
 public class Entanglement : MonoBehaviour
 {
@@ -18,6 +19,13 @@ public class Entanglement : MonoBehaviour
     float stringWeight = 1f;
     public float trailtime = 1f;
     private bool[] entangled;
+    AudioSource audioSource;
+    private bool entangleTrigger = true;
+    private bool untangleTrigger = true;
+
+    [SerializeField]
+    public AudioClip SoundUntangle, SoundEntangle;
+
     struct BodyProperty
     {
         public float mass;
@@ -32,6 +40,7 @@ public class Entanglement : MonoBehaviour
         bp = new BodyProperty[numberOfStrings];
         strings = new GameObject[numberOfStrings];
         entangled = new bool[qubits.Length];
+        audioSource = GetComponent<AudioSource>();
 
         for (int j = 0; j < qubits.Length; j++)
         {
@@ -96,8 +105,17 @@ public class Entanglement : MonoBehaviour
         for (int j = 0; j < qubits.Length; j++)
         {
             float qubitScale = 0.3f;
+            // Entangled logic.
             if (entangled[j])
-            {
+            {           
+                if(entangleTrigger == true)
+                {
+                    audioSource.pitch = Random.Range(0.8f, 1.3f);
+                    audioSource.PlayOneShot(SoundEntangle, 1f);
+                    entangleTrigger = !entangleTrigger;
+                }
+                untangleTrigger = true;
+
                 qubitScale = QubitManager.J[j] / 3.15f * 0.3f;
 
                 for (int i = 0; i < numberOfStrings; i++)
@@ -142,8 +160,16 @@ public class Entanglement : MonoBehaviour
                     trailRenderer.colorGradient = gradient;
                 }
             }
-            else // unentangled
+            else // unentangled logic
             {
+                entangleTrigger = true; // this means ready for next trigger
+
+                if (untangleTrigger == true)
+                {
+                    audioSource.pitch = Random.Range(0.8f, 1.3f);
+                    audioSource.PlayOneShot(SoundUntangle, 0.5f);
+                    untangleTrigger = !untangleTrigger;
+                }
                 for (int i = 0; i < numberOfStrings; i++)
                 {
                     QubitManager.J[j] = 3.15f;

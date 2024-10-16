@@ -2,7 +2,7 @@ Shader "Unlit/Dot"
 {
     Properties
     {
-        _MainTex ("Texture", 2D) = "red" {}
+        _MainTex ("Texture", 2D) = "white" {}
     }
     SubShader
     {
@@ -53,8 +53,10 @@ Shader "Unlit/Dot"
             }
 
             fixed4 frag (v2f i) : SV_Target
-            {
-                return float4(255/255, 71/255, 77/255, 0.25);
+            {   
+                float t = _Time.y;
+
+                return float4(255/255 * (0.9+0.6*cos(t)), 205/255 * (1.9+0.5*sin(t)), 255/255* (1.9+0.5*cos(t*0.5)), 0.25 * (0.9+0.1*cos(t)));
             }
             ENDCG
         }
