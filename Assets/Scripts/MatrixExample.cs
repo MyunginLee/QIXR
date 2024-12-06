@@ -48,7 +48,7 @@ public class MatrixExample : MonoBehaviour
 
     void TryExamples()
     {
-        ApplyHadamard(allQubits[0]);
+        ApplyPauliX(allQubits[0]);
         
         float J = Mathf.PI;
         // Matrix<Complex32> abc = ApplySpinExchange(J, time, PartialTrace(0),PartialTrace(1));
@@ -84,7 +84,7 @@ public class MatrixExample : MonoBehaviour
                     string densityMatrixStr = SerializeMatrix(GetDensityMatrix());
                     string qubit1TraceStr = SerializeMatrix(PartialTrace(i));
                     string qubit2TraceStr = SerializeMatrix(PartialTrace(j));
-                    string extractedValue = ExtractThirdValueOfThirdRow(densityMatrixStr);
+                    string extractedValue = ExtractValue(densityMatrixStr);
 
                     // writer.WriteLine(
                     //     $"{time}," +
@@ -130,35 +130,27 @@ public class MatrixExample : MonoBehaviour
 
     private string SerializeMatrix(object matrix)
     {
-        // This function converts a matrix or trace object into a string representation
         return matrix.ToString();
     }
 
-    private string ExtractThirdValueOfThirdRow(string matrixLog)
+    private string ExtractValue(string matrixLog)
     {
-        // Step 1: Split the matrix string into rows based on newlines
         string[] rows = matrixLog.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
-        // Step 2: Identify the 3rd row (index 2 in zero-based array)
         if (rows.Length < 3)
         {
-            Debug.LogError("Matrix log does not have enough rows.");
             return null;
         }
 
         string thirdRow = rows[3].Trim();
 
-        // Step 3: Use a regular expression to extract values from the 3rd row
-        string[] values = Regex.Split(thirdRow, @"\s+"); // Split by spaces or tabs
+        string[] values = Regex.Split(thirdRow, @"\s+"); 
 
-        // Step 4: Check if the 3rd value exists (index 2 in zero-based array)
         if (values.Length < 3)
         {
-            Debug.LogError("The third row does not contain enough values.");
             return null;
         }
 
-        // Step 5: Return the 3rd value
         return values[4];
     }
 }
