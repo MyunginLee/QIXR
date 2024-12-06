@@ -372,12 +372,12 @@ MonoBehaviour:
   m_RequiresColorTexture: 0
   m_Version: 2
   m_TaaSettings:
-    quality: 3
-    frameInfluence: 0.1
-    jitterScale: 1
-    mipBias: 0
-    varianceClampScale: 0.9
-    contrastAdaptiveSharpening: 0
+    m_Quality: 3
+    m_FrameInfluence: 0.1
+    m_JitterScale: 1
+    m_MipBias: 0
+    m_VarianceClampScale: 0.9
+    m_ContrastAdaptiveSharpening: 0
 --- !u!1 &1204876995
 GameObject:
   m_ObjectHideFlags: 0
@@ -394,7 +394,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1204876996
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -452,9 +452,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   prefab: {fileID: 3148946370510298509, guid: b536853ba1e279947acaba0a7bfed8b3, type: 3}
-  qubit1: {fileID: 1363029002}
-  qubit2: {fileID: 1204876996}
-  qubit3: {fileID: 0}
 --- !u!4 &1262240469
 Transform:
   m_ObjectHideFlags: 0
@@ -522,3 +519,4 @@ SceneRoots:
   - {fileID: 205124643}
   - {fileID: 1262240469}
   - {fileID: 1412539108}
+  - {fileID: 1204876997}

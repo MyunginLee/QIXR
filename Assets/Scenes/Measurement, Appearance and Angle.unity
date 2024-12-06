@@ -421,6 +421,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8f33b451588e104089b4199ac9c8134, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  allQubits: []
 --- !u!4 &315115736
 Transform:
   m_ObjectHideFlags: 0
@@ -610,12 +611,12 @@ MonoBehaviour:
   m_RequiresColorTexture: 0
   m_Version: 2
   m_TaaSettings:
-    quality: 3
-    frameInfluence: 0.1
-    jitterScale: 1
-    mipBias: 0
-    varianceClampScale: 0.9
-    contrastAdaptiveSharpening: 0
+    m_Quality: 3
+    m_FrameInfluence: 0.1
+    m_JitterScale: 1
+    m_MipBias: 0
+    m_VarianceClampScale: 0.9
+    m_ContrastAdaptiveSharpening: 0
 --- !u!1 &639940600
 GameObject:
   m_ObjectHideFlags: 0
@@ -1433,7 +1434,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1723221378
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2490,6 +2491,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   GlobalObjectIdHash: 743612555
+  InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
   ActiveSceneSynchronization: 0
@@ -4067,6 +4069,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b132cbc2ee61fd8498c75cd407b75389, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  UseUnreliableDeltas: 0
   SyncPositionX: 1
   SyncPositionY: 1
   SyncPositionZ: 1
@@ -5753,7 +5756,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!1 &7338137251389375888
 GameObject:
   m_ObjectHideFlags: 0
@@ -7850,3 +7853,4 @@ SceneRoots:
   - {fileID: 3877649332208518134}
   - {fileID: 807947972}
   - {fileID: 315115736}
+  - {fileID: 1723221380}

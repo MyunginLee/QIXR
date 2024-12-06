@@ -7,11 +7,15 @@ using System.Linq;
 using NumpyDotNet;
 using static Gates;
 using System;
+using static Qubit;
 public class QubitManager : MonoBehaviour
 {
     static private Matrix<Complex32> densityMatrix;
     static int numQubits = 0;
     static int initQubits = 0;
+    private List<Qubit> allQubits = new List<Qubit>();
+    private float THRESHOLD_DISTANCE = 3f;
+    private float time = 1f;
 
     public static void UpdateDensityMatrix()
     {
@@ -29,6 +33,7 @@ public class QubitManager : MonoBehaviour
         }
         numQubits++;
     }
+
 
     public static Matrix<Complex32> GetDensityMatrix()
     {
@@ -116,21 +121,50 @@ public class QubitManager : MonoBehaviour
         return Matrix<Complex32>.Build.DenseOfArray(converted);
     }
 
-    public static Matrix<Complex32> ApplySpinExchange(float J, float time, ndarray q1Trace, ndarray q2Trace)
+    private static ndarray ConvertMatrixToNdArray(Matrix<Complex32> matrix)
     {
-        Matrix<Complex32> localDensityMatrix; 
+        // Get the dimensions of the matrix
+        int rows = matrix.RowCount;
+        int cols = matrix.ColumnCount;
+
+        // Create a 2D array to hold the values
+        Complex32[,] data = new Complex32[rows, cols];
+
+        // Populate the 2D array with values from the matrix
+        for (int i = 0; i < rows; i++)
+        {
+            for (int j = 0; j < cols; j++)
+            {
+                data[i, j] = matrix[i, j];
+            }
+        }
+
+        // Convert the 2D array to an ndarray
+        return np.array(data);
+    }
+
+    // public static Matrix<Complex32> ApplySpinExchange(float J, float time, ndarray q1Trace, ndarray q2Trace)
+    // {
+    //     Matrix<Complex32> localDensityMatrix; 
         
-        Matrix<Complex32> q1TraceMatrix = ConvertNdArrayToMatrix(q1Trace);
-        Matrix<Complex32> q2TraceMatrix = ConvertNdArrayToMatrix(q2Trace);
+    //     Matrix<Complex32> q1TraceMatrix = ConvertNdArrayToMatrix(q1Trace);
+    //     Matrix<Complex32> q2TraceMatrix = ConvertNdArrayToMatrix(q2Trace);
 
-        Debug.Log(q1TraceMatrix);
-        Debug.Log(q2TraceMatrix);
+    //     // Debug.Log(q1TraceMatrix);
+    //     // Debug.Log(q2TraceMatrix);
 
-        localDensityMatrix = q1TraceMatrix;
-        localDensityMatrix = localDensityMatrix.KroneckerProduct(q2TraceMatrix);
+    //     localDensityMatrix = q1TraceMatrix;
+    //     localDensityMatrix = localDensityMatrix.KroneckerProduct(q2TraceMatrix);
 
+    //     Matrix<Complex32> U = SpinExchange(J, time);
+    //     localDensityMatrix = U * localDensityMatrix * U.ConjugateTranspose();
+    //     Debug.Log(localDensityMatrix);
+    //     return localDensityMatrix;
+    // }
+
+    public static void ApplySpinExchange(float J, float time)
+    {
         Matrix<Complex32> U = SpinExchange(J, time);
-        localDensityMatrix = U * localDensityMatrix * U.ConjugateTranspose();
-        return localDensityMatrix;
+        densityMatrix = U * densityMatrix * U.ConjugateTranspose(); 
     }
 }
