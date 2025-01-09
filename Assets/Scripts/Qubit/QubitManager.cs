@@ -16,7 +16,7 @@ public class QubitManager : MonoBehaviour
     static int numQubits = 0;
     static int initQubits = 0;
     private List<Qubit> allQubits = new List<Qubit>();
-    private float time = 1f;
+    private float time = 0f;
     public static float THRESHOLD_DISTANCE = 2.5f;
     public static float[] J;
     public TMP_Text textMeshPro;
@@ -38,7 +38,7 @@ public class QubitManager : MonoBehaviour
 
     void Update()
     {
-        // time += Time.deltaTime;
+        time += Time.deltaTime;
         J = CalculateProximity(allQubits, time, THRESHOLD_DISTANCE);
     }
 
@@ -226,12 +226,14 @@ public class QubitManager : MonoBehaviour
                 Qubit qubitB = qList[j];
                 float distance;
                 float scalingFactor;
+                float Jmax = 1f;
 
                 distance = Vector3.Distance(qubitA.transform.position, qubitB.transform.position);
                 if (distance <= THRESHOLD_DISTANCE) 
                 {
                     scalingFactor = distance/THRESHOLD_DISTANCE;
-                    J[i] = Mathf.PI * scalingFactor;
+                    //J[i] = Mathf.PI * scalingFactor;
+                    J[i] = Jmax / 2f * (1f + (float)Math.Tanh(THRESHOLD_DISTANCE/2f) - distance);
                     J[j] = J[i];
                     ApplySpinExchange(J[i], time);
                 }
