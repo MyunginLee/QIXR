@@ -9,6 +9,9 @@ using System;
 using NumpyLib;
 using static Qubit;
 
+using System.IO;
+using System.Text.RegularExpressions;
+
 using TMPro;
 public class QubitManager : MonoBehaviour
 {
@@ -16,8 +19,11 @@ public class QubitManager : MonoBehaviour
     static int numQubits = 0;
     static int initQubits = 0;
     private List<Qubit> allQubits = new List<Qubit>();
-    private float time = 0f;
-    public static float THRESHOLD_DISTANCE = 2.5f;
+    private float time = 1f;
+    public static float THRESHOLD_DISTANCE = 2f;
+
+    private string filePath;
+    private StreamWriter writer;
     public static float[] J;
     public TMP_Text textMeshPro;
 
@@ -33,18 +39,27 @@ public class QubitManager : MonoBehaviour
             allQubits.Add(qubitComponent);
         }
 
-        // Invoke("ApplyGate", 1f);
+        Invoke("ApplyGate", 0.5f);
+
+        //filePath = "/Users/ngocdinh/Downloads/QubitJan11.csv";
+        //writer = new StreamWriter(filePath);
     }
 
     void Update()
     {
-        time += Time.deltaTime;
+        // time += Time.deltaTime;
         J = CalculateProximity(allQubits, time, THRESHOLD_DISTANCE);
+
+        Debug.Log(
+            $"{GetDensityMatrix()}\n" +
+            $"{PartialTrace(0)}\n" +
+            $"{PartialTrace(1)}\n"
+        );
     }
 
     void ApplyGate() {
         ApplyHadamard(allQubits[0]);
-        ApplySpinExchange(Mathf.PI/2, time);
+        ApplyPauliX(allQubits[1]);
     }
 
     public static void UpdateDensityMatrix()
@@ -141,78 +156,12 @@ public class QubitManager : MonoBehaviour
         return rhomat;
     }
 
-    // private static Matrix<Complex32> ConvertNdArrayToMatrix(ndarray toConvert)
-    // {
-    //     Complex32[,] converted = new Complex32[toConvert.shape[0], toConvert.shape[1]];
-    //     for (int i = 0; i < toConvert.shape[0]; i++)
-    //     {
-    //         for (int j = 0; j < toConvert.shape[1]; j++)
-    //         {
-    //             converted[i, j] = (Complex32)toConvert[i, j];
-    //         }
-    //     }
-    //     return Matrix<Complex32>.Build.DenseOfArray(converted);
-    // }
-
-    // private static ndarray ConvertMatrixToNdArray(Matrix<Complex32> matrix)
-    // {
-    //     Complex32[,] array = matrix.ToArray(); 
-    //     return np.array(array);
-    // }
-
-    // public static (Matrix<Complex32> localDensityMatrix, ndarray q1Trace, ndarray q2Trace) ApplySpinExchange(float J, float time, ref ndarray q1Trace, ref ndarray q2Trace)
-    // {
-    //     Matrix<Complex32> localDensityMatrix; 
-        
-    //     Matrix<Complex32> q1TraceMatrix = ConvertNdArrayToMatrix(q1Trace);
-    //     Matrix<Complex32> q2TraceMatrix = ConvertNdArrayToMatrix(q2Trace);
-
-    //     localDensityMatrix = q1TraceMatrix;
-    //     localDensityMatrix = localDensityMatrix.KroneckerProduct(q2TraceMatrix);
-
-    //     Matrix<Complex32> U = SpinExchange(J, time);
-    //     localDensityMatrix = U * localDensityMatrix * U.ConjugateTranspose();
-    //     var subMatrices = BreakDownMatrix(localDensityMatrix);
-
-    //     q1Trace = ConvertMatrixToNdArray(subMatrices[0]);
-    //     q2Trace = ConvertMatrixToNdArray(subMatrices[1]);
-    
-    //     // Debug.Log("[+] LOG 1: SHAPE = (" + a.shape[0] + ", " + a.shape[1] + ")\tDATA TYPE: " + a.GetType());
-    //     Debug.Log("DS: " + localDensityMatrix);
-    //     Debug.Log("q1trace" + q1Trace + "q2trace" + q2Trace);
-    //     // Debug.Log(q2Trace);
-
-    //     return (localDensityMatrix, q1Trace, q2Trace);
-    // }
 
     public static void ApplySpinExchange (float J, float time)
     {
         Matrix<Complex32> U = SpinExchange(J, time);
         densityMatrix = U * densityMatrix * U.ConjugateTranspose();
     }
-
-    // private static Matrix<Complex32>[] BreakDownMatrix(Matrix<Complex32> combinedMatrix)
-    // {
-    //     var subMatrices = new Matrix<Complex32>[2];
-
-    //     Complex32[,] subMatrix1 = new Complex32[2, 2];
-    //     Complex32[,] subMatrix2 = new Complex32[2, 2];
-
-    //     subMatrix1[0, 0] = combinedMatrix[0, 0] + combinedMatrix[2, 2];
-    //     subMatrix1[0, 1] = combinedMatrix[0, 1] + combinedMatrix[2, 3];
-    //     subMatrix1[1, 0] = combinedMatrix[1, 0] + combinedMatrix[3, 2];
-    //     subMatrix1[1, 1] = combinedMatrix[1, 1] + combinedMatrix[3, 3];
-
-    //     subMatrix2[0, 0] = combinedMatrix[0, 0] + combinedMatrix[1, 1];
-    //     subMatrix2[0, 1] = combinedMatrix[0, 2] + combinedMatrix[1, 3];
-    //     subMatrix2[1, 0] = combinedMatrix[2, 0] + combinedMatrix[3, 1];
-    //     subMatrix2[1, 1] = combinedMatrix[2, 2] + combinedMatrix[3, 3];
-
-    //     subMatrices[0] = Matrix<Complex32>.Build.DenseOfArray(subMatrix1); 
-    //     subMatrices[1] = Matrix<Complex32>.Build.DenseOfArray(subMatrix2); 
-
-    //     return subMatrices;
-    // }
 
 
     float[] CalculateProximity(List<Qubit> qList, float time, float THRESHOLD_DISTANCE)
@@ -236,9 +185,62 @@ public class QubitManager : MonoBehaviour
                     J[i] = Jmax / 2f * (1f + (float)Math.Tanh(THRESHOLD_DISTANCE/2f) - distance);
                     J[j] = J[i];
                     ApplySpinExchange(J[i], time);
+
+                    // string densityMatrixStr = SerializeMatrix(GetDensityMatrix());
+                    // string qubit1TraceStr = SerializeMatrix(PartialTrace(i));
+                    // string qubit2TraceStr = SerializeMatrix(PartialTrace(j));
+                    // string extractedValue = ExtractValue(densityMatrixStr);
+
+                    // writer.WriteLine (
+                    //     $"{extractedValue}," +
+                    //     $"{J}"
+                    // );
+
+                    // Debug.Log(
+                    //     $"{GetDensityMatrix()}\n" +
+                    //     $"{PartialTrace(i)}\n" +
+                    //     $"{PartialTrace(j)}\n" +
+                    //     $"Distance: {distance}, J: {J}\n" +
+                    //     $"Time: {time}"
+                    // );
                 }
             }
         }
         return J;
+    }
+
+    //below are functions to extract value into csv file
+    private void OnApplicationQuit()
+    {
+        if (writer != null)
+        {
+            writer.Close();
+        }
+    }
+
+    private string SerializeMatrix(object matrix)
+    {
+        return matrix.ToString();
+    }
+
+    private string ExtractValue(string matrixLog)
+    {
+        string[] rows = matrixLog.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+        if (rows.Length < 3)
+        {
+            return null;
+        }
+
+        string thirdRow = rows[3].Trim();
+
+        string[] values = Regex.Split(thirdRow, @"\s+"); 
+
+        if (values.Length < 3)
+        {
+            return null;
+        }
+
+        return values[4];
     }
 }
