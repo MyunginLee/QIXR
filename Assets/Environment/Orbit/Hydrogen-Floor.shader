@@ -31,7 +31,6 @@ Shader "Custom/MultipleHydrogen"
             float _TimeScale;
             sampler2D _MainTex;
             float4 _MainTex_ST;
-
             struct appdata
             {
                 float4 vertex : POSITION;
@@ -79,7 +78,8 @@ Shader "Custom/MultipleHydrogen"
                     float2 center = _Centers[j].xy;
                     // Time
                     float t = _Time.y * _TimeScale;
-                    float timeFactor = 0.1*cos(t * 2.0) + 1.0;
+                    // float timeFactor = 0.1*cos(t * 2.0) + 1.0;
+                    float timeFactor = 1;
                     // Parameters
                     float n = _WaveFunctionParams[j].x; // Principal quantum number
                     float l = _WaveFunctionParams[j].y; // Azimuthal quantum number
@@ -96,15 +96,18 @@ Shader "Custom/MultipleHydrogen"
                     float angularPart = cos(m * theta) * pow(abs(sin(position.y * timeFactor)), abs(m));
                     // Time-dependent part
                     // float2 waveFunction = radialPart * angularPart * float2(cos(t * 2.0), sin(t * 2.0));
-                    float2 waveFunction = radialPart * angularPart * float2(0.9+0.1*cos(t), 0.1*sin(t));
+                    // float2 waveFunction = radialPart * angularPart * float2(0.9+0.1*cos(t), 0.1*sin(t));
+                    // time-constant version
+                    float2 waveFunction = radialPart * angularPart * float2(0.7, 0.5);
                     // Probability density (modulus squared of wave function)
                     float probabilityDensity = ComplexModulus(waveFunction);
                     probabilityDensity *= probabilityDensity;
                     // color
                     // float4 baseColor = float4(0.2 * j, 0.3, 0.1, 1.0*probabilityDensity);
                     // float4 baseColor = float4(0.3+0.4 * j, 0.7- 0.3 * (j), 0.8 + 0.2*(j), 1.0*probabilityDensity); // pastel
-                    float4 baseColor = float4(0.3+ _OrbitColor.r * j, 0.7+ _OrbitColor.g * (j), 0.8 + _OrbitColor.b*(j), 1.0*probabilityDensity);
+                    float4 baseColor = float4(0.99, 0.402, 0.79, 1*probabilityDensity);
                     // float4 baseColor = float4(0.2 + 0.3 * j, 0.7 - 0.2 * j, 0.3 + 0.1*j, 1.0*probabilityDensity);
+                    // float4 baseColor = float4(0.3+ _OrbitColor.r * j, 0.7+ _OrbitColor.g * (j), 0.8 + _OrbitColor.b*(j), 1.0*probabilityDensity);
                     float4 color = probabilityDensity * baseColor;
                     color.a = probabilityDensity > 0.0 ? probabilityDensity : 0.0;
                     value +=color;

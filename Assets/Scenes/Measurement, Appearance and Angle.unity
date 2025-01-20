@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
+  m_IndirectSpecularColor: {r: 0.18306622, g: 0.2287434, b: 0.30669293, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -599,7 +599,7 @@ AudioSource:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 315115734}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
@@ -2356,7 +2356,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1630727931804680378, guid: bda20c09800cf3f4f93fa434316b4de8, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -2
+      value: -0.656
       objectReference: {fileID: 0}
     - target: {fileID: 1630727931804680378, guid: bda20c09800cf3f4f93fa434316b4de8, type: 3}
       propertyPath: m_LocalPosition.y
@@ -2393,6 +2393,30 @@ PrefabInstance:
     - target: {fileID: 1630727931804680378, guid: bda20c09800cf3f4f93fa434316b4de8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7431097291138322471, guid: bda20c09800cf3f4f93fa434316b4de8, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.27059805
+      objectReference: {fileID: 0}
+    - target: {fileID: 7431097291138322471, guid: bda20c09800cf3f4f93fa434316b4de8, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.6532815
+      objectReference: {fileID: 0}
+    - target: {fileID: 7431097291138322471, guid: bda20c09800cf3f4f93fa434316b4de8, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.27059805
+      objectReference: {fileID: 0}
+    - target: {fileID: 7431097291138322471, guid: bda20c09800cf3f4f93fa434316b4de8, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.6532815
+      objectReference: {fileID: 0}
+    - target: {fileID: 7431097291138322471, guid: bda20c09800cf3f4f93fa434316b4de8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 135
+      objectReference: {fileID: 0}
+    - target: {fileID: 7431097291138322471, guid: bda20c09800cf3f4f93fa434316b4de8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -90
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5495,7 +5519,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1630727931804680378, guid: bda20c09800cf3f4f93fa434316b4de8, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.59
+      value: 0.455
       objectReference: {fileID: 0}
     - target: {fileID: 1630727931804680378, guid: bda20c09800cf3f4f93fa434316b4de8, type: 3}
       propertyPath: m_LocalPosition.y
@@ -5532,6 +5556,30 @@ PrefabInstance:
     - target: {fileID: 1630727931804680378, guid: bda20c09800cf3f4f93fa434316b4de8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7431097291138322471, guid: bda20c09800cf3f4f93fa434316b4de8, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.27059805
+      objectReference: {fileID: 0}
+    - target: {fileID: 7431097291138322471, guid: bda20c09800cf3f4f93fa434316b4de8, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.6532815
+      objectReference: {fileID: 0}
+    - target: {fileID: 7431097291138322471, guid: bda20c09800cf3f4f93fa434316b4de8, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.27059805
+      objectReference: {fileID: 0}
+    - target: {fileID: 7431097291138322471, guid: bda20c09800cf3f4f93fa434316b4de8, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.6532815
+      objectReference: {fileID: 0}
+    - target: {fileID: 7431097291138322471, guid: bda20c09800cf3f4f93fa434316b4de8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -135
+      objectReference: {fileID: 0}
+    - target: {fileID: 7431097291138322471, guid: bda20c09800cf3f4f93fa434316b4de8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 90
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

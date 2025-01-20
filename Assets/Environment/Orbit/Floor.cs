@@ -24,7 +24,7 @@ public class FloorElectrons : MonoBehaviour
         {
             qubitPosition[i] = new Vector4(qubits[i].transform.position.x, qubits[i].transform.position.z, 0, 0);
             colors[i] = new Vector4(0.4f, -0.3f, 0.2f, 1.0f);
-            wavefunctionParameters[i] = new Vector4(1f, 0f, 0f, 1f);
+            wavefunctionParameters[i] = new Vector4(1f, 0f, 0f, 0.2f);
         }
         orbits.SetVectorArray("_OrbitColor", colors);
         orbits.SetVectorArray("_Centers", qubitPosition);
@@ -41,7 +41,8 @@ public class FloorElectrons : MonoBehaviour
 
             Vector3 spin = (qubits[i].transform.position - dot[i].transform.position)/0.05f;
             Debug.Log(i + " " + spin);
-            wavefunctionParameters[i] = new Vector4(Mathf.Abs(spin.y), Mathf.Abs(spin.x), Mathf.Abs(spin.x), 1f);
+            // wavefunctionParameters[i] = new Vector4(Mathf.Abs(spin.y), Mathf.Abs(spin.x), Mathf.Abs(spin.x), 1f);
+            wavefunctionParameters[i] = new Vector4(1f, 0f, 0f, 0.3f);
             //qubitPosition[i] = qubits[i].transform.position;
         }
         orbits.SetVectorArray("_OrbitColor", colors);

@@ -6,13 +6,13 @@ using UnityEngine;
 
 public class Entanglement : MonoBehaviour
 {
-    private const float G = 500f;
+    private const float G = 1f;
 
     GameObject[] strings;
 
     BodyProperty[] bp;
     private int numberOfStrings = 300;
-    TrailRenderer trailRenderer;
+    TrailRenderer[] trailRenderer;
     GameObject[] qubits;
     GameObject[] shell;
     float qubitWeight = 10f; // qubit weight
@@ -41,7 +41,7 @@ public class Entanglement : MonoBehaviour
         strings = new GameObject[numberOfStrings];
         entangled = new bool[qubits.Length];
         audioSource = GetComponent<AudioSource>();
-
+        trailRenderer = new TrailRenderer[numberOfStrings];
         for (int j = 0; j < qubits.Length; j++)
         {
             qubits[j].transform.localScale = new Vector3(1f, 1f, 1f) * 0.3f;
@@ -54,17 +54,17 @@ public class Entanglement : MonoBehaviour
             strings[i].GetComponent<Collider>().isTrigger = true;
             float r = 10f;
             strings[i].transform.localScale = new Vector3(0.00001f, 0.00001f, 0.00001f);
-            strings[i].transform.position = new Vector3(r * Mathf.Cos(Mathf.PI * 2 / numberOfStrings * i), r * Mathf.Sin(Mathf.PI * 2 / numberOfStrings * i), Random.Range(-10, 10));
-            bp[i].velocity = new Vector3(r / 10f * Mathf.Sin(Mathf.PI * 2f / 3f * i), r / 10f * Mathf.Cos(Mathf.PI * 2f / 3f * i), 0);
+            strings[i].transform.position = new Vector3(r * Mathf.Cos(Mathf.PI * 2f / (float)numberOfStrings * (float)i), r * Mathf.Sin(Mathf.PI * 2f / (float)numberOfStrings * (float)i), Random.Range(-10f, 10f));
+            bp[i].velocity = new Vector3(r / 10f * Mathf.Sin(Mathf.PI * 2f / 3f * (float)i), r / 10f * Mathf.Cos(Mathf.PI * 2f / 3f * (float)i), 0);
 
             // trail
-            trailRenderer = strings[i].AddComponent<TrailRenderer>();
+            trailRenderer[i] = strings[i].AddComponent<TrailRenderer>();
             // Configure the TrailRenderer's properties
-            trailRenderer.time = trailtime;  // Duration of the trail
-            trailRenderer.startWidth = 0.003f;  // Width of the trail at the start
-            trailRenderer.endWidth = 0.003f;    // Width of the trail at the end
+            trailRenderer[i].time = trailtime;  // Duration of the trail
+            trailRenderer[i].startWidth = 0.008f;  // Width of the trail at the start
+            trailRenderer[i].endWidth = 0.003f;    // Width of the trail at the end
             // a material to the trail
-            trailRenderer.material = new Material(Shader.Find("Sprites/Default"));
+            trailRenderer[i].material = new Material(Shader.Find("Sprites/Default"));
             // Set the trail color over time
             Gradient gradient = new Gradient();
             gradient.SetKeys(
@@ -75,7 +75,7 @@ public class Entanglement : MonoBehaviour
                                                         0.5f+ (float)(Mathf.Sin(Mathf.PI * 2f / numberOfStrings * i) + 1f) / 3f), 
                                                         0.05f) },
                 new GradientAlphaKey[] { new GradientAlphaKey(0.1f, 0.1f), new GradientAlphaKey(0.1f, 0.1f) }            );
-            trailRenderer.colorGradient = gradient;
+            trailRenderer[i].colorGradient = gradient;
         }
     }
 
@@ -116,20 +116,22 @@ public class Entanglement : MonoBehaviour
                 }
                 untangleTrigger = true;
 
-                qubitScale = QubitManager.J[j] / 3.15f * 0.3f;
+                // qubitScale = QubitManager.J[j] / 3.15f * 0.3f;
+                qubitScale = QubitManager.J[j] / 3.15f * 1f;
 
                 for (int i = 0; i < numberOfStrings; i++)
                 {
-                    trailRenderer.time = trailtime;
+                    trailRenderer[i].time = trailtime;
                     Vector3 distance = qubits[j].transform.position - strings[i].transform.position;
                     Vector3 gravity = CalculateGravity(distance, stringWeight, qubitWeight);
 
-                    if (distance.sqrMagnitude > 0.05f)
+                    if (distance.sqrMagnitude > 0.04f)
                     {
                         bp[i].acceleration += gravity / stringWeight;
-                        if (bp[i].acceleration.sqrMagnitude > 25)
+                        // if (bp[i].acceleration.sqrMagnitude > 100f+ Random.Range(-4f, 4f))
+                        if (bp[i].acceleration.sqrMagnitude > 9f)
                         {
-                            bp[i].acceleration = bp[i].acceleration.normalized * 5f;
+                            bp[i].acceleration = bp[i].acceleration.normalized * (3f + Random.Range(-1f, 1f));
                         }
                         bp[i].velocity += bp[i].acceleration * Time.deltaTime;
                     }
@@ -138,10 +140,10 @@ public class Entanglement : MonoBehaviour
                     {
                         bp[i].velocity = bp[i].velocity.normalized * QubitManager.J[j];
                     }
-                    if (bp[i].velocity.sqrMagnitude > 36)
-                    {
-                        bp[i].velocity = bp[i].velocity.normalized * 6;
-                    }
+                    // if (bp[i].velocity.sqrMagnitude > 4f)
+                    // {
+                    //     bp[i].velocity = bp[i].velocity.normalized * (2f);
+                    // }
 
                     strings[i].transform.position += bp[i].velocity * Time.deltaTime;
 
@@ -157,7 +159,7 @@ public class Entanglement : MonoBehaviour
                         new GradientAlphaKey[] { new GradientAlphaKey(0.1f, 0.1f),
                             new GradientAlphaKey(QubitManager.J[j] / 5f, QubitManager.J[j] / 5f) }
                     );
-                    trailRenderer.colorGradient = gradient;
+                    trailRenderer[i].colorGradient = gradient;
                 }
             }
             else // unentangled logic
@@ -185,6 +187,22 @@ public class Entanglement : MonoBehaviour
             shell[j].transform.position = qubits[j].transform.position;
             qubits[j].transform.localScale = new Vector3(qubitScale, qubitScale, qubitScale);
 
+
+
+            // Trail update according to J
+            for (int i = 0; i < numberOfStrings; i++)
+            {
+                Gradient gradient = new Gradient();
+                gradient.SetKeys(
+                    //new GradientColorKey[] { new GradientColorKey(new Color((Mathf.Sin(Mathf.PI * 2f / numberOfStrings * i) + 1) / 2f, (Mathf.Cos(Mathf.PI * 2f / numberOfStrings * i) + 1) / 2f, Mathf.Tan(Mathf.PI * 2 / numberOfStrings * i)), 0.80f), new GradientColorKey(new Color((Mathf.Cos(Mathf.PI * 2 / numberOfStrings * i) + 1) / 5f, (Mathf.Sin(Mathf.PI * 2 / numberOfStrings * i) + 1) / 3f, Mathf.Tan(Mathf.PI * 2 / numberOfStrings * i)), 0.05f) },
+                    new GradientColorKey[] { new GradientColorKey(new Color(0f,0f, 0f), 0f), 
+                                                            new GradientColorKey(new Color( 0.5f*QubitManager.J[j] + (float)(Mathf.Cos(Mathf.PI * 2f / numberOfStrings * i) + 1f) / (3f), 
+                                                            -0.5f*QubitManager.J[j]  + (float)( (Mathf.Cos(Mathf.PI * 2f / numberOfStrings * i) +1f) / 2f), 
+                                                            0.5f+ 0.4f*QubitManager.J[j] + (float)(Mathf.Sin(Mathf.PI * 2f / numberOfStrings * i) + 1f) / (3f + 3f*QubitManager.J[j])), 
+                                                            0.05f) },
+                    new GradientAlphaKey[] { new GradientAlphaKey(0.1f + QubitManager.J[j], 0.1f+ QubitManager.J[j]), new GradientAlphaKey(0.1f, 0.1f) }            );
+                trailRenderer[i].colorGradient = gradient;
+            }
         }
     }
     private Vector3 CalculateGravity(Vector3 distanceVector, float m1, float m2)
