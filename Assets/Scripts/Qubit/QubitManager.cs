@@ -39,7 +39,7 @@ public class QubitManager : MonoBehaviour
             allQubits.Add(qubitComponent);
         }
 
-        Invoke("ApplyGate", 0.5f);
+        // Invoke("ApplyGate", 0.5f);
 
         //filePath = "/Users/ngocdinh/Downloads/QubitJan11.csv";
         //writer = new StreamWriter(filePath);
@@ -58,8 +58,8 @@ public class QubitManager : MonoBehaviour
     }
 
     void ApplyGate() {
-        ApplyHadamard(allQubits[0]);
-        ApplyPauliX(allQubits[1]);
+        // ApplyHadamard(allQubits[0]);
+        // ApplyPauliX(allQubits[0]);
     }
 
     public static void UpdateDensityMatrix()
@@ -163,7 +163,6 @@ public class QubitManager : MonoBehaviour
         densityMatrix = U * densityMatrix * U.ConjugateTranspose();
     }
 
-
     float[] CalculateProximity(List<Qubit> qList, float time, float THRESHOLD_DISTANCE)
     {
         float[] J = new float[qList.Count];
@@ -185,7 +184,9 @@ public class QubitManager : MonoBehaviour
                     J[i] = Jmax / 2f * (1f + (float)Math.Tanh(THRESHOLD_DISTANCE/2f) - distance);
                     J[j] = J[i];
                     ApplySpinExchange(J[i], time);
-
+                    qubitA.UpdatePosition();
+                    qubitB.UpdatePosition();
+                    
                     // string densityMatrixStr = SerializeMatrix(GetDensityMatrix());
                     // string qubit1TraceStr = SerializeMatrix(PartialTrace(i));
                     // string qubit2TraceStr = SerializeMatrix(PartialTrace(j));
