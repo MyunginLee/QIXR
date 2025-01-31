@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using NumpyDotNet;
 using static Gates;
-using System;
 using NumpyLib;
 using static Qubit;
 
@@ -114,6 +113,29 @@ public class QubitManager : MonoBehaviour
     public static void ApplyPhaseGate(Qubit qubit)
     {
         densityMatrix = qubit.GetPhaseS() * densityMatrix * qubit.GetPhaseSDagger();
+    }
+
+    public static void Measure(int index)
+    {
+        Matrix<Complex32> measureMatrix;
+        ndarray qubit = PartialTrace(index);
+        int state = Random.Range(0f,1f) <= ((Complex32)qubit[0,0]).Real ? 0 : 1;
+        if (state == 0)
+        {
+            measureMatrix = 1/Mathf.Sqrt(((Complex32)qubit[0,0]).Real) * UpMatrix();
+        }
+        else
+        {
+            measureMatrix = 1/Mathf.Sqrt(((Complex32)qubit[1,1]).Real) * DownMatrix();
+        }
+
+        Matrix<Complex32> qubitMatrix = (index == 0) ? measureMatrix : IdentityMatrix();
+        for(int i = 1; i < GetInitQubits(); i++)
+        {
+            qubitMatrix = qubitMatrix.KroneckerProduct(index == i ? measureMatrix : IdentityMatrix());
+        }
+
+        densityMatrix = qubitMatrix * densityMatrix * qubitMatrix;
     }
 
     public static ndarray PartialTrace(int index)

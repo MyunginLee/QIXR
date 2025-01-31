@@ -4,6 +4,7 @@ using MathNet.Numerics;
 using static QubitManager;
 using static Gates;
 using NumpyDotNet;
+using System.Dynamic;
 public class Qubit : MonoBehaviour
 {
     [SerializeField] GameObject dot;
@@ -99,6 +100,11 @@ public class Qubit : MonoBehaviour
     public Matrix<Complex32> GetPhaseSDagger()
     {
         return phaseSDagger;
+    }
+
+    public int GetIndex()
+    {
+        return index;
     }
 
     public void UpdatePosition()
