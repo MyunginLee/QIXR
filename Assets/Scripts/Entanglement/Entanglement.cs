@@ -2,6 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using static Qubit;
+using MathNet.Numerics.LinearAlgebra;
+using MathNet.Numerics;
+using NumpyDotNet;
+
 [RequireComponent(typeof(AudioSource))]
 
 public class Entanglement : MonoBehaviour
@@ -79,6 +84,23 @@ public class Entanglement : MonoBehaviour
         }
     }
 
+    // calculate qubit radius
+    public float ComputeQubitScale(Qubit qubit)
+    {
+        if (QubitManager.GetDensityMatrix().ColumnCount > 2)
+        {
+            ndarray array = QubitManager.PartialTrace(qubit.index);
+            float rho00 = ((Complex32)array[0, 0]).Real;
+            float rho11 = ((Complex32)array[1, 1]).Real;
+            float rho01 = ((Complex32)array[0, 1]).Real;
+            float rho10 = ((Complex32)array[1, 0]).Real;
+
+            float r = Mathf.Sqrt(Mathf.Pow(rho00 - rho11, 2) + 4 * rho01 * rho10);
+            return Mathf.Clamp(r, 0.1f, 1f);  
+        }
+        return 1f; 
+    }
+
     void Update()
     {
         for (int i = 0; i < numberOfStrings; i++)
@@ -117,7 +139,8 @@ public class Entanglement : MonoBehaviour
                 untangleTrigger = true;
 
                 // qubitScale = QubitManager.J[j] / 3.15f * 0.3f;
-                qubitScale = QubitManager.J[j] / 3.15f * 1f;
+                Qubit qubitComponent = qubits[j].GetComponent<Qubit>();
+                qubitScale = (1f - ComputeQubitScale(qubitComponent) / 3.15f) * 0.3f;
 
                 for (int i = 0; i < numberOfStrings; i++)
                 {
