@@ -29,21 +29,24 @@ public class MatrixExample : MonoBehaviour
         // qubit3 = Instantiate(prefab).GetComponent<Qubit>();
         allQubits.Add(Instantiate(prefab).GetComponent<Qubit>());
         allQubits.Add(Instantiate(prefab).GetComponent<Qubit>());
-        allQubits.Add(Instantiate(prefab).GetComponent<Qubit>());
     }
 
     void TryExamples()
     {
-        ApplyHadamard(allQubits[0]);
+
         
+        for(int i = 0; i < 10; i++)
+        {
+            ApplyHadamard(allQubits[1]);
+            Measure(1);
+            Debug.Log(PartialTrace(1));
+        }
+
+
         // float J = Mathf.PI;
         // Matrix<Complex32> abc = ApplySpinExchange(J, time, PartialTrace(0),PartialTrace(1));
         // Debug.Log(abc);
     
-        Debug.Log(GetDensityMatrix());
-        Debug.Log(PartialTrace(0));
-        Debug.Log(PartialTrace(1));
-        Debug.Log(PartialTrace(2));
     }
 
     void CalculateProximity(List<Qubit> qList, float time, float THRESHOLD_DISTANCE) 
@@ -74,8 +77,9 @@ public class MatrixExample : MonoBehaviour
         }
     }
 
-    void Update()
-    {
-        CalculateProximity(allQubits, time, THRESHOLD_DISTANCE);
-    }
+    // void Update()
+    // {
+    //     CalculateProximity(allQubits, time, THRESHOLD_DISTANCE);
+    // }
 }
+

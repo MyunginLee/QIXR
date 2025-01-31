@@ -11,6 +11,12 @@ public class Gates : MonoBehaviour
         { 0, 0 }
     });
 
+    static private Matrix<Complex32> downMatrix = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
+    {
+        { 0, 0 },
+        { 0, 1 }
+    });
+
     static private Matrix<Complex32> zeroMatrix = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
     {
         { 0, 0 },
@@ -89,6 +95,10 @@ public class Gates : MonoBehaviour
     public static Matrix<Complex32> UpMatrix()
     {
         return upMatrix;
+    }   
+    public static Matrix<Complex32> DownMatrix()
+    {
+        return downMatrix;
     }   
     public static Matrix<Complex32> ZeroMatrix()
     {

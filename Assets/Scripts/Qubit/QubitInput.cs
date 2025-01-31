@@ -155,6 +155,18 @@ public class QubitInput : MonoBehaviour
                 int c = 3;
                 buttonReleased = true;
             }
+
+            //Measurement
+            // if(press){
+            //     Measure(qubit.GetIndex());
+            //     qubit.UpdatePosition();
+            //     buttonReleased = false;
+            //     Debug.Log($"Measured index : {qubit.GetIndex()}");
+            // }
+            // if(release){
+            //     buttonReleased = true;
+            // }
+
         }
         // loop maximized gates
 
