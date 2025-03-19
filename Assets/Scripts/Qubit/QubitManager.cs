@@ -39,7 +39,7 @@ public class QubitManager : MonoBehaviour
             allQubits.Add(qubitComponent);
         }
 
-        // Invoke("ApplyGate", 0.5f);
+        Invoke("ApplyGate", 0.5f);
 
         //filePath = "/Users/ngocdinh/Downloads/QubitJan11.csv";
         //writer = new StreamWriter(filePath);
@@ -58,7 +58,7 @@ public class QubitManager : MonoBehaviour
     }
 
     void ApplyGate() {
-        // ApplyHadamard(allQubits[0]);
+        ApplyHadamard(allQubits[0]);
         // ApplyPauliX(allQubits[0]);
     }
 
