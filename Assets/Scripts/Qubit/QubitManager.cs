@@ -7,6 +7,7 @@ using NumpyDotNet;
 using static Gates;
 using NumpyLib;
 using static Qubit;
+using System;
 
 using System.IO;
 using System.Text.RegularExpressions;
@@ -22,7 +23,7 @@ public class QubitManager : MonoBehaviour
     public static float THRESHOLD_DISTANCE = 2f;
 
     private string filePath;
-    private StreamWriter writer;
+    // private StreamWriter writer;
     public static float[] J;
     public TMP_Text textMeshPro;
 
@@ -49,11 +50,11 @@ public class QubitManager : MonoBehaviour
         // time += Time.deltaTime;
         J = CalculateProximity(allQubits, time, THRESHOLD_DISTANCE);
 
-        Debug.Log(
-            $"{GetDensityMatrix()}\n" +
-            $"{PartialTrace(0)}\n" +
-            $"{PartialTrace(1)}\n"
-        );
+        // Debug.Log(
+        //     $"{GetDensityMatrix()}\n" +
+        //     $"{PartialTrace(0)}\n" +
+        //     $"{PartialTrace(1)}\n"
+        // );
     }
 
     void ApplyGate() {
@@ -119,7 +120,7 @@ public class QubitManager : MonoBehaviour
     {
         Matrix<Complex32> measureMatrix;
         ndarray qubit = PartialTrace(index);
-        int state = Random.Range(0f,1f) <= ((Complex32)qubit[0,0]).Real ? 0 : 1;
+        int state = UnityEngine.Random.Range(0f,1f) <= ((Complex32)qubit[0,0]).Real ? 0 : 1;
         if (state == 0)
         {
             measureMatrix = 1/Mathf.Sqrt(((Complex32)qubit[0,0]).Real) * UpMatrix();
@@ -203,7 +204,7 @@ public class QubitManager : MonoBehaviour
                 {
                     scalingFactor = distance/THRESHOLD_DISTANCE;
                     //J[i] = Mathf.PI * scalingFactor;
-                    J[i] = Jmax / 2f * (1f + (float)Math.Tanh(THRESHOLD_DISTANCE/2f) - distance);
+                    J[i] = Jmax / 2f * (1f + (float)System.Math.Tanh(THRESHOLD_DISTANCE/2f) - distance);
                     J[j] = J[i];
                     ApplySpinExchange(J[i], time);
                     qubitA.UpdatePosition();
@@ -233,37 +234,37 @@ public class QubitManager : MonoBehaviour
     }
 
     //below are functions to extract value into csv file
-    private void OnApplicationQuit()
-    {
-        if (writer != null)
-        {
-            writer.Close();
-        }
-    }
+    // private void OnApplicationQuit()
+    // {
+    //     if (writer != null)
+    //     {
+    //         writer.Close();
+    //     }
+    // }
 
-    private string SerializeMatrix(object matrix)
-    {
-        return matrix.ToString();
-    }
+    // private string SerializeMatrix(object matrix)
+    // {
+    //     return matrix.ToString();
+    // }
 
-    private string ExtractValue(string matrixLog)
-    {
-        string[] rows = matrixLog.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+    // private string ExtractValue(string matrixLog)
+    // {
+    //     string[] rows = matrixLog.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
-        if (rows.Length < 3)
-        {
-            return null;
-        }
+    //     if (rows.Length < 3)
+    //     {
+    //         return null;
+    //     }
 
-        string thirdRow = rows[3].Trim();
+    //     string thirdRow = rows[3].Trim();
 
-        string[] values = Regex.Split(thirdRow, @"\s+"); 
+    //     string[] values = Regex.Split(thirdRow, @"\s+"); 
 
-        if (values.Length < 3)
-        {
-            return null;
-        }
+    //     if (values.Length < 3)
+    //     {
+    //         return null;
+    //     }
 
-        return values[4];
-    }
+    //     return values[4];
+    // }
 }
