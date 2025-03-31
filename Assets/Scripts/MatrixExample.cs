@@ -23,26 +23,43 @@ public class MatrixExample : MonoBehaviour
     void Start()
     {
         //Docs : https://numerics.mathdotnet.com/Matrix
-        Invoke("TryExamples", 0.5f);
+        allQubits.AddRange(FindObjectsOfType<Qubit>());
+        // Invoke("TryExamples", 3f);
         // qubit1 = Instantiate(prefab).GetComponent<Qubit>();
         // qubit2 = Instantiate(prefab).GetComponent<Qubit>();
         // qubit3 = Instantiate(prefab).GetComponent<Qubit>();
-        allQubits.Add(Instantiate(prefab).GetComponent<Qubit>());
-        allQubits.Add(Instantiate(prefab).GetComponent<Qubit>());
+        // allQubits.Add(Instantiate(prefab).GetComponent<Qubit>());
+        // allQubits.Add(Instantiate(prefab).GetComponent<Qubit>());
+    }
+
+    void Update()
+    {
+        // print(GetDensityMatrix());
+        // print(PartialTrace(0));
+        // print(PartialTrace(1));
     }
 
     void TryExamples()
     {
 
+        // ApplyHadamard(allQubits[0]);
+        // print(GetDensityMatrix());
+        // print(cx * GetDensityMatrix() * cx);
+
+
         
-        for(int i = 0; i < 10; i++)
+        for(int i = 0; i < 1; i++)
         {
-            ApplyHadamard(allQubits[1]);
-            Measure(1);
-            Debug.Log(PartialTrace(1));
+            // ApplyHadamard(allQubits[0]);
+            // ApplyTest();
+            // Measure(1);
+            // print(PartialTrace(0));
+            // print(PartialTrace(1));
+            // print(GetDensityMatrix());
+            allQubits[i].UpdatePosition();
         }
 
-
+        // print("finsh");
         // float J = Mathf.PI;
         // Matrix<Complex32> abc = ApplySpinExchange(J, time, PartialTrace(0),PartialTrace(1));
         // Debug.Log(abc);

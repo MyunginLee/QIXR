@@ -40,7 +40,7 @@ public class FloorElectrons : MonoBehaviour
             qubitPosition[i] = new Vector4(qubits[i].transform.position.x, qubits[i].transform.position.z, qubits[i].transform.position.y, 0);
 
             Vector3 spin = (qubits[i].transform.position - dot[i].transform.position)/0.05f;
-            Debug.Log(i + " " + spin);
+            // Debug.Log(i + " " + spin);
             // wavefunctionParameters[i] = new Vector4(Mathf.Abs(spin.y), Mathf.Abs(spin.x), Mathf.Abs(spin.x), 1f);
             wavefunctionParameters[i] = new Vector4(1f, 0f, 0f, 0.3f);
             //qubitPosition[i] = qubits[i].transform.position;

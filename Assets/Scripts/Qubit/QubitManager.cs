@@ -116,6 +116,18 @@ public class QubitManager : MonoBehaviour
         densityMatrix = qubit.GetPhaseS() * densityMatrix * qubit.GetPhaseSDagger();
     }
 
+    // public static void ApplyTest()
+    // {
+    //     Matrix<Complex32> cx = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
+    //     {
+    //         { 1, 0, 0, 0 },
+    //         { 0, 1, 0, 0 },
+    //         { 0, 0, 0, 1 },
+    //         { 0, 0, 1, 0 }
+    //     });
+    //     densityMatrix = cx * densityMatrix * cx;
+    // }
+
     public static void Measure(int index)
     {
         Matrix<Complex32> measureMatrix;

@@ -93,28 +93,27 @@ public class QubitInput : MonoBehaviour
             }
             if (leftHand.FindAction("X").WasReleasedThisFrame())
             {
-                int c = 0;
                 buttonReleased = true;
             }
-            if (leftHand.FindAction("Y").WasPressedThisFrame() && buttonReleased)
-            {
-                int c = 1;
-                ApplyPauliZ(qubit);
-                qubit.UpdatePosition();
-                buttonReleased = false;
-                audioSource.PlayOneShot(audioClipY, 1f);
-                triggered[activeGateIdx] = initAngle;
-                activeGates[activeGateIdx] = Instantiate(gates[c], innerSphere.transform.position, Quaternion.identity);
-                gates[c].transform.position = innerSphere.transform.position;
-                gates[c].transform.rotation = gatespin[c];
-                nubmerofActiveGates++;
-                activeGateIdx++;
-            }
-            if (leftHand.FindAction("Y").WasReleasedThisFrame())
-            {
-                int c = 1;
-                buttonReleased = true;
-            }
+            // if (leftHand.FindAction("Y").WasPressedThisFrame() && buttonReleased)
+            // {
+            //     int c = 1;
+            //     ApplyPauliZ(qubit);
+            //     qubit.UpdatePosition();
+            //     buttonReleased = false;
+            //     audioSource.PlayOneShot(audioClipY, 1f);
+            //     triggered[activeGateIdx] = initAngle;
+            //     activeGates[activeGateIdx] = Instantiate(gates[c], innerSphere.transform.position, Quaternion.identity);
+            //     gates[c].transform.position = innerSphere.transform.position;
+            //     gates[c].transform.rotation = gatespin[c];
+            //     nubmerofActiveGates++;
+            //     activeGateIdx++;
+            // }
+            // if (leftHand.FindAction("Y").WasReleasedThisFrame())
+            // {
+            //     int c = 1;
+            //     buttonReleased = true;
+            // }
             if (rightHand.FindAction("A").WasPressedThisFrame() && buttonReleased)
             {
                 int c = 2;
@@ -132,29 +131,28 @@ public class QubitInput : MonoBehaviour
             }
             if (rightHand.FindAction("A").WasReleasedThisFrame())
             {
-                int c = 2;
                 buttonReleased = true;
             }
-            if (rightHand.FindAction("B").WasPressedThisFrame() && buttonReleased)
-            {
-                int c = 3;
-                ApplyPhaseGate(qubit);
-                qubit.UpdatePosition();
-                buttonReleased = false;
-                audioSource.PlayOneShot(audioClipB, 1f);
-                Debug.Log("B");
-                triggered[activeGateIdx] = initAngle;
-                activeGates[activeGateIdx] = Instantiate(gates[c], innerSphere.transform.position, Quaternion.identity);
-                gates[c].transform.position = innerSphere.transform.position;
-                gates[c].transform.rotation = gatespin[c];
-                nubmerofActiveGates++;
-                activeGateIdx++;
-            }
-            if (rightHand.FindAction("B").WasReleasedThisFrame())
-            {
-                int c = 3;
-                buttonReleased = true;
-            }
+            // if (rightHand.FindAction("B").WasPressedThisFrame() && buttonReleased)
+            // {
+            //     int c = 3;
+            //     ApplyPhaseGate(qubit);
+            //     qubit.UpdatePosition();
+            //     buttonReleased = false;
+            //     audioSource.PlayOneShot(audioClipB, 1f);
+            //     Debug.Log("B");
+            //     triggered[activeGateIdx] = initAngle;
+            //     activeGates[activeGateIdx] = Instantiate(gates[c], innerSphere.transform.position, Quaternion.identity);
+            //     gates[c].transform.position = innerSphere.transform.position;
+            //     gates[c].transform.rotation = gatespin[c];
+            //     nubmerofActiveGates++;
+            //     activeGateIdx++;
+            // }
+            // if (rightHand.FindAction("B").WasReleasedThisFrame())
+            // {
+            //     int c = 3;
+            //     buttonReleased = true;
+            // }
 
             //Measurement
             // if(press){
@@ -197,11 +195,11 @@ public class QubitInput : MonoBehaviour
             }
         }
 
-        // fix model gates position..
-        for (int i = 0; i < numberofCommands; i++)
-        {
-            gates[i].transform.position = new Vector3(-3f + i*1.7f, 0.6f, 7f);
-        }
+        // // fix model gates position..
+        // for (int i = 0; i < numberofCommands; i++)
+        // {
+        //     gates[i].transform.position = new Vector3(-3f + i*1.7f, 0.6f, 7f);
+        // }
 
 
     }

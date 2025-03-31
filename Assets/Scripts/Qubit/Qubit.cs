@@ -73,6 +73,7 @@ public class Qubit : MonoBehaviour
             lineRenderer.SetPosition(0, transform.position);
             lineRenderer.SetPosition(1, dot.transform.position);
         }
+        UpdatePosition();
     }
 
 
@@ -117,7 +118,7 @@ public class Qubit : MonoBehaviour
             Complex32 p11 = (Complex32)array[1,1];
             dot.transform.localPosition = new Vector3(2*p01.Real,2*p10.Imaginary,p00.Real - p11.Real)/2;
             dot.transform.LookAt(transform);
-            Debug.Log(dot.transform.localPosition);
+            // Debug.Log(dot.transform.localPosition);
         }
         else
         {
@@ -128,6 +129,38 @@ public class Qubit : MonoBehaviour
             Complex32 p11 = matrix[1,1];
             dot.transform.localPosition = new Vector3(2*p01.Real,2*p10.Imaginary,p00.Real - p11.Real)/2;
             dot.transform.LookAt(transform);
+        }
+    }
+
+
+    void OnTriggerEnter(Collider other)
+    {
+        switch(other.name)
+        {
+            case "Hadamard":
+                print(other.name);
+                ApplyHadamard(this);
+                break;
+            
+            case "Pauli-X":
+                print(other.name);
+                ApplyPauliX(this);
+                break;
+
+            case "Pauli-Z":
+                print(other.name);
+                ApplyPauliZ(this);
+                break;
+            
+            case "Phase-S":
+                print(other.name);
+                ApplyPhaseGate(this);
+                break;
+
+            default:
+                print("None");
+                break;
+            
         }
     }
 
