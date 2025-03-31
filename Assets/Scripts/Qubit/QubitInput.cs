@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.XR.Interaction.Toolkit;
 using static QubitManager;
 using System.Collections;
+using System.Dynamic;
 [RequireComponent(typeof(AudioSource))]
 
 public class QubitInput : MonoBehaviour
@@ -79,17 +80,18 @@ public class QubitInput : MonoBehaviour
             innerSphere.transform.Rotate(Vector3.right, -translate.ReadValue<Vector2>().y * rotationSpeed * Time.deltaTime);
             if (leftHand.FindAction("X").WasReleasedThisFrame() && buttonReleased)
             {
-                int c = 0;
-                ApplyPauliX(qubit);
-                qubit.UpdatePosition();
-                buttonReleased = false;
-                audioSource.PlayOneShot(audioClipX, 1f);
-                triggered[activeGateIdx] = initAngle; // can be used to draw the gates
-                activeGates[activeGateIdx] = Instantiate(gates[c], innerSphere.transform.position, Quaternion.identity);
-                gates[c].transform.position = innerSphere.transform.position;
-                gates[c].transform.rotation = gatespin[c];
-                nubmerofActiveGates++;
-                activeGateIdx++;
+                Measure(qubit.GetIndex());
+                // int c = 0;
+                // ApplyPauliX(qubit);
+                // qubit.UpdatePosition();
+                // buttonReleased = false;
+                // audioSource.PlayOneShot(audioClipX, 1f);
+                // triggered[activeGateIdx] = initAngle; // can be used to draw the gates
+                // activeGates[activeGateIdx] = Instantiate(gates[c], innerSphere.transform.position, Quaternion.identity);
+                // gates[c].transform.position = innerSphere.transform.position;
+                // gates[c].transform.rotation = gatespin[c];
+                // nubmerofActiveGates++;
+                // activeGateIdx++;
             }
             if (leftHand.FindAction("X").WasReleasedThisFrame())
             {
@@ -116,18 +118,19 @@ public class QubitInput : MonoBehaviour
             // }
             if (rightHand.FindAction("A").WasPressedThisFrame() && buttonReleased)
             {
-                int c = 2;
-                ApplyHadamard(qubit);
-                qubit.UpdatePosition();
-                buttonReleased = false;
-                audioSource.PlayOneShot(audioClipA, 1f) ;
-                Debug.Log("A");
-                triggered[activeGateIdx] = initAngle;
-                activeGates[activeGateIdx] = Instantiate(gates[c], innerSphere.transform.position, Quaternion.identity);
-                gates[c].transform.position = innerSphere.transform.position;
-                gates[c].transform.rotation = gatespin[c];
-                nubmerofActiveGates++;
-                activeGateIdx++;
+                Measure(qubit.GetIndex());
+                // int c = 2;
+                // ApplyHadamard(qubit);
+                // qubit.UpdatePosition();
+                // buttonReleased = false;
+                // audioSource.PlayOneShot(audioClipA, 1f) ;
+                // Debug.Log("A");
+                // triggered[activeGateIdx] = initAngle;
+                // activeGates[activeGateIdx] = Instantiate(gates[c], innerSphere.transform.position, Quaternion.identity);
+                // gates[c].transform.position = innerSphere.transform.position;
+                // gates[c].transform.rotation = gatespin[c];
+                // nubmerofActiveGates++;
+                // activeGateIdx++;
             }
             if (rightHand.FindAction("A").WasReleasedThisFrame())
             {
