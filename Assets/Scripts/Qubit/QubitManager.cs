@@ -197,6 +197,13 @@ public class QubitManager : MonoBehaviour
         return rhomat;
     }
 
+    public static double Entropy(int index)
+    {
+        ndarray partialTrace = PartialTrace(index);
+        Complex32 entropy = (Complex32)np.trace(np.square(partialTrace))[0];
+        return (double)(-np.log(entropy.Real));
+    }
+
 
     public static void ApplySpinExchange (float J, float time)
     {
