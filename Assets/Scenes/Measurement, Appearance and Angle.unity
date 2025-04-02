@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18306622, g: 0.2287434, b: 0.30669293, a: 1}
+  m_IndirectSpecularColor: {r: 0.18306571, g: 0.22874258, b: 0.30669147, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -495,7 +495,6 @@ Transform:
   - {fileID: 841912142}
   - {fileID: 1594059628}
   - {fileID: 331898597}
-  - {fileID: 1163710419}
   - {fileID: 310376442}
   m_Father: {fileID: 1058674054}
   m_LocalEulerAnglesHint: {x: 0, y: -15, z: 0}
@@ -1565,7 +1564,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1634879146301572268, guid: a42c485717d40be4a83d714011069b49, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: a42c485717d40be4a83d714011069b49, type: 3}
 --- !u!4 &549163032 stripped
 Transform:
@@ -2386,7 +2388,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3845803160023083598, guid: 8a507437b7f35b247b986708571ceb90, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: 8a507437b7f35b247b986708571ceb90, type: 3}
 --- !u!4 &856650580 stripped
 Transform:
@@ -2872,16 +2877,16 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1163710418}
-  m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.02, y: 0.02, z: 0.1}
+  m_LocalRotation: {x: -0, y: -0.13052626, z: -0, w: 0.9914448}
+  m_LocalPosition: {x: 0, y: 0, z: 2.8995948}
+  m_LocalScale: {x: 0.04800001, y: 0.048, z: 0.2400001}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 288355462}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.132, y: 0.49894}
+  m_AnchoredPosition: {x: -51.013874, y: 70.48716}
   m_SizeDelta: {x: 37.55, y: 4.76564}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1163710420
@@ -3490,7 +3495,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5259612971334612978, guid: 6d0301240235e904b8245250d24e6062, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: 6d0301240235e904b8245250d24e6062, type: 3}
 --- !u!4 &1250500231 stripped
 Transform:
@@ -4953,7 +4961,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5421178319353381163, guid: c9ada280f0f2a5546a9afbfabc153986, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: c9ada280f0f2a5546a9afbfabc153986, type: 3}
 --- !u!4 &1923304441 stripped
 Transform:
@@ -10976,6 +10987,7 @@ SceneRoots:
   - {fileID: 1261622145}
   - {fileID: 315115736}
   - {fileID: 1723221380}
+  - {fileID: 1163710419}
   - {fileID: 1211841875}
   - {fileID: 562807676}
   - {fileID: 1989305601}

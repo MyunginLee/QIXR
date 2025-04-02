@@ -96,7 +96,7 @@ public class Entanglement : MonoBehaviour
             float rho10 = ((Complex32)array[1, 0]).Real;
 
             float r = Mathf.Sqrt(Mathf.Pow(rho00 - rho11, 2) + 4 * rho01 * rho10);
-            return Mathf.Clamp(r, 0.1f, 1f);  
+            return Mathf.Clamp(r, 0f, 1f);  
         }
         return 1f; 
     }
@@ -118,11 +118,11 @@ public class Entanglement : MonoBehaviour
                 entangled[j+1] = true;
                 //Debug.Log(j+ " " + distance + " " + QubitManager.J[j]);
             }
-            else
-            {
-                entangled[j] = false;
-                entangled[j + 1] = false;
-            }
+            // else
+            // {
+            //     entangled[j] = false;
+            //     entangled[j + 1] = false;
+            // }
         }
         for (int j = 0; j < qubits.Length; j++)
         {
@@ -138,9 +138,9 @@ public class Entanglement : MonoBehaviour
                 }
                 untangleTrigger = true;
 
-                // qubitScale = QubitManager.J[j] / 3.15f * 0.3f;
+                //qubitScale = QubitManager.J[j] / 3.15f * 0.3f;
                 Qubit qubitComponent = qubits[j].GetComponent<Qubit>();
-                qubitScale = (1f - ComputeQubitScale(qubitComponent) / 3.15f) * 0.3f;
+                qubitScale = ComputeQubitScale(qubitComponent) * 0.3f;
 
                 for (int i = 0; i < numberOfStrings; i++)
                 {
@@ -209,7 +209,6 @@ public class Entanglement : MonoBehaviour
             }
             shell[j].transform.position = qubits[j].transform.position;
             qubits[j].transform.localScale = new Vector3(qubitScale, qubitScale, qubitScale);
-
 
 
             // Trail update according to J

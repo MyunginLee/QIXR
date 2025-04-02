@@ -40,6 +40,7 @@ public class QubitManager : MonoBehaviour
         }
 
         Invoke("ApplyGate", 0.5f);
+        InvokeRepeating(nameof(UpdateSpinExchange), 0.1f, 0.1f);
 
         //filePath = "/Users/ngocdinh/Downloads/QubitJan11.csv";
         //writer = new StreamWriter(filePath);
@@ -48,7 +49,7 @@ public class QubitManager : MonoBehaviour
     void Update()
     {
         // time += Time.deltaTime;
-        J = CalculateProximity(allQubits, time, THRESHOLD_DISTANCE);
+        // J = CalculateProximity(allQubits, time, THRESHOLD_DISTANCE);
 
         // Debug.Log(
         //     $"{GetDensityMatrix()}\n" +
@@ -57,9 +58,14 @@ public class QubitManager : MonoBehaviour
         // );
     }
 
+    private void UpdateSpinExchange()
+    {
+        J = CalculateProximity(allQubits, time, THRESHOLD_DISTANCE);
+    }
+
     void ApplyGate() {
-        ApplyHadamard(allQubits[0]);
-        // ApplyPauliX(allQubits[0]);
+        // ApplyHadamard(allQubits[0]);
+        ApplyPauliX(allQubits[0]);
     }
 
     public static void UpdateDensityMatrix()
@@ -212,15 +218,16 @@ public class QubitManager : MonoBehaviour
                 float Jmax = 1f;
 
                 distance = Vector3.Distance(qubitA.transform.position, qubitB.transform.position);
+
                 if (distance <= THRESHOLD_DISTANCE) 
                 {
                     scalingFactor = distance/THRESHOLD_DISTANCE;
                     //J[i] = Mathf.PI * scalingFactor;
                     J[i] = Jmax / 2f * (1f + (float)System.Math.Tanh(THRESHOLD_DISTANCE/2f) - distance);
-                    J[j] = J[i];
+                    J[j] = J[i]; 
                     ApplySpinExchange(J[i], time);
-                    qubitA.UpdatePosition();
-                    qubitB.UpdatePosition();
+                    // qubitA.UpdatePosition();
+                    // qubitB.UpdatePosition();
                     
                     // string densityMatrixStr = SerializeMatrix(GetDensityMatrix());
                     // string qubit1TraceStr = SerializeMatrix(PartialTrace(i));
