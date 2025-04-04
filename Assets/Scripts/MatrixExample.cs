@@ -88,7 +88,7 @@ public class MatrixExample : MonoBehaviour
                     J = Mathf.PI * scalingFactor;
                     //ApplySpinExchange(J, time, PartialTrace(i),PartialTrace(j));
                     ApplySpinExchange(J, time);
-                    Debug.Log("Distance: " + distance + ", J: " + J);
+                    // Debug.Log("Distance: " + distance + ", J: " + J);
                 }
             }
         }

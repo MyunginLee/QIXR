@@ -57,7 +57,10 @@ public class Measure : MonoBehaviour
             Debug.Log("Probability of 0: " + Mathf.Pow(Mathf.Abs(Mathf.Cos(inclination / 2)), 2));
             Debug.Log("Probability of 1: " + Mathf.Pow(Mathf.Abs(Mathf.Sin(inclination / 2)), 2));
 
-
+            for (int j = 0; j < 2; j++)
+            {
+                Entanglement.entangled[j] = false;
+            }
 
         }
 

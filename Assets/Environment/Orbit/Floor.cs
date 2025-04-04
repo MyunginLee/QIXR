@@ -23,8 +23,8 @@ public class FloorElectrons : MonoBehaviour
         for (int i = 0; i < qubitPosition.Length; i++)
         {
             qubitPosition[i] = new Vector4(qubits[i].transform.position.x, qubits[i].transform.position.z, 0, 0);
-            colors[i] = new Vector4(0.4f, -0.3f, 0.2f, 1.0f);
-            wavefunctionParameters[i] = new Vector4(1f, 0f, 0f, 0.2f);
+            colors[i] = new Vector4(0.99f,  0.402f,  0.79f, 1.0f);
+            wavefunctionParameters[i] = new Vector4(1f, 0f, 0f, 1f);
         }
         orbits.SetVectorArray("_OrbitColor", colors);
         orbits.SetVectorArray("_Centers", qubitPosition);
@@ -42,8 +42,13 @@ public class FloorElectrons : MonoBehaviour
             Vector3 spin = (qubits[i].transform.position - dot[i].transform.position)/0.05f;
             // Debug.Log(i + " " + spin);
             // wavefunctionParameters[i] = new Vector4(Mathf.Abs(spin.y), Mathf.Abs(spin.x), Mathf.Abs(spin.x), 1f);
-            wavefunctionParameters[i] = new Vector4(1f, 0f, 0f, 0.3f);
+            wavefunctionParameters[i] = new Vector4(1f, 0f, 0f, 1f);
             //qubitPosition[i] = qubits[i].transform.position;
+            if(Entanglement.entangled[i]){
+                colors[i] = new Vector4(0.1f, 0.1f, 0.9f, 3.0f);
+            }else{
+                colors[i] = new Vector4(0.99f,  0.402f,  0.79f, 1.0f);            
+            }
         }
         orbits.SetVectorArray("_OrbitColor", colors);
         orbits.SetVectorArray("_Centers", qubitPosition);

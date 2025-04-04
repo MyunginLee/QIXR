@@ -23,12 +23,11 @@ public class QubitInput : MonoBehaviour
     private string grabbedObject = "";
     public float[] triggered;
     private Quaternion[] gatespin;
-    AudioSource audioSource;
+    // AudioSource audioSource;
     static int numberofCommands = 4;
     private float time;
     private float initAngle = 3.14f;
-    [SerializeField]
-    public AudioClip audioClipX, audioClipY, audioClipA, audioClipB;
+    // public AudioClip audioClipX, audioClipY, audioClipA, audioClipB;
     private GameObject[] gates, activeGates;
     private int activeGateIdx, nubmerofActiveGates;
     private int maxGates = 50;
@@ -41,7 +40,7 @@ public class QubitInput : MonoBehaviour
         gatespin = new Quaternion[maxGates];
         interactableObject.selectEntered.AddListener(OnGrab);
         interactableObject.selectExited.AddListener(OnRelease);
-        audioSource = GetComponent<AudioSource>();
+        // audioSource = GetComponent<AudioSource>();
 
         gates[0] = GameObject.Find("Gate 1");
         gates[1] = GameObject.Find("Gate 2");

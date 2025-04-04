@@ -3,7 +3,7 @@ Shader "Custom/MultipleHydrogen"
     Properties
     {
         _NumQubits ("Number of Qubits", Int) = 2 // Number of Qubits
-        // _OrbitColor ("Color", Color) = (0.4, -0.3, 0.2, 1.0) 
+        _OrbitColor ("Color", Color) = (0.4, -0.3, 0.2, 1.0) 
         _MainTex ("Texture", 2D) = "white" {}
         _TimeScale ("Time Scale", Float) = 1
         // _WaveFunctionParams ("Wave Function Parameters", Vector) = (1.0, 0.0, 0.0, 1.0)
@@ -105,9 +105,13 @@ Shader "Custom/MultipleHydrogen"
                     // color
                     // float4 baseColor = float4(0.2 * j, 0.3, 0.1, 1.0*probabilityDensity);
                     // float4 baseColor = float4(0.3+0.4 * j, 0.7- 0.3 * (j), 0.8 + 0.2*(j), 1.0*probabilityDensity); // pastel
-                    float4 baseColor = float4(0.99, 0.402, 0.79, 1*probabilityDensity);
+                    // float4 baseColor = float4(0.99, 0.402, 0.79, 1*probabilityDensity);
                     // float4 baseColor = float4(0.2 + 0.3 * j, 0.7 - 0.2 * j, 0.3 + 0.1*j, 1.0*probabilityDensity);
                     // float4 baseColor = float4(0.3+ _OrbitColor.r * j, 0.7+ _OrbitColor.g * (j), 0.8 + _OrbitColor.b*(j), 1.0*probabilityDensity);
+
+                    // float4 baseColor = float4(0.99, 0.402, 0.79, 1*probabilityDensity);
+                    float4 baseColor = float4(_OrbitColor.r, _OrbitColor.g, _OrbitColor.b, 1.0);
+
                     float4 color = probabilityDensity * baseColor;
                     color.a = probabilityDensity > 0.0 ? probabilityDensity : 0.0;
                     value +=color;

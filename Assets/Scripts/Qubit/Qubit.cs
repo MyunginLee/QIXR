@@ -17,8 +17,14 @@ public class Qubit : MonoBehaviour
     private Matrix<Complex32> phaseSDagger;
     private int initQubits;
     public int index;
+    AudioSource audioSource;
+
+    [SerializeField]
+    public AudioClip audioClipH, audioClipX, audioClipZ, audioClipS;
+
     public void Awake()
     {
+        audioSource = GetComponent<AudioSource>();
         UpdateDensityMatrix();
         IncrementInitQubits();
         index = GetInitQubits() - 1;
@@ -140,21 +146,25 @@ public class Qubit : MonoBehaviour
             case "Hadamard":
                 print(other.name);
                 ApplyHadamard(this);
+                audioSource.PlayOneShot(audioClipH, 1f);
                 break;
             
             case "Pauli-X":
                 print(other.name);
                 ApplyPauliX(this);
+                audioSource.PlayOneShot(audioClipX, 1f);
                 break;
 
             case "Pauli-Z":
                 print(other.name);
                 ApplyPauliZ(this);
+                audioSource.PlayOneShot(audioClipZ, 1f);
                 break;
             
             case "Phase-S":
                 print(other.name);
                 ApplyPhaseGate(this);
+                audioSource.PlayOneShot(audioClipS, 1f);
                 break;
 
             default:
