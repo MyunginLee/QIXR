@@ -16,7 +16,7 @@ using TMPro;
 public class QubitManager : MonoBehaviour
 {
     static private Matrix<Complex32> densityMatrix;
-    static int numQubits = 0;
+    static public int numQubits = 0;
     static int initQubits = 0;
     private List<Qubit> allQubits = new List<Qubit>();
     private float time = 1f;

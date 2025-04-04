@@ -80,6 +80,11 @@ public class QubitInput : MonoBehaviour
             if (leftHand.FindAction("X").WasReleasedThisFrame() && buttonReleased)
             {
                 Measure(qubit.GetIndex());
+                // Entanglement.entangled[qubit.GetIndex()] = false;
+                for (int i = 0; i < QubitManager.numQubits; i++){
+                    Entanglement.entangled[i] = false;
+                }
+
                 // int c = 0;
                 // ApplyPauliX(qubit);
                 // qubit.UpdatePosition();
@@ -118,6 +123,10 @@ public class QubitInput : MonoBehaviour
             if (rightHand.FindAction("A").WasPressedThisFrame() && buttonReleased)
             {
                 Measure(qubit.GetIndex());
+                for (int i = 0; i < QubitManager.numQubits; i++){
+                    Entanglement.entangled[i] = false;
+                }
+
                 // int c = 2;
                 // ApplyHadamard(qubit);
                 // qubit.UpdatePosition();
