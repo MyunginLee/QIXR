@@ -21,7 +21,7 @@ public class QubitManager : MonoBehaviour
     private List<Qubit> allQubits = new List<Qubit>();
     private float time = 1f;
     public static float THRESHOLD_DISTANCE = 2f;
-
+    public static double entropy;
     private string filePath;
     // private StreamWriter writer;
     public static float[] J;
@@ -56,6 +56,7 @@ public class QubitManager : MonoBehaviour
         //     $"{PartialTrace(0)}\n" +
         //     $"{PartialTrace(1)}\n"
         // );
+        entropy = Entropy(0);
     }
 
     private void UpdateSpinExchange()
