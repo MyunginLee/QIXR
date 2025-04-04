@@ -70,7 +70,7 @@ public class QubitAudio : MonoBehaviour
         }
         reverb.diffusion = QubitManager.J[0]* 30f;
 
-        frequency[0] = 130.81f * scale;
+        frequency[0] = 130.81f * scale / adjust;
         frequency[1] = 164.81f* scale * adjust;
         frequency[2] = 196.0f* scale;
         frequency[3] = frequency[0]/2f;
