@@ -327,6 +327,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 965bbbdee9b8fde43a25110a6ea97cfc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  HadamardEffect: {fileID: 0}
+  PauliXEffect: {fileID: 0}
+  PauliZEffect: {fileID: 0}
+  PhaseSEffect: {fileID: 0}
+  HadamardEffectAsset: {fileID: 8926484042661614526, guid: f66c247eeb1b7c64b880735b158c74ae, type: 3}
+  PauliXEffectAsset: {fileID: 8926484042661614526, guid: f66c247eeb1b7c64b880735b158c74ae, type: 3}
+  PauliZEffectAsset: {fileID: 8926484042661614526, guid: f66c247eeb1b7c64b880735b158c74ae, type: 3}
+  PhaseSEffectAsset: {fileID: 8926484042661614526, guid: f66c247eeb1b7c64b880735b158c74ae, type: 3}
   dot: {fileID: 4904496465086199207}
   lineRenderer: {fileID: 8578457389521498890}
   index: 0

@@ -5,8 +5,13 @@ using static QubitManager;
 using static Gates;
 using NumpyDotNet;
 using System.Dynamic;
+using UnityEngine.VFX;
+
 public class Qubit : MonoBehaviour
 {
+    public VisualEffect HadamardEffect, PauliXEffect,PauliZEffect, PhaseSEffect;
+     public VisualEffectAsset HadamardEffectAsset, PauliXEffectAsset,PauliZEffectAsset, PhaseSEffectAsset;
+
     [SerializeField] GameObject dot;
     [SerializeField] LineRenderer lineRenderer;
     private Matrix<Complex32> identityMatrix;
