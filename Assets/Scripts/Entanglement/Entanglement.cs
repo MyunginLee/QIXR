@@ -30,6 +30,7 @@ public class Entanglement : MonoBehaviour
 
     [SerializeField]
     public AudioClip SoundUntangle, SoundEntangle;
+    float timescale = 1f;
 
     struct BodyProperty
     {
@@ -74,12 +75,12 @@ public class Entanglement : MonoBehaviour
             Gradient gradient = new Gradient();
             gradient.SetKeys(
                 //new GradientColorKey[] { new GradientColorKey(new Color((Mathf.Sin(Mathf.PI * 2f / numberOfStrings * i) + 1) / 2f, (Mathf.Cos(Mathf.PI * 2f / numberOfStrings * i) + 1) / 2f, Mathf.Tan(Mathf.PI * 2 / numberOfStrings * i)), 0.80f), new GradientColorKey(new Color((Mathf.Cos(Mathf.PI * 2 / numberOfStrings * i) + 1) / 5f, (Mathf.Sin(Mathf.PI * 2 / numberOfStrings * i) + 1) / 3f, Mathf.Tan(Mathf.PI * 2 / numberOfStrings * i)), 0.05f) },
-                new GradientColorKey[] { new GradientColorKey(new Color(0f,0f, 0f), 0f), 
-                                                        new GradientColorKey(new Color((float)(Mathf.Cos(Mathf.PI * 2f / numberOfStrings * i) + 1f) / 3f, 
-                                                        0.3f - (float)( (Mathf.Cos(Mathf.PI * 2f / numberOfStrings * i) +1f) / 1.5f), 
-                                                        0.5f+ (float)(Mathf.Sin(Mathf.PI * 2f / numberOfStrings * i) + 1f) / 3f), 
+                new GradientColorKey[] { new GradientColorKey(new Color(0f,0f, 0f), 0f),
+                                                        new GradientColorKey(new Color((float)(Mathf.Cos(Mathf.PI * 2f / numberOfStrings * i) + 1f) / 3f,
+                                                        0.3f - (float)( (Mathf.Cos(Mathf.PI * 2f / numberOfStrings * i) +1f) / 1.5f),
+                                                        0.5f+ (float)(Mathf.Sin(Mathf.PI * 2f / numberOfStrings * i) + 1f) / 3f),
                                                         0.05f) },
-                new GradientAlphaKey[] { new GradientAlphaKey(0.1f, 0.1f), new GradientAlphaKey(0.1f, 0.1f) }            );
+                new GradientAlphaKey[] { new GradientAlphaKey(0.1f, 0.1f), new GradientAlphaKey(0.1f, 0.1f) });
             trailRenderer[i].colorGradient = gradient;
         }
     }
@@ -96,9 +97,9 @@ public class Entanglement : MonoBehaviour
             float rho10 = ((Complex32)array[1, 0]).Real;
 
             float r = Mathf.Sqrt(Mathf.Pow(rho00 - rho11, 2) + 4 * rho01 * rho10);
-            return Mathf.Clamp(r, 0f, 1f);  
+            return Mathf.Clamp(r, 0f, 1f);
         }
-        return 1f; 
+        return 1f;
     }
 
     void Update()
@@ -108,14 +109,22 @@ public class Entanglement : MonoBehaviour
             bp[i].acceleration = Vector3.zero;
         }
 
-        // distance between qubits
-        for (int j = 0; j < qubits.Length-1; j++)
+        if (QubitManager.isMeasureActive)
         {
-            float distance = (qubits[j].transform.position - qubits[j+1].transform.position).magnitude;
+            timescale = 0f;
+        }
+        else
+        {
+            timescale = 1f;
+        }
+        // distance between qubits
+        for (int j = 0; j < qubits.Length - 1; j++)
+        {
+            float distance = (qubits[j].transform.position - qubits[j + 1].transform.position).magnitude;
             if (distance <= QubitManager.THRESHOLD_DISTANCE)
             {
                 entangled[j] = true;
-                entangled[j+1] = true;
+                entangled[j + 1] = true;
                 //Debug.Log(j+ " " + distance + " " + QubitManager.J[j]);
             }
             // else
@@ -129,8 +138,8 @@ public class Entanglement : MonoBehaviour
             float qubitScale = 0.3f;
             // Entangled logic.
             if (entangled[j])
-            {           
-                if(entangleTrigger == true)
+            {
+                if (entangleTrigger == true)
                 {
                     audioSource.pitch = Random.Range(0.8f, 1.3f);
                     audioSource.PlayOneShot(SoundEntangle, 1f);
@@ -157,19 +166,20 @@ public class Entanglement : MonoBehaviour
                         {
                             bp[i].acceleration = bp[i].acceleration.normalized * (3f + Random.Range(-1f, 1f));
                         }
-                        bp[i].velocity += bp[i].acceleration * Time.deltaTime;
+                        bp[i].velocity += bp[i].acceleration * Time.deltaTime * timescale;
 
                         // constrain the velocity when strings are too close to qubit
-                        if(distance.magnitude < 1f){                           
-                            if (bp[i].velocity.sqrMagnitude > 0.3f + entropy/5f)
+                        if (distance.magnitude < 1f)
+                        {
+                            if (bp[i].velocity.sqrMagnitude > 0.3f + entropy / 5f)
                             {
-                                bp[i].velocity = bp[i].velocity.normalized * (0.3f + entropy/5f);
+                                bp[i].velocity = bp[i].velocity.normalized * (0.3f + entropy / 5f);
                             }
                         }
 
                     }
 
-                    strings[i].transform.position += bp[i].velocity * Time.deltaTime;
+                    strings[i].transform.position += bp[i].velocity * Time.deltaTime * timescale;
 
                     // Trail color according to J
                     Gradient gradient = new Gradient();
@@ -180,19 +190,20 @@ public class Entanglement : MonoBehaviour
                                                                    0.4f - entropy/10f - (float)( (Mathf.Cos(Mathf.PI * 2f / (float)numberOfStrings * i) +1f )/ 10f),
                                                                    0.5f - entropy/10f + (float) (Mathf.Sin(Mathf.PI * 2f / (float)numberOfStrings * i) +1f) / 9f),
                                                                    entropy / 4f) },
-                            // new GradientColorKey(new Color((float)(QubitManager.J[j]/4f+Mathf.Cos(Mathf.PI * 2f / (float)numberOfStrings * i) + 1f) / 5f,
-                            //                                        0.4f - QubitManager.J[j]/10f - (float)( (Mathf.Cos(Mathf.PI * 2f / (float)numberOfStrings * i) +1f )/ 10f),
-                            //                                        0.5f - QubitManager.J[j]/10f + (float) (Mathf.Sin(Mathf.PI * 2f / (float)numberOfStrings * i) +1f) / 9f),
-                            //                                        QubitManager.J[j] / 4f) },
+                        // new GradientColorKey(new Color((float)(QubitManager.J[j]/4f+Mathf.Cos(Mathf.PI * 2f / (float)numberOfStrings * i) + 1f) / 5f,
+                        //                                        0.4f - QubitManager.J[j]/10f - (float)( (Mathf.Cos(Mathf.PI * 2f / (float)numberOfStrings * i) +1f )/ 10f),
+                        //                                        0.5f - QubitManager.J[j]/10f + (float) (Mathf.Sin(Mathf.PI * 2f / (float)numberOfStrings * i) +1f) / 9f),
+                        //                                        QubitManager.J[j] / 4f) },
 
 
                         new GradientAlphaKey[] { new GradientAlphaKey(entropy / 5f, entropy / 5f),
                             new GradientAlphaKey(entropy / 5f, entropy / 5f) }
                     );
                     trailRenderer[i].colorGradient = gradient;
-                    trailRenderer[i].startWidth = entropy/3f;
-                    trailRenderer[i].endWidth = entropy/5f;
+                    trailRenderer[i].startWidth = entropy / 3f;
+                    trailRenderer[i].endWidth = entropy / 5f;
                 }
+                qubits[j].transform.localScale = new Vector3(qubitScale, qubitScale, qubitScale);
             }
             else // unentangled logic
             {
@@ -216,9 +227,12 @@ public class Entanglement : MonoBehaviour
                 }
 
             }
-            shell[j].transform.position = qubits[j].transform.position;
-            qubits[j].transform.localScale = new Vector3(qubitScale, qubitScale, qubitScale);
+        }
 
+        // Qubit shell location update
+        for (int j = 0; j < qubits.Length; j++)
+        {
+            shell[j].transform.position = qubits[j].transform.position;
 
             // Trail update according to J
             for (int i = 0; i < numberOfStrings; i++)
@@ -226,15 +240,16 @@ public class Entanglement : MonoBehaviour
                 Gradient gradient = new Gradient();
                 gradient.SetKeys(
                     //new GradientColorKey[] { new GradientColorKey(new Color((Mathf.Sin(Mathf.PI * 2f / numberOfStrings * i) + 1) / 2f, (Mathf.Cos(Mathf.PI * 2f / numberOfStrings * i) + 1) / 2f, Mathf.Tan(Mathf.PI * 2 / numberOfStrings * i)), 0.80f), new GradientColorKey(new Color((Mathf.Cos(Mathf.PI * 2 / numberOfStrings * i) + 1) / 5f, (Mathf.Sin(Mathf.PI * 2 / numberOfStrings * i) + 1) / 3f, Mathf.Tan(Mathf.PI * 2 / numberOfStrings * i)), 0.05f) },
-                    new GradientColorKey[] { new GradientColorKey(new Color(0f,0f, 0f), 0f), 
-                                                            new GradientColorKey(new Color( 0.5f*QubitManager.J[j] + (float)(Mathf.Cos(Mathf.PI * 2f / numberOfStrings * i) + 1f) / (3f), 
-                                                            -0.5f*QubitManager.J[j]  + (float)( (Mathf.Cos(Mathf.PI * 2f / numberOfStrings * i) +1f) / 2f), 
-                                                            0.5f+ 0.4f*QubitManager.J[j] + (float)(Mathf.Sin(Mathf.PI * 2f / numberOfStrings * i) + 1f) / (3f + 3f*QubitManager.J[j])), 
-                                                            0.05f) },
-                    new GradientAlphaKey[] { new GradientAlphaKey(0.1f + QubitManager.J[j], 0.1f+ QubitManager.J[j]), new GradientAlphaKey(0.1f, 0.1f) }            );
+                    new GradientColorKey[] { new GradientColorKey(new Color(0f,0f, 0f), 0f),
+                                                        new GradientColorKey(new Color( 0.5f*QubitManager.J[j] + (float)(Mathf.Cos(Mathf.PI * 2f / numberOfStrings * i) + 1f) / (3f),
+                                                        -0.5f*QubitManager.J[j]  + (float)( (Mathf.Cos(Mathf.PI * 2f / numberOfStrings * i) +1f) / 2f),
+                                                        0.5f+ 0.4f*QubitManager.J[j] + (float)(Mathf.Sin(Mathf.PI * 2f / numberOfStrings * i) + 1f) / (3f + 3f*QubitManager.J[j])),
+                                                        0.05f) },
+                    new GradientAlphaKey[] { new GradientAlphaKey(0.1f + QubitManager.J[j], 0.1f + QubitManager.J[j]), new GradientAlphaKey(0.1f, 0.1f) });
                 trailRenderer[i].colorGradient = gradient;
             }
         }
+
     }
     private Vector3 CalculateGravity(Vector3 distanceVector, float m1, float m2)
     {

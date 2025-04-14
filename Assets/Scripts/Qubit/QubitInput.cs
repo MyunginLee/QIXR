@@ -75,32 +75,10 @@ public class QubitInput : MonoBehaviour
 
         if (grabbedObject == qubit.name)
         {
-            innerSphere.transform.Rotate(Vector3.up, rotate.ReadValue<Vector2>().x * rotationSpeed * Time.deltaTime);
-            innerSphere.transform.Rotate(Vector3.right, -translate.ReadValue<Vector2>().y * rotationSpeed * Time.deltaTime);
-            if (leftHand.FindAction("X").WasReleasedThisFrame() && buttonReleased)
-            {
-                Measure(qubit.GetIndex());
-                // Entanglement.entangled[qubit.GetIndex()] = false;
-                for (int i = 0; i < QubitManager.numQubits; i++){
-                    Entanglement.entangled[i] = false;
-                }
+            // Disabled rotation using joystick
+            // innerSphere.transform.Rotate(Vector3.up, rotate.ReadValue<Vector2>().x * rotationSpeed * Time.deltaTime);
+            // innerSphere.transform.Rotate(Vector3.right, -translate.ReadValue<Vector2>().y * rotationSpeed * Time.deltaTime);
 
-                // int c = 0;
-                // ApplyPauliX(qubit);
-                // qubit.UpdatePosition();
-                // buttonReleased = false;
-                // audioSource.PlayOneShot(audioClipX, 1f);
-                // triggered[activeGateIdx] = initAngle; // can be used to draw the gates
-                // activeGates[activeGateIdx] = Instantiate(gates[c], innerSphere.transform.position, Quaternion.identity);
-                // gates[c].transform.position = innerSphere.transform.position;
-                // gates[c].transform.rotation = gatespin[c];
-                // nubmerofActiveGates++;
-                // activeGateIdx++;
-            }
-            if (leftHand.FindAction("X").WasReleasedThisFrame())
-            {
-                buttonReleased = true;
-            }
             // if (leftHand.FindAction("Y").WasPressedThisFrame() && buttonReleased)
             // {
             //     int c = 1;
@@ -120,13 +98,15 @@ public class QubitInput : MonoBehaviour
             //     int c = 1;
             //     buttonReleased = true;
             // }
-            if (rightHand.FindAction("A").WasPressedThisFrame() && buttonReleased)
+            if (rightHand.FindAction("A").WasPressedThisFrame() || leftHand.FindAction("X").WasPressedThisFrame()){
+                Debug.Log("just pressed");               
+            }
+            // if (rightHand.FindAction("A").IsPressed() || leftHand.FindAction("X").IsPressed())
+            if (rightHand.FindAction("A").IsPressed())
             {
-                Measure(qubit.GetIndex());
-                for (int i = 0; i < QubitManager.numQubits; i++){
-                    Entanglement.entangled[i] = false;
-                }
-
+                // *** Freeze time
+                QubitManager.isMeasureActive = true;
+                Debug.Log("measuring");
                 // int c = 2;
                 // ApplyHadamard(qubit);
                 // qubit.UpdatePosition();
@@ -140,10 +120,24 @@ public class QubitInput : MonoBehaviour
                 // nubmerofActiveGates++;
                 // activeGateIdx++;
             }
-            if (rightHand.FindAction("A").WasReleasedThisFrame())
-            {
+            // measurement happens when release the button
+            // if (rightHand.FindAction("A").WasReleasedThisFrame() || leftHand.FindAction("X").WasReleasedThisFrame()){
+            if (rightHand.FindAction("A").WasReleasedThisFrame()){
+                Measure(qubit.GetIndex());
+                for (int i = 0; i < QubitManager.numQubits; i++){
+                    Entanglement.entangled[i] = false;
+                }
                 buttonReleased = true;
+                QubitManager.isMeasureActive = false;
+                Debug.Log(QubitManager.isMeasureActive);
+
             }
+            // if (!rightHand.FindAction("A").WasPressedThisFrame())
+            // { 
+            //     buttonReleased = true;
+            //     QubitManager.isMeasureActive = false;
+            //     Debug.Log(QubitManager.isMeasureActive);
+            // }
             // if (rightHand.FindAction("B").WasPressedThisFrame() && buttonReleased)
             // {
             //     int c = 3;

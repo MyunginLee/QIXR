@@ -28,6 +28,13 @@ public class QubitManager : MonoBehaviour
     public TMP_Text textMeshPro;
 
     public static float volume = 0.8f;
+
+    public static bool isMeasureActive = false; // Trigger boolean
+    private bool isInvoking = false;
+
+    public float repeatRate = 0.15f;
+
+
     void Start() 
     {
         GameObject[] qubits = GameObject.FindGameObjectsWithTag("Qubit");
@@ -40,7 +47,10 @@ public class QubitManager : MonoBehaviour
         }
 
         Invoke("ApplyGate", 0.5f);
-        InvokeRepeating(nameof(UpdateSpinExchange), 0.1f, 0.1f);
+        // if(isMeasureActive)
+        {
+            InvokeRepeating(nameof(UpdateSpinExchange), 0.1f, repeatRate); // start time, update time
+        }
 
         //filePath = "/Users/ngocdinh/Downloads/QubitJan11.csv";
         //writer = new StreamWriter(filePath);
@@ -56,6 +66,20 @@ public class QubitManager : MonoBehaviour
         //     $"{PartialTrace(0)}\n" +
         //     $"{PartialTrace(1)}\n"
         // );
+        // Pause (stop invoking)
+        if (!isMeasureActive && isInvoking)
+        {
+            CancelInvoke(nameof(UpdateSpinExchange));
+            isInvoking = false;
+        }
+
+        // Resume (start invoking)
+        else if (isMeasureActive && !isInvoking)
+        {
+            InvokeRepeating(nameof(UpdateSpinExchange), 0f, repeatRate);
+            isInvoking = true;
+        }
+
         entropy = Entropy(0);
     }
 
