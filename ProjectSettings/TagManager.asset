@@ -5,6 +5,11 @@ TagManager:
   serializedVersion: 2
   tags:
   - Qubit
+  - Anchor
+  - Core
+  - Dot
+  - Shell
+  - Gate
   layers:
   - Default
   - TransparentFX
