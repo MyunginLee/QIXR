@@ -11,9 +11,9 @@ Quantum Intuition XR is an interactive, extended reality (XR) experience designe
 - Windows PC machine
   
 ## Clone Github project
-In this Github repository, navigate to `devel` branch and download ZIP. Once downloaded, unzip the folder. 
+In this Github repository, clone the repo or download ZIP. Once downloaded, unzip the folder. 
 
-<img width="962" alt="image" src="https://github.com/user-attachments/assets/34c2903a-8141-48aa-ae91-f00a50f10dcf" />
+<img width="685" alt="Screenshot 2025-05-13 001156" src="https://github.com/user-attachments/assets/fc3476cf-4265-4dd4-abac-1522904569dd" />
 
 ## Set up Meta Quest Link
 Meta Quest Link enables you to tether your VR headset to your PC, so you can stream and run computer apps right inside the headset. You can use Meta Quest Link with wifi (wireless), or with a USB-C cable.
