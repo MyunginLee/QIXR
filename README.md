@@ -8,7 +8,7 @@ Quantum Intuition XR is an interactive, extended reality (XR) experience designe
 - Meta Quest Link app: https://www.meta.com/en-gb/help/quest/1517439565442928/
 - Meta Quest VR headset (any model): https://www.meta.com/quest/
 - Meta Quest link cable (optional)
-- Window machine
+- Windows PC machine
   
 ## Clone Github project
 In this Github repository, navigate to `devel` branch and download ZIP. Once downloaded, unzip the folder. 
