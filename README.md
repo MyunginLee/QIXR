@@ -34,9 +34,10 @@ Unity might prompt you to install a version if you don't have it. Choose "Open",
 <img width="1014" alt="image" src="https://github.com/user-attachments/assets/5426fc53-00fb-491f-805f-448d67a242bc" />
 
 ## Navigate in Unity project
-In `Project` tab, Open `Assets` > `Scenes` > `Measurement, Appearance and Angle`. This is the scene that you will play the app. 
+In `Project` tab, Open `Assets` > `Scenes` > `Main`. This is the scene that you will play the app. 
 
-<img width="1116" alt="image" src="https://github.com/user-attachments/assets/22724800-766e-4d1c-b124-bb4e05e36c6b" />
+<img width="894" alt="Screenshot 2025-05-13 115317" src="https://github.com/user-attachments/assets/db3d0da0-012c-4598-80de-0e822912afb5" />
+
 
 ## Play app in VR
 Open Meta Quest Link following the tutorial link above. Put on your VR headset and hit "Play" in Unity. You should be able to interact with the app in VR using the controllers.
