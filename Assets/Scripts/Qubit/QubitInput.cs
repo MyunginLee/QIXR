@@ -32,6 +32,11 @@ public class QubitInput : MonoBehaviour
     private int activeGateIdx, nubmerofActiveGates;
     private int maxGates = 50;
 
+    [SerializeField] private GameObject guide;
+    private GameObject spawnedInstance;
+    private bool prefabDestroyed = false;
+    private float joystickThreshold = 0.1f;
+
     void Start()
     {
         triggered = new float[maxGates]; // number of commands
@@ -50,6 +55,13 @@ public class QubitInput : MonoBehaviour
         //{
         //    gates[i].SetActive(false);
         //}
+
+        if (guide != null && spawnedInstance == null)
+        {
+            Vector3 spawnPos = qubit.transform.position + new Vector3(0, 0.2f, 0);
+            spawnedInstance = Instantiate(guide, spawnPos, Quaternion.identity);
+            spawnedInstance.transform.SetParent(qubit.transform);
+        }
     }
 
     private void OnEnable()
@@ -58,8 +70,8 @@ public class QubitInput : MonoBehaviour
         var actionMap = inputActions.FindActionMap("XRI LeftHand Interaction");
         leftHand = inputActions.FindActionMap("XRI LeftHand Interaction");
         rightHand = inputActions.FindActionMap("XRI RightHand Interaction");
-        rotate = actionMap.FindAction("Rotate Anchor");
-        translate = actionMap.FindAction("Translate Anchor");
+        rotate = leftHand.FindAction("Rotate Anchor");
+        translate = rightHand.FindAction("Translate Anchor");
     }
 
 
@@ -75,8 +87,19 @@ public class QubitInput : MonoBehaviour
 
         if (grabbedObject == qubit.name)
         {
-            innerSphere.transform.Rotate(Vector3.up, rotate.ReadValue<Vector2>().x * rotationSpeed * Time.deltaTime);
-            innerSphere.transform.Rotate(Vector3.right, -translate.ReadValue<Vector2>().y * rotationSpeed * Time.deltaTime);
+            Vector2 input = translate.ReadValue<Vector2>();
+
+            if (!prefabDestroyed && input.magnitude > joystickThreshold)
+            {
+                if (spawnedInstance != null)
+                {
+                    Destroy(spawnedInstance);
+                    prefabDestroyed = true;
+                }
+            }
+
+            // innerSphere.transform.Rotate(Vector3.up, rotate.ReadValue<Vector2>().x * rotationSpeed * Time.deltaTime);
+            // innerSphere.transform.Rotate(Vector3.right, -translate.ReadValue<Vector2>().y * rotationSpeed * Time.deltaTime);
             if (leftHand.FindAction("X").WasReleasedThisFrame() && buttonReleased)
             {
                 Measure(qubit.GetIndex());
