@@ -13,7 +13,7 @@ public class QubitInput : MonoBehaviour
     [SerializeField] private InputActionAsset measureActions;
     [SerializeField] private Qubit qubit;
     [SerializeField] private Transform innerSphere;
-    [SerializeField] private XRGrabInteractable interactableObject;
+    [SerializeField] private UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable interactableObject;
     [SerializeField] private float rotationSpeed = 2000.0f;
     private InputAction rotate;
     private InputAction translate;
