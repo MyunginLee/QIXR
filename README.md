@@ -29,7 +29,7 @@ In Unity Hub (after signing in), select `Add` > `Add project from disk`. Navigat
 
 ![Screenshot 2025-05-12 at 2 41 24 PM 1](https://github.com/user-attachments/assets/46ffa03d-a291-470d-8277-602e07467340)
 
-Unity might prompt you to install a version if you don't have it. Choose "Open", and install the required Unity version. 
+Unity might prompt you to install a version if you don't have it. Choose "Open", and install the required Unity version (Tested on Unity 6 & Unity 2022). 
 
 <img width="1014" alt="image" src="https://github.com/user-attachments/assets/5426fc53-00fb-491f-805f-448d67a242bc" />
 
