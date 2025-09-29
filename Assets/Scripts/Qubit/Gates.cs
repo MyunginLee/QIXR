@@ -1,132 +1,142 @@
+﻿using System;
+using Complex = System.Numerics.Complex;
 using UnityEngine;
-using MathNet.Numerics.LinearAlgebra;
-using MathNet.Numerics;
+
 public class Gates : MonoBehaviour
 {
-    static private Complex32 i = Complex32.ImaginaryOne;
+    private static readonly Complex i = Complex.ImaginaryOne;
 
-    static private Matrix<Complex32> upMatrix = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
+    private static readonly ComplexMatrix upMatrix = ComplexMatrix.FromArray(new Complex[,]
     {
         { 1, 0 },
         { 0, 0 }
     });
 
-    static private Matrix<Complex32> downMatrix = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
+    private static readonly ComplexMatrix downMatrix = ComplexMatrix.FromArray(new Complex[,]
     {
         { 0, 0 },
         { 0, 1 }
     });
 
-    static private Matrix<Complex32> zeroMatrix = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
+    private static readonly ComplexMatrix zeroMatrix = ComplexMatrix.FromArray(new Complex[,]
     {
         { 0, 0 },
         { 0, 0 }
     });
 
-    static private Matrix<Complex32> identityMatrix = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
-        {
-            { 1, 0 },
-            { 0, 1 }
-        });
-    static private Matrix<Complex32> pauliX = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
-        {
-            { 0, 1 },
-            { 1, 0 }
-        });
-    static private Matrix<Complex32> pauliZ = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
-        {
-            { 1, 0},
-            { 0, -1},
-        });
-    static private Matrix<Complex32> hadamard = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
-        {
-            { 1/Mathf.Sqrt(2), 1/Mathf.Sqrt(2)},
-            { 1/Mathf.Sqrt(2), -(1/Mathf.Sqrt(2))},
-        });
+    private static readonly ComplexMatrix identityMatrix = ComplexMatrix.Identity(2);
 
-    static private Matrix<Complex32> phaseS = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
-        {
-            { 1, 0},
-            { 0, i},
-        });
-    static private Matrix<Complex32> phaseSDagger = Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
-        {
-            { 1, 0},
-            { 0, -i},
-        });
-    
-    // hamilton matrix for 2 spins
-    public static Matrix<Complex32> Hamiltonian2Spins(float J)
+    private static readonly ComplexMatrix pauliX = ComplexMatrix.FromArray(new Complex[,]
     {
-        return Matrix<Complex32>.Build.DenseOfArray(new Complex32[,]
+        { 0, 1 },
+        { 1, 0 }
+    });
+
+    private static readonly ComplexMatrix pauliZ = ComplexMatrix.FromArray(new Complex[,]
+    {
+        { 1, 0 },
+        { 0, -1 }
+    });
+
+    private static readonly ComplexMatrix hadamard = ComplexMatrix.FromArray(new Complex[,]
+    {
+        { 1 / Math.Sqrt(2.0), 1 / Math.Sqrt(2.0) },
+        { 1 / Math.Sqrt(2.0), -1 / Math.Sqrt(2.0) }
+    });
+
+    private static readonly ComplexMatrix phaseS = ComplexMatrix.FromArray(new Complex[,]
+    {
+        { 1, 0 },
+        { 0, i }
+    });
+
+    private static readonly ComplexMatrix phaseSDagger = ComplexMatrix.FromArray(new Complex[,]
+    {
+        { 1, 0 },
+        { 0, -i }
+    });
+
+    public static ComplexMatrix Hamiltonian2Spins(float J)
+    {
+        return ComplexMatrix.FromArray(new Complex[,]
         {
-            { J/4, 0, 0, 0 },
-            { 0, -J/4, J/2, 0 },
-            { 0, J/2, -J/4, 0 },
-            { 0, 0, 0, J/4 }
+            { J / 4f, 0, 0, 0 },
+            { 0, -J / 4f, J / 2f, 0 },
+            { 0, J / 2f, -J / 4f, 0 },
+            { 0, 0, 0, J / 4f }
         });
     }
-    
-    public static Matrix<Complex32> MatrixExponential(Matrix<Complex32> matrix, int terms = 10)
-    {
-        Matrix<Complex32> result = Matrix<Complex32>.Build.DenseIdentity(matrix.RowCount);
-        Matrix<Complex32> term = result; 
 
-        for (int i = 1; i <= terms; i++)
+    public static ComplexMatrix MatrixExponential(ComplexMatrix matrix, int terms = 10)
+    {
+        if (matrix == null)
         {
-            term = term * matrix / i; 
-            result += term; 
+            throw new ArgumentNullException(nameof(matrix));
+        }
+
+        var result = ComplexMatrix.Identity(matrix.Rows);
+        var term = ComplexMatrix.Identity(matrix.Rows);
+
+        for (int n = 1; n <= terms; n++)
+        {
+            term = term * matrix / n;
+            result += term;
         }
 
         return result;
     }
 
-    // compute the time evolution operator
-    public static Matrix<Complex32> SpinExchange(float J, float time)
+    public static ComplexMatrix SpinExchange(float J, float time)
     {
-        Matrix<Complex32> H = Hamiltonian2Spins(J);
-        Matrix<Complex32> identity = Matrix<Complex32>.Build.DenseIdentity(4);
-
-        // calculate unitary evolution operator U(t) = exp(-iHt)
-        Matrix<Complex32> exponent = -Complex32.ImaginaryOne * H * time; 
-        return MatrixExponential(exponent); 
+        ComplexMatrix H = Hamiltonian2Spins(J);
+        Complex scalar = -Complex.ImaginaryOne * time;
+        ComplexMatrix exponent = H * scalar;
+        return MatrixExponential(exponent);
     }
 
-    public static Matrix<Complex32> UpMatrix()
+    public static ComplexMatrix UpMatrix()
     {
         return upMatrix;
-    }   
-    public static Matrix<Complex32> DownMatrix()
+    }
+
+    public static ComplexMatrix DownMatrix()
     {
         return downMatrix;
-    }   
-    public static Matrix<Complex32> ZeroMatrix()
+    }
+
+    public static ComplexMatrix ZeroMatrix()
     {
         return zeroMatrix;
-    }   
-    public static Matrix<Complex32> IdentityMatrix()
+    }
+
+    public static ComplexMatrix IdentityMatrix()
     {
         return identityMatrix;
     }
-    public static Matrix<Complex32> PauliX()
+
+    public static ComplexMatrix PauliX()
     {
         return pauliX;
     }
-    public static Matrix<Complex32> PauliZ()
+
+    public static ComplexMatrix PauliZ()
     {
         return pauliZ;
     }
-    public static Matrix<Complex32> Hadamard()
+
+    public static ComplexMatrix Hadamard()
     {
         return hadamard;
     }
 
-    public static Matrix<Complex32> PhaseS()
+    public static ComplexMatrix PhaseS()
     {
         return phaseS;
     }
-    public static Matrix<Complex32> PhaseSDagger()
+
+    public static ComplexMatrix PhaseSDagger()
     {
         return phaseSDagger;
     }
 }
+

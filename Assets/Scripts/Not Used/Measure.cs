@@ -1,7 +1,5 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.InputSystem;
-using MathNet.Numerics.LinearAlgebra;
-using MathNet.Numerics;
 
 public class Measure : MonoBehaviour
 {
@@ -15,7 +13,6 @@ public class Measure : MonoBehaviour
     private float azimuth;
     private float timer;
     private float x, y, z, xSq, ySq, zSq, alpha, beta;
-    private Matrix<Complex32> qubitMatrix;
 
     private void OnEnable()
     {
@@ -27,7 +24,6 @@ public class Measure : MonoBehaviour
         qubit = gameObject.transform.parent.gameObject;
         dot = gameObject;
         line = gameObject.transform.GetChild(0).gameObject;
-        qubitMatrix = Matrix<Complex32>.Build.Dense(2,2);
     }
 
     void Update()
@@ -108,3 +104,5 @@ public class Measure : MonoBehaviour
         beta = Mathf.Pow(Mathf.Abs(Mathf.Sin(inclination / 2)), 2);
     }
 }
+
+

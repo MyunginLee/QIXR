@@ -1,6 +1,4 @@
-using MathNet.Numerics.LinearAlgebra;
-using MathNet.Numerics;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class FloorElectrons : MonoBehaviour
 {
@@ -56,3 +54,4 @@ public class FloorElectrons : MonoBehaviour
 
     }
 }
+

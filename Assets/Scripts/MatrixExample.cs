@@ -1,13 +1,9 @@
-using UnityEngine;
+﻿using UnityEngine;
 using static QubitManager;
 
-using MathNet.Numerics.LinearAlgebra;
-using MathNet.Numerics;
 using System.Collections.Generic;
-using System.Linq;
 using static Qubit;
 
-using NumpyDotNet;
 
 public class MatrixExample : MonoBehaviour
 {
@@ -99,4 +95,6 @@ public class MatrixExample : MonoBehaviour
     //     CalculateProximity(allQubits, time, THRESHOLD_DISTANCE);
     // }
 }
+
+
 

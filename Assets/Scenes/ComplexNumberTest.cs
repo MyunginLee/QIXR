@@ -1,43 +1,41 @@
-using UnityEngine;
-using MathNet.Numerics.LinearAlgebra;
-using MathNet.Numerics;
-// using NumSharp;
-using System.Collections.Generic;
-using System.Linq;
-using NumpyDotNet;
-using static Gates;
-using System;
-using NumpyLib;
-using static Qubit;
-
+﻿using Complex = System.Numerics.Complex;
 using TMPro;
+using UnityEngine;
 
 public class ComplexNumberTest : MonoBehaviour
 {
-    public TMP_Text textMeshPro; // Drag your TextMeshPro object here
+    public TMP_Text textMeshPro;
 
-    void Update()
+    private void Update()
     {
-        // Generate a new 3x3 matrix of Complex32 numbers with random values
-        var matrix = Matrix<Complex32>.Build.Dense(3, 3, (i, j) =>
-            new Complex32(UnityEngine.Random.Range(0f, 10f), UnityEngine.Random.Range(0f, 10f)));
+        var data = new Complex[3, 3];
+        for (int row = 0; row < 3; row++)
+        {
+            for (int col = 0; col < 3; col++)
+            {
+                float real = UnityEngine.Random.Range(0f, 10f);
+                float imaginary = UnityEngine.Random.Range(0f, 10f);
+                data[row, col] = new Complex(real, imaginary);
+            }
+        }
 
-        // Display the matrix in TextMeshPro
+        ComplexMatrix matrix = ComplexMatrix.FromArray(data);
         textMeshPro.text = ComplexMatrixToString(matrix);
     }
 
-    // Helper method to convert a complex matrix to a readable string
-    string ComplexMatrixToString(Matrix<Complex32> matrix)
+    private string ComplexMatrixToString(ComplexMatrix matrix)
     {
-        string matrixString = "";
-        for (int i = 0; i < matrix.RowCount; i++)
+        System.Text.StringBuilder builder = new System.Text.StringBuilder();
+        for (int row = 0; row < matrix.Rows; row++)
         {
-            for (int j = 0; j < matrix.ColumnCount; j++)
+            for (int col = 0; col < matrix.Columns; col++)
             {
-                matrixString += $"{matrix[i, j].Real} + {matrix[i, j].Imaginary}i\t";
+                Complex value = matrix[row, col];
+                builder.AppendFormat("{0:0.00} + {1:0.00}i\t", value.Real, value.Imaginary);
             }
-            matrixString += "\n"; // Newline after each row
+            builder.AppendLine();
         }
-        return matrixString;
+        return builder.ToString();
     }
 }
+

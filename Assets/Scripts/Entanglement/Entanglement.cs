@@ -1,11 +1,10 @@
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using Random = UnityEngine.Random;
 using static Qubit;
-using MathNet.Numerics.LinearAlgebra;
-using MathNet.Numerics;
-using NumpyDotNet;
 
 [RequireComponent(typeof(AudioSource))]
 
@@ -59,7 +58,7 @@ public class Entanglement : MonoBehaviour
             strings[i].GetComponent<Collider>().isTrigger = true;
             float r = 10f;
             strings[i].transform.localScale = new Vector3(0.00001f, 0.00001f, 0.00001f);
-            strings[i].transform.position = new Vector3(r * Mathf.Cos(Mathf.PI * 2f / (float)numberOfStrings * (float)i), r * Mathf.Sin(Mathf.PI * 2f / (float)numberOfStrings * (float)i), Random.Range(-10f, 10f));
+            strings[i].transform.position = new Vector3(r * Mathf.Cos(Mathf.PI * 2f / (float)numberOfStrings * (float)i), r * Mathf.Sin(Mathf.PI * 2f / (float)numberOfStrings * (float)i), UnityEngine.Random.Range(-10f, 10f));
             bp[i].velocity = new Vector3(r / 10f * Mathf.Sin(Mathf.PI * 2f / 3f * (float)i), r / 10f * Mathf.Cos(Mathf.PI * 2f / 3f * (float)i), 0);
 
             // trail
@@ -87,18 +86,18 @@ public class Entanglement : MonoBehaviour
     // calculate qubit radius
     public float ComputeQubitScale(Qubit qubit)
     {
-        if (QubitManager.GetDensityMatrix().ColumnCount > 2)
+        if (QubitManager.GetDensityMatrix().Columns > 2)
         {
-            ndarray array = QubitManager.PartialTrace(qubit.index);
-            float rho00 = ((Complex32)array[0, 0]).Real;
-            float rho11 = ((Complex32)array[1, 1]).Real;
-            float rho01 = ((Complex32)array[0, 1]).Real;
-            float rho10 = ((Complex32)array[1, 0]).Real;
+            ComplexMatrix reduced = QubitManager.PartialTrace(qubit.index);
+            double rho00 = reduced[0, 0].Real;
+            double rho11 = reduced[1, 1].Real;
+            double rho01 = reduced[0, 1].Real;
+            double rho10 = reduced[1, 0].Real;
 
-            float r = Mathf.Sqrt(Mathf.Pow(rho00 - rho11, 2) + 4 * rho01 * rho10);
-            return Mathf.Clamp(r, 0f, 1f);  
+            double r = Math.Sqrt(Math.Pow(rho00 - rho11, 2) + 4 * rho01 * rho10);
+            return Mathf.Clamp((float)r, 0f, 1f);
         }
-        return 1f; 
+        return 1f;
     }
 
     void Update()
@@ -243,3 +242,7 @@ public class Entanglement : MonoBehaviour
         return gravity;
     }
 }
+
+
+
+

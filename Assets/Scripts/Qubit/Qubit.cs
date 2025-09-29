@@ -1,11 +1,9 @@
+﻿using Complex = System.Numerics.Complex;
 using UnityEngine;
-using MathNet.Numerics.LinearAlgebra;
-using MathNet.Numerics;
-using static QubitManager;
-using static Gates;
-using NumpyDotNet;
-using System.Dynamic;
 using UnityEngine.VFX;
+using Random = UnityEngine.Random;
+using static Gates;
+using static QubitManager;
 
 public class Qubit : MonoBehaviour
 {
@@ -14,34 +12,38 @@ public class Qubit : MonoBehaviour
 
     public GameObject HadamardGuide, PauliXGuide, PhaseSGuide, PauliZGuide;
 
-    [SerializeField] GameObject dot;
-    [SerializeField] LineRenderer lineRenderer;
-    private Matrix<Complex32> identityMatrix;
-    private Matrix<Complex32> pauliX;
-    private Matrix<Complex32> pauliZ;
-    private Matrix<Complex32> hadamard;
-    private Matrix<Complex32> phaseS;
-    private Matrix<Complex32> phaseSDagger;
+    [SerializeField] private GameObject dot;
+    [SerializeField] private LineRenderer lineRenderer;
+
+    private ComplexMatrix identityMatrix;
+    private ComplexMatrix pauliX;
+    private ComplexMatrix pauliZ;
+    private ComplexMatrix hadamard;
+    private ComplexMatrix phaseS;
+    private ComplexMatrix phaseSDagger;
+
     private int initQubits;
     public int index;
-    AudioSource audioSource;
+    private AudioSource audioSource;
 
     [SerializeField]
     public AudioClip audioClipH, audioClipX, audioClipZ, audioClipS;
 
-    public void Awake()
+    private void Awake()
     {
         audioSource = GetComponent<AudioSource>();
         UpdateDensityMatrix();
         IncrementInitQubits();
         index = GetInitQubits() - 1;
         initQubits = GetInitQubits();
+
         identityMatrix = IdentityMatrix();
-        pauliX = (initQubits == 1) ? PauliX() : IdentityMatrix();
-        pauliZ = (initQubits == 1) ? PauliZ() : IdentityMatrix();
-        hadamard = (initQubits == 1) ? Hadamard() : IdentityMatrix();
-        phaseS = (initQubits == 1) ? PhaseS() : IdentityMatrix();
-        phaseSDagger = (initQubits == 1) ? PhaseSDagger() : IdentityMatrix();
+        pauliX = initQubits == 1 ? PauliX() : IdentityMatrix();
+        pauliZ = initQubits == 1 ? PauliZ() : IdentityMatrix();
+        hadamard = initQubits == 1 ? Hadamard() : IdentityMatrix();
+        phaseS = initQubits == 1 ? PhaseS() : IdentityMatrix();
+        phaseSDagger = initQubits == 1 ? PhaseSDagger() : IdentityMatrix();
+
         for (int i = 2; i <= initQubits; i++)
         {
             identityMatrix = identityMatrix.KroneckerProduct(IdentityMatrix());
@@ -61,6 +63,7 @@ public class Qubit : MonoBehaviour
             phaseS = phaseS.KroneckerProduct(IdentityMatrix());
             phaseSDagger = phaseSDagger.KroneckerProduct(IdentityMatrix());
         }
+
         if (lineRenderer != null)
         {
             lineRenderer.positionCount = 2;
@@ -69,7 +72,7 @@ public class Qubit : MonoBehaviour
         }
     }
 
-    public void Update()
+    private void Update()
     {
         if (initQubits != GetInitQubits())
         {
@@ -81,36 +84,42 @@ public class Qubit : MonoBehaviour
             phaseS = phaseS.KroneckerProduct(IdentityMatrix());
             phaseSDagger = phaseSDagger.KroneckerProduct(IdentityMatrix());
         }
+
         if (lineRenderer != null)
         {
             lineRenderer.SetPosition(0, transform.position);
             lineRenderer.SetPosition(1, dot.transform.position);
         }
+
         UpdatePosition();
     }
 
-
-    public Matrix<Complex32> GetIdentityMatrix()
+    public ComplexMatrix GetIdentityMatrix()
     {
         return identityMatrix;
     }
-    public Matrix<Complex32> GetPauliX()
+
+    public ComplexMatrix GetPauliX()
     {
         return pauliX;
     }
-    public Matrix<Complex32> GetPauliZ()
+
+    public ComplexMatrix GetPauliZ()
     {
         return pauliZ;
     }
-    public Matrix<Complex32> GetHadamard()
+
+    public ComplexMatrix GetHadamard()
     {
         return hadamard;
     }
-    public Matrix<Complex32> GetPhaseS()
+
+    public ComplexMatrix GetPhaseS()
     {
         return phaseS;
     }
-    public Matrix<Complex32> GetPhaseSDagger()
+
+    public ComplexMatrix GetPhaseSDagger()
     {
         return phaseSDagger;
     }
@@ -122,69 +131,74 @@ public class Qubit : MonoBehaviour
 
     public void UpdatePosition()
     {
-        if (GetDensityMatrix().ColumnCount > 2)
+        if (GetDensityMatrix().Columns > 2)
         {
-            ndarray array = PartialTrace(index);
-            Complex32 p10 = (Complex32)array[1, 0];
-            Complex32 p01 = (Complex32)array[0, 1];
-            Complex32 p00 = (Complex32)array[0, 0];
-            Complex32 p11 = (Complex32)array[1, 1];
-            dot.transform.localPosition = new Vector3(2 * p01.Real, 2 * p10.Imaginary, p00.Real - p11.Real) / 2;
+            ComplexMatrix reduced = PartialTrace(index);
+            Complex p10 = reduced[1, 0];
+            Complex p01 = reduced[0, 1];
+            Complex p00 = reduced[0, 0];
+            Complex p11 = reduced[1, 1];
+
+            Vector3 bloch = new Vector3(
+                2f * (float)p01.Real,
+                2f * (float)p10.Imaginary,
+                (float)(p00.Real - p11.Real)) / 2f;
+
+            dot.transform.localPosition = bloch;
             dot.transform.LookAt(transform);
-            // Debug.Log(dot.transform.localPosition);
         }
         else
         {
-            Matrix<Complex32> matrix = GetDensityMatrix();
-            Complex32 p10 = matrix[1, 0];
-            Complex32 p01 = matrix[0, 1];
-            Complex32 p00 = matrix[0, 0];
-            Complex32 p11 = matrix[1, 1];
-            dot.transform.localPosition = new Vector3(2 * p01.Real, 2 * p10.Imaginary, p00.Real - p11.Real) / 2;
+            ComplexMatrix matrix = GetDensityMatrix();
+            Complex p10 = matrix[1, 0];
+            Complex p01 = matrix[0, 1];
+            Complex p00 = matrix[0, 0];
+            Complex p11 = matrix[1, 1];
+
+            Vector3 bloch = new Vector3(
+                2f * (float)p01.Real,
+                2f * (float)p10.Imaginary,
+                (float)(p00.Real - p11.Real)) / 2f;
+
+            dot.transform.localPosition = bloch;
             dot.transform.LookAt(transform);
         }
     }
 
-
-    void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter(Collider other)
     {
-        Vector3 spawnPos = this.transform.position + new Vector3(0, 0.2f, 0);
+        Vector3 spawnPos = transform.position + new Vector3(0, 0.2f, 0);
 
         switch (other.name)
         {
             case "Hadamard":
-                print(other.name);
                 ApplyHadamard(this);
                 audioSource.PlayOneShot(audioClipH, 1f);
-                Instantiate(HadamardGuide, spawnPos, Quaternion.identity, this.transform);
+                Instantiate(HadamardGuide, spawnPos, Quaternion.identity, transform);
                 break;
 
             case "Pauli-X":
-                print(other.name);
                 ApplyPauliX(this);
                 audioSource.PlayOneShot(audioClipX, 1f);
-                Instantiate(PauliXGuide, spawnPos, Quaternion.identity, this.transform);
+                Instantiate(PauliXGuide, spawnPos, Quaternion.identity, transform);
                 break;
 
             case "Pauli-Z":
-                print(other.name);
                 ApplyPauliZ(this);
                 audioSource.PlayOneShot(audioClipZ, 1f);
-                Instantiate(PauliZGuide, spawnPos, Quaternion.identity, this.transform);
+                Instantiate(PauliZGuide, spawnPos, Quaternion.identity, transform);
                 break;
 
             case "Phase-S":
-                print(other.name);
                 ApplyPhaseGate(this);
                 audioSource.PlayOneShot(audioClipS, 1f);
-                Instantiate(PhaseSGuide, spawnPos, Quaternion.identity, this.transform);
+                Instantiate(PhaseSGuide, spawnPos, Quaternion.identity, transform);
                 break;
 
             default:
-                print("None");
                 break;
-
         }
     }
-
 }
+
+
