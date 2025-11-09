@@ -146,11 +146,11 @@ public class Entanglement : MonoBehaviour
                 {
                     trailRenderer[i].time = trailtime;
                     Vector3 distance = qubits[j].transform.position - strings[i].transform.position;
-                    Vector3 spooky = CalculateEntanglementEffect(distance, stringWeight, qubitWeight);
+                    Vector3 gravity = CalculateGravity(distance, stringWeight, qubitWeight);
 
                     if (distance.sqrMagnitude > 0.04f)
                     {
-                        bp[i].acceleration += spooky / stringWeight;
+                        bp[i].acceleration += gravity / stringWeight;
                         // if (bp[i].acceleration.sqrMagnitude > 100f+ Random.Range(-4f, 4f))
                         if (bp[i].acceleration.sqrMagnitude > 9f)
                         {
@@ -235,11 +235,11 @@ public class Entanglement : MonoBehaviour
             }
         }
     }
-    private Vector3 CalculateEntanglementEffect(Vector3 distanceVector, float m1, float m2)
+    private Vector3 CalculateGravity(Vector3 distanceVector, float m1, float m2)
     {
-        Vector3 spooky; 
-        spooky = G * m1 * m2 / (distanceVector.sqrMagnitude) * distanceVector.normalized;
-        return spooky;
+        Vector3 gravity; // note this is also Vector3
+        gravity = G * m1 * m2 / (distanceVector.sqrMagnitude) * distanceVector.normalized;
+        return gravity;
     }
 }
 
