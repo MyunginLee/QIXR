@@ -114,37 +114,25 @@ public class QubitManager : MonoBehaviour
 
     public static void Measure(int index)
     {
-        ComplexMatrix reduced = PartialTrace(index);
-        double prob0 = Math.Max(0.0, reduced[0, 0].Real);
-        double prob1 = Math.Max(0.0, reduced[1, 1].Real);
-        double total = prob0 + prob1;
-
-        if (total <= double.Epsilon)
+        Matrix<Complex32> measureMatrix;
+        ndarray qubit = PartialTrace(index);
+        int state = UnityEngine.Random.Range(0f,1f) <= ((Complex32)qubit[0,0]).Real ? 0 : 1;
+        if (state == 0)
         {
-            prob0 = 1.0;
-            total = 1.0;
+            measureMatrix = 1/Mathf.Sqrt(((Complex32)qubit[0,0]).Real) * UpMatrix();
+        }
+        else
+        {
+            measureMatrix = 1/Mathf.Sqrt(((Complex32)qubit[1,1]).Real) * DownMatrix();
         }
 
-        prob0 /= total;
-        prob1 = 1.0 - prob0;
-
-        double randomValue = UnityEngine.Random.Range(0f, 1f);
-        int state = randomValue <= prob0 ? 0 : 1;
-
-        double probability = state == 0 ? prob0 : prob1;
-        probability = Math.Max(probability, 1e-8);
-
-        ComplexMatrix projector = state == 0 ? UpMatrix() : DownMatrix();
-        ComplexMatrix measureMatrix = projector * (1.0 / Math.Sqrt(probability));
-
-        ComplexMatrix full = index == 0 ? measureMatrix : IdentityMatrix();
-        for (int i = 1; i < GetInitQubits(); i++)
+        Matrix<Complex32> qubitMatrix = (index == 0) ? measureMatrix : IdentityMatrix();
+        for(int i = 1; i < GetInitQubits(); i++)
         {
-            ComplexMatrix next = index == i ? measureMatrix : IdentityMatrix();
-            full = full.KroneckerProduct(next);
+            qubitMatrix = qubitMatrix.KroneckerProduct(index == i ? measureMatrix : IdentityMatrix());
         }
 
-        densityMatrix = full * densityMatrix * full;
+        densityMatrix = qubitMatrix * densityMatrix * qubitMatrix;
     }
 
     public static ComplexMatrix PartialTrace(int index)
