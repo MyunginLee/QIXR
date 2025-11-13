@@ -10,6 +10,8 @@ public class QubitManager : MonoBehaviour
     private static ComplexMatrix densityMatrix;
     public static int numQubits = 0;
     private static int initQubits = 0;
+    private static readonly HashSet<QubitPair> entangledPairs = new HashSet<QubitPair>();
+    private static readonly Dictionary<int, Qubit> qubitLookup = new Dictionary<int, Qubit>();
 
     private readonly List<Qubit> allQubits = new List<Qubit>();
     private float time = 1f;
@@ -92,59 +94,179 @@ public class QubitManager : MonoBehaviour
         initQubits += 1;
     }
 
+    internal static void RegisterQubitInstance(Qubit qubit)
+    {
+        if (qubit == null)
+        {
+            return;
+        }
+
+        qubitLookup[qubit.GetIndex()] = qubit;
+    }
+
+    internal static void UnregisterQubitInstance(Qubit qubit)
+    {
+        if (qubit == null)
+        {
+            return;
+        }
+
+        qubitLookup.Remove(qubit.GetIndex());
+        RemoveEntanglementReferences(qubit);
+    }
+
     public static void ApplyPauliX(Qubit qubit)
     {
-        densityMatrix = qubit.GetPauliX() * densityMatrix * qubit.GetPauliX();
+        ApplyGateAcrossEntanglement(qubit, q => q.GetPauliX());
     }
 
     public static void ApplyPauliZ(Qubit qubit)
     {
-        densityMatrix = qubit.GetPauliZ() * densityMatrix * qubit.GetPauliZ();
+        ApplyGateAcrossEntanglement(qubit, q => q.GetPauliZ());
     }
 
     public static void ApplyHadamard(Qubit qubit)
     {
-        densityMatrix = qubit.GetHadamard() * densityMatrix * qubit.GetHadamard();
+        ApplyGateAcrossEntanglement(qubit, q => q.GetHadamard());
     }
 
     public static void ApplyPhaseGate(Qubit qubit)
     {
-        densityMatrix = qubit.GetPhaseS() * densityMatrix * qubit.GetPhaseSDagger();
+        ApplyGateAcrossEntanglement(qubit, q => q.GetPhaseS(), q => q.GetPhaseSDagger());
+    }
+
+    public static void Measure(Qubit qubit)
+    {
+        if (qubit == null)
+        {
+            throw new ArgumentNullException(nameof(qubit));
+        }
+
+        PerformMeasurement(qubit.GetIndex(), qubit);
     }
 
     public static void Measure(int index)
     {
-        ComplexMatrix reduced = PartialTrace(index);
-        double prob0 = Math.Max(0.0, reduced[0, 0].Real);
-        double prob1 = Math.Max(0.0, reduced[1, 1].Real);
-        double total = prob0 + prob1;
+        qubitLookup.TryGetValue(index, out Qubit qubit);
+        PerformMeasurement(index, qubit);
+    }
 
+    private static void PerformMeasurement(int index, Qubit qubit)
+    {
+        List<int> measurementOrder = BuildMeasurementOrder(index, qubit);
+
+        foreach (int targetIndex in measurementOrder)
+        {
+            CollapseSingleQubit(targetIndex);
+        }
+
+        ResetEntanglementGraph();
+    }
+
+    private static List<int> BuildMeasurementOrder(int index, Qubit qubit)
+    {
+        var order = new List<int>();
+
+        if (qubit != null)
+        {
+            foreach (Qubit target in ResolveGateTargets(qubit))
+            {
+                int targetIndex = target.GetIndex();
+                if (!order.Contains(targetIndex))
+                {
+                    order.Add(targetIndex);
+                }
+            }
+        }
+
+        if (!order.Contains(index) && index >= 0)
+        {
+            order.Insert(0, index);
+        }
+
+        if (order.Count == 0 && index >= 0)
+        {
+            order.Add(index);
+        }
+
+        return order;
+    }
+
+    private static void CollapseSingleQubit(int index)
+    {
+        if (densityMatrix == null)
+        {
+            throw new InvalidOperationException("Density matrix is not initialised.");
+        }
+        if (numQubits == 0)
+        {
+            throw new InvalidOperationException("No qubits registered in the system.");
+        }
+        if (index < 0 || index >= numQubits)
+        {
+            throw new ArgumentOutOfRangeException(nameof(index), "Measurement index is out of range.");
+        }
+
+        int totalQubits = numQubits;
+        int dimension = densityMatrix.Rows;
+        int targetBit = totalQubits - 1 - index;
+
+        double prob0 = 0.0;
+        double prob1 = 0.0;
+        for (int basis = 0; basis < dimension; basis++)
+        {
+            int bit = (basis >> targetBit) & 1;
+            double value = densityMatrix[basis, basis].Real;
+            if (bit == 0)
+            {
+                prob0 += value;
+            }
+            else
+            {
+                prob1 += value;
+            }
+        }
+
+        prob0 = Math.Max(0.0, prob0);
+        prob1 = Math.Max(0.0, prob1);
+        double total = prob0 + prob1;
         if (total <= double.Epsilon)
         {
             prob0 = 1.0;
+            prob1 = 0.0;
             total = 1.0;
         }
 
         prob0 /= total;
         prob1 = 1.0 - prob0;
 
-        double randomValue = UnityEngine.Random.Range(0f, 1f);
+        double randomValue = UnityEngine.Random.value;
         int state = randomValue <= prob0 ? 0 : 1;
-
         double probability = state == 0 ? prob0 : prob1;
         probability = Math.Max(probability, 1e-8);
 
-        ComplexMatrix projector = state == 0 ? UpMatrix() : DownMatrix();
-        ComplexMatrix measureMatrix = projector * (1.0 / Math.Sqrt(probability));
-
-        ComplexMatrix full = index == 0 ? measureMatrix : IdentityMatrix();
-        for (int i = 1; i < GetInitQubits(); i++)
+        var collapsed = new ComplexMatrix(dimension, dimension);
+        for (int row = 0; row < dimension; row++)
         {
-            ComplexMatrix next = index == i ? measureMatrix : IdentityMatrix();
-            full = full.KroneckerProduct(next);
+            int rowState = (row >> targetBit) & 1;
+            if (rowState != state)
+            {
+                continue;
+            }
+
+            for (int col = 0; col < dimension; col++)
+            {
+                int colState = (col >> targetBit) & 1;
+                if (colState != state)
+                {
+                    continue;
+                }
+
+                collapsed[row, col] = densityMatrix[row, col];
+            }
         }
 
-        densityMatrix = full * densityMatrix * full;
+        densityMatrix = collapsed / probability;
     }
 
     public static ComplexMatrix PartialTrace(int index)
@@ -220,11 +342,117 @@ public class QubitManager : MonoBehaviour
                     couplings[i] = value;
                     couplings[j] = value;
                     ApplySpinExchange(value, currentTime);
+                    RegisterEntanglementPair(qubitA, qubitB);
                 }
             }
         }
 
         return couplings;
+    }
+
+    private static void ApplyGateAcrossEntanglement(
+        Qubit source,
+        Func<Qubit, ComplexMatrix> leftFactory,
+        Func<Qubit, ComplexMatrix> rightFactory = null)
+    {
+        if (source == null || densityMatrix == null || leftFactory == null)
+        {
+            return;
+        }
+
+        foreach (Qubit target in ResolveGateTargets(source))
+        {
+            if (target == null)
+            {
+                continue;
+            }
+
+            ComplexMatrix left = leftFactory(target);
+            ComplexMatrix right = rightFactory?.Invoke(target) ?? left;
+            densityMatrix = left * densityMatrix * right;
+        }
+    }
+
+    private static List<Qubit> ResolveGateTargets(Qubit source)
+    {
+        var targets = new List<Qubit>();
+        if (source == null)
+        {
+            return targets;
+        }
+
+        var visited = new HashSet<Qubit>();
+        var queue = new Queue<Qubit>();
+        visited.Add(source);
+        queue.Enqueue(source);
+
+        while (queue.Count > 0)
+        {
+            Qubit current = queue.Dequeue();
+            targets.Add(current);
+
+            foreach (Qubit neighbor in GetEntangledNeighbors(current))
+            {
+                if (neighbor != null && visited.Add(neighbor))
+                {
+                    queue.Enqueue(neighbor);
+                }
+            }
+        }
+
+        return targets;
+    }
+
+    private static IEnumerable<Qubit> GetEntangledNeighbors(Qubit qubit)
+    {
+        foreach (QubitPair pair in entangledPairs)
+        {
+            if (pair.Contains(qubit))
+            {
+                Qubit other = pair.Other(qubit);
+                if (other != null)
+                {
+                    yield return other;
+                }
+            }
+        }
+    }
+
+    private static void RegisterEntanglementPair(Qubit first, Qubit second)
+    {
+        if (first == null || second == null || ReferenceEquals(first, second))
+        {
+            return;
+        }
+
+        entangledPairs.Add(QubitPair.Create(first, second));
+    }
+
+    private static void RemoveEntanglementReferences(Qubit qubit)
+    {
+        if (qubit == null || entangledPairs.Count == 0)
+        {
+            return;
+        }
+
+        var toRemove = new List<QubitPair>();
+        foreach (QubitPair pair in entangledPairs)
+        {
+            if (pair.Contains(qubit))
+            {
+                toRemove.Add(pair);
+            }
+        }
+
+        foreach (QubitPair pair in toRemove)
+        {
+            entangledPairs.Remove(pair);
+        }
+    }
+
+    private static void ResetEntanglementGraph()
+    {
+        entangledPairs.Clear();
     }
 
     private static int RemoveBit(int value, int bitPosition)
@@ -233,6 +461,65 @@ public class QubitManager : MonoBehaviour
         int lower = value & lowerMask;
         int upper = value >> (bitPosition + 1);
         return (upper << bitPosition) | lower;
+    }
+
+    private readonly struct QubitPair : IEquatable<QubitPair>
+    {
+        public QubitPair(Qubit first, Qubit second)
+        {
+            First = first;
+            Second = second;
+        }
+
+        public Qubit First { get; }
+        public Qubit Second { get; }
+
+        public static QubitPair Create(Qubit first, Qubit second)
+        {
+            int firstId = first.GetInstanceID();
+            int secondId = second.GetInstanceID();
+            return firstId <= secondId ? new QubitPair(first, second) : new QubitPair(second, first);
+        }
+
+        public bool Contains(Qubit qubit)
+        {
+            return ReferenceEquals(qubit, First) || ReferenceEquals(qubit, Second);
+        }
+
+        public Qubit Other(Qubit qubit)
+        {
+            if (ReferenceEquals(qubit, First))
+            {
+                return Second;
+            }
+
+            if (ReferenceEquals(qubit, Second))
+            {
+                return First;
+            }
+
+            return null;
+        }
+
+        public bool Equals(QubitPair other)
+        {
+            return ReferenceEquals(First, other.First) && ReferenceEquals(Second, other.Second);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is QubitPair other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hashFirst = First != null ? First.GetInstanceID() : 0;
+                int hashSecond = Second != null ? Second.GetInstanceID() : 0;
+                return (hashFirst * 397) ^ hashSecond;
+            }
+        }
     }
 }
 

@@ -102,7 +102,7 @@ public class QubitInput : MonoBehaviour
             // innerSphere.transform.Rotate(Vector3.right, -translate.ReadValue<Vector2>().y * rotationSpeed * Time.deltaTime);
             if (leftHand.FindAction("X").WasReleasedThisFrame() && buttonReleased)
             {
-                Measure(qubit.GetIndex());
+                Measure(qubit);
                 // Entanglement.entangled[qubit.GetIndex()] = false;
                 for (int i = 0; i < QubitManager.numQubits; i++){
                     Entanglement.entangled[i] = false;
@@ -145,7 +145,7 @@ public class QubitInput : MonoBehaviour
             // }
             if (rightHand.FindAction("A").WasPressedThisFrame() && buttonReleased)
             {
-                Measure(qubit.GetIndex());
+                Measure(qubit);
                 for (int i = 0; i < QubitManager.numQubits; i++){
                     Entanglement.entangled[i] = false;
                 }

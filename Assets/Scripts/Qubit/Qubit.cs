@@ -4,6 +4,7 @@ using UnityEngine.VFX;
 using Random = UnityEngine.Random;
 using static Gates;
 using static QubitManager;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 public class Qubit : MonoBehaviour
 {
@@ -25,6 +26,7 @@ public class Qubit : MonoBehaviour
     private int initQubits;
     public int index;
     private AudioSource audioSource;
+    private XRGrabInteractable grabInteractable;
 
     [SerializeField]
     public AudioClip audioClipH, audioClipX, audioClipZ, audioClipS;
@@ -32,10 +34,12 @@ public class Qubit : MonoBehaviour
     private void Awake()
     {
         audioSource = GetComponent<AudioSource>();
+        grabInteractable = GetComponent<XRGrabInteractable>();
         UpdateDensityMatrix();
         IncrementInitQubits();
         index = GetInitQubits() - 1;
         initQubits = GetInitQubits();
+        RegisterQubitInstance(this);
 
         identityMatrix = IdentityMatrix();
         pauliX = initQubits == 1 ? PauliX() : IdentityMatrix();
@@ -72,6 +76,11 @@ public class Qubit : MonoBehaviour
         }
     }
 
+    private void OnDestroy()
+    {
+        UnregisterQubitInstance(this);
+    }
+
     private void Update()
     {
         if (initQubits != GetInitQubits())
@@ -92,6 +101,7 @@ public class Qubit : MonoBehaviour
         }
 
         UpdatePosition();
+        SyncGrabScale();
     }
 
     public ComplexMatrix GetIdentityMatrix()
@@ -197,6 +207,14 @@ public class Qubit : MonoBehaviour
 
             default:
                 break;
+        }
+    }
+
+    private void SyncGrabScale()
+    {
+        if (grabInteractable != null && grabInteractable.isSelected)
+        {
+            grabInteractable.SetTargetLocalScale(transform.localScale);
         }
     }
 }
