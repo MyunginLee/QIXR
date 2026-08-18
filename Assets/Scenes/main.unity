@@ -3698,6 +3698,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Qubit 2
       objectReference: {fileID: 0}
+    - target: {fileID: 7170785874963575924, guid: bda20c09800cf3f4f93fa434316b4de8, type: 3}
+      propertyPath: qubitId
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1630727931804680378, guid: bda20c09800cf3f4f93fa434316b4de8, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.171

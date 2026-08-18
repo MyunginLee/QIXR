@@ -1,54 +1,125 @@
-﻿using Complex = System.Numerics.Complex;
 using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using static Gates;
 
+/// <summary>
+/// Scene adapter for QuantumStateEngine. Qubit IDs, rather than discovery order,
+/// define the computational basis ordering.
+/// </summary>
 public class QubitManager : MonoBehaviour
 {
-    private static ComplexMatrix densityMatrix;
-    public static int numQubits = 0;
-    private static int initQubits = 0;
-    private static readonly HashSet<QubitPair> entangledPairs = new HashSet<QubitPair>();
+    private static QuantumStateEngine engine;
     private static readonly Dictionary<int, Qubit> qubitLookup = new Dictionary<int, Qubit>();
-
     private readonly List<Qubit> allQubits = new List<Qubit>();
-    private float time = 1f;
+
+    [SerializeField, Min(0f)] private float simulationTimeScale = 1f;
+    [SerializeField] private bool validateEveryFixedStep = true;
+    [SerializeField] private bool applyInitialPauliX = true;
+
+    public static int numQubits;
     public static float THRESHOLD_DISTANCE = 2f;
     public static double entropy;
     public static float[] J;
     public TMP_Text textMeshPro;
     public static float volume = 0.8f;
 
+    private void Awake()
+    {
+        InitializeFromScene();
+    }
+
     private void Start()
     {
-        GameObject[] qubits = GameObject.FindGameObjectsWithTag("Qubit");
-        J = new float[qubits.Length];
-
-        foreach (GameObject qubit in qubits)
+        if (applyInitialPauliX && allQubits.Count > 0)
         {
-            if (qubit.TryGetComponent(out Qubit qubitComponent))
-            {
-                allQubits.Add(qubitComponent);
-            }
+            Invoke(nameof(ApplyInitialGate), 0.5f);
         }
-
-        Invoke(nameof(ApplyGate), 0.5f);
-        InvokeRepeating(nameof(UpdateSpinExchange), 0.1f, 0.1f);
     }
 
     private void Update()
     {
-        entropy = Entropy(0);
+        if (engine != null && engine.QubitCount > 0)
+        {
+            entropy = engine.ComputeRenyi2Entropy(0);
+        }
     }
 
-    private void UpdateSpinExchange()
+    private void FixedUpdate()
     {
-        J = CalculateProximity(allQubits, time, THRESHOLD_DISTANCE);
+        if (engine == null)
+        {
+            return;
+        }
+
+        List<QubitPairCoupling> couplings = CalculateProximity(allQubits, THRESHOLD_DISTANCE);
+        engine.StepHeisenberg(couplings, Time.fixedDeltaTime * simulationTimeScale);
+
+        if (validateEveryFixedStep)
+        {
+            DensityMatrixValidationResult validation = engine.ValidateState(1e-7);
+            if (!validation.IsValid)
+            {
+                Debug.LogError($"[QuantumStateEngine] Invalid state after fixed step: {validation.Message}", this);
+                enabled = false;
+            }
+        }
     }
 
-    private void ApplyGate()
+    private void OnDestroy()
+    {
+        if (engine != null)
+        {
+            engine = null;
+            numQubits = 0;
+            J = null;
+            entropy = 0.0;
+            qubitLookup.Clear();
+        }
+    }
+
+    private void InitializeFromScene()
+    {
+        allQubits.Clear();
+        qubitLookup.Clear();
+
+        GameObject[] objects = GameObject.FindGameObjectsWithTag("Qubit");
+        foreach (GameObject item in objects)
+        {
+            if (!item.TryGetComponent(out Qubit qubit))
+            {
+                continue;
+            }
+            if (qubitLookup.ContainsKey(qubit.GetIndex()))
+            {
+                throw new InvalidOperationException(
+                    $"Duplicate Qubit ID {qubit.GetIndex()} on '{qubitLookup[qubit.GetIndex()].name}' and '{qubit.name}'.");
+            }
+            qubitLookup.Add(qubit.GetIndex(), qubit);
+            allQubits.Add(qubit);
+        }
+
+        allQubits.Sort((left, right) => left.GetIndex().CompareTo(right.GetIndex()));
+        for (int expectedId = 0; expectedId < allQubits.Count; expectedId++)
+        {
+            if (allQubits[expectedId].GetIndex() != expectedId)
+            {
+                throw new InvalidOperationException(
+                    $"Qubit IDs must be contiguous from 0. Expected {expectedId}, found {allQubits[expectedId].GetIndex()} on '{allQubits[expectedId].name}'.");
+            }
+        }
+        if (allQubits.Count == 0)
+        {
+            throw new InvalidOperationException("No active GameObjects tagged 'Qubit' were found.");
+        }
+
+        numQubits = allQubits.Count;
+        J = new float[numQubits];
+        engine = new QuantumStateEngine(numQubits);
+        Debug.Log($"[QuantumStateEngine] Initialized {numQubits} qubits ({engine.Dimension}x{engine.Dimension} density matrix).", this);
+    }
+
+    private void ApplyInitialGate()
     {
         if (allQubits.Count > 0)
         {
@@ -56,83 +127,42 @@ public class QubitManager : MonoBehaviour
         }
     }
 
-    public static void UpdateDensityMatrix()
-    {
-        if (densityMatrix == null)
-        {
-            densityMatrix = ComplexMatrix.FromArray(new Complex[,]
-            {
-                { 1, 0 },
-                { 0, 0 }
-            });
-        }
-        else
-        {
-            densityMatrix = densityMatrix.KroneckerProduct(UpMatrix());
-        }
+    public static ComplexMatrix GetDensityMatrix() => engine?.DensityMatrix;
+    public static int GetQubits() => engine?.QubitCount ?? 0;
 
-        numQubits++;
-    }
-
-    public static ComplexMatrix GetDensityMatrix()
-    {
-        return densityMatrix;
-    }
-
-    public static int GetQubits()
-    {
-        return numQubits;
-    }
-
-    public static int GetInitQubits()
-    {
-        return initQubits;
-    }
-
-    public static void IncrementInitQubits()
-    {
-        initQubits += 1;
-    }
+    // Kept for old display/debug scripts. Initialization is now atomic.
+    public static int GetInitQubits() => GetQubits();
 
     internal static void RegisterQubitInstance(Qubit qubit)
     {
-        if (qubit == null)
+        if (qubit != null)
         {
-            return;
+            qubitLookup[qubit.GetIndex()] = qubit;
         }
-
-        qubitLookup[qubit.GetIndex()] = qubit;
     }
 
     internal static void UnregisterQubitInstance(Qubit qubit)
     {
+        if (qubit != null && qubitLookup.TryGetValue(qubit.GetIndex(), out Qubit registered) &&
+            ReferenceEquals(registered, qubit))
+        {
+            qubitLookup.Remove(qubit.GetIndex());
+        }
+    }
+
+    public static void ApplyPauliX(Qubit qubit) => ApplySingleGate(qubit, Gates.PauliX());
+    public static void ApplyPauliZ(Qubit qubit) => ApplySingleGate(qubit, Gates.PauliZ());
+    public static void ApplyHadamard(Qubit qubit) => ApplySingleGate(qubit, Gates.Hadamard());
+    public static void ApplyPhaseGate(Qubit qubit) => ApplySingleGate(qubit, Gates.PhaseS());
+
+    private static void ApplySingleGate(Qubit qubit, ComplexMatrix gate)
+    {
         if (qubit == null)
         {
-            return;
+            throw new ArgumentNullException(nameof(qubit));
         }
-
-        qubitLookup.Remove(qubit.GetIndex());
-        RemoveEntanglementReferences(qubit);
-    }
-
-    public static void ApplyPauliX(Qubit qubit)
-    {
-        ApplyGateAcrossEntanglement(qubit, q => q.GetPauliX());
-    }
-
-    public static void ApplyPauliZ(Qubit qubit)
-    {
-        ApplyGateAcrossEntanglement(qubit, q => q.GetPauliZ());
-    }
-
-    public static void ApplyHadamard(Qubit qubit)
-    {
-        ApplyGateAcrossEntanglement(qubit, q => q.GetHadamard());
-    }
-
-    public static void ApplyPhaseGate(Qubit qubit)
-    {
-        ApplyGateAcrossEntanglement(qubit, q => q.GetPhaseS(), q => q.GetPhaseSDagger());
+        EnsureInitialized();
+        engine.ApplySingleQubitGate(qubit.GetIndex(), gate);
     }
 
     public static void Measure(Qubit qubit)
@@ -141,387 +171,88 @@ public class QubitManager : MonoBehaviour
         {
             throw new ArgumentNullException(nameof(qubit));
         }
-
-        PerformMeasurement(qubit.GetIndex(), qubit);
+        Measure(qubit.GetIndex());
     }
 
-    public static void Measure(int index)
+    public static void Measure(int qubitId)
     {
-        qubitLookup.TryGetValue(index, out Qubit qubit);
-        PerformMeasurement(index, qubit);
-    }
-
-    private static void PerformMeasurement(int index, Qubit qubit)
-    {
-        List<int> measurementOrder = BuildMeasurementOrder(index, qubit);
-
-        foreach (int targetIndex in measurementOrder)
-        {
-            CollapseSingleQubit(targetIndex);
-        }
-
-        ResetEntanglementGraph();
-    }
-
-    private static List<int> BuildMeasurementOrder(int index, Qubit qubit)
-    {
-        var order = new List<int>();
-
-        if (qubit != null)
-        {
-            foreach (Qubit target in ResolveGateTargets(qubit))
-            {
-                int targetIndex = target.GetIndex();
-                if (!order.Contains(targetIndex))
-                {
-                    order.Add(targetIndex);
-                }
-            }
-        }
-
-        if (!order.Contains(index) && index >= 0)
-        {
-            order.Insert(0, index);
-        }
-
-        if (order.Count == 0 && index >= 0)
-        {
-            order.Add(index);
-        }
-
-        return order;
-    }
-
-    private static void CollapseSingleQubit(int index)
-    {
-        if (densityMatrix == null)
-        {
-            throw new InvalidOperationException("Density matrix is not initialised.");
-        }
-        if (numQubits == 0)
-        {
-            throw new InvalidOperationException("No qubits registered in the system.");
-        }
-        if (index < 0 || index >= numQubits)
-        {
-            throw new ArgumentOutOfRangeException(nameof(index), "Measurement index is out of range.");
-        }
-
-        int totalQubits = numQubits;
-        int dimension = densityMatrix.Rows;
-        int targetBit = totalQubits - 1 - index;
-
-        double prob0 = 0.0;
-        double prob1 = 0.0;
-        for (int basis = 0; basis < dimension; basis++)
-        {
-            int bit = (basis >> targetBit) & 1;
-            double value = densityMatrix[basis, basis].Real;
-            if (bit == 0)
-            {
-                prob0 += value;
-            }
-            else
-            {
-                prob1 += value;
-            }
-        }
-
-        prob0 = Math.Max(0.0, prob0);
-        prob1 = Math.Max(0.0, prob1);
-        double total = prob0 + prob1;
-        if (total <= double.Epsilon)
-        {
-            prob0 = 1.0;
-            prob1 = 0.0;
-            total = 1.0;
-        }
-
-        prob0 /= total;
-        prob1 = 1.0 - prob0;
-
-        double randomValue = UnityEngine.Random.value;
-        int state = randomValue <= prob0 ? 0 : 1;
-        double probability = state == 0 ? prob0 : prob1;
-        probability = Math.Max(probability, 1e-8);
-
-        var collapsed = new ComplexMatrix(dimension, dimension);
-        for (int row = 0; row < dimension; row++)
-        {
-            int rowState = (row >> targetBit) & 1;
-            if (rowState != state)
-            {
-                continue;
-            }
-
-            for (int col = 0; col < dimension; col++)
-            {
-                int colState = (col >> targetBit) & 1;
-                if (colState != state)
-                {
-                    continue;
-                }
-
-                collapsed[row, col] = densityMatrix[row, col];
-            }
-        }
-
-        densityMatrix = collapsed / probability;
+        EnsureInitialized();
+        MeasurementResult result = engine.MeasureZ(qubitId, UnityEngine.Random.value);
+        Debug.Log($"Measured Q{result.QubitId}: {result.Outcome} (p={result.Probability:F4}).");
     }
 
     public static ComplexMatrix PartialTrace(int index)
     {
-        if (densityMatrix == null)
-        {
-            throw new InvalidOperationException("Density matrix is not initialised.");
-        }
-        if (numQubits == 0)
-        {
-            throw new InvalidOperationException("No qubits registered in the system.");
-        }
+        EnsureInitialized();
+        return engine.PartialTrace(index);
+    }
 
-        int dimension = densityMatrix.Rows;
-        int totalQubits = numQubits;
-        int targetBit = totalQubits - 1 - index;
-        var reduced = new ComplexMatrix(2, 2);
-
-        for (int row = 0; row < dimension; row++)
-        {
-            int rowState = (row >> targetBit) & 1;
-            int rowRest = RemoveBit(row, targetBit);
-
-            for (int col = 0; col < dimension; col++)
-            {
-                int colState = (col >> targetBit) & 1;
-                if (RemoveBit(col, targetBit) == rowRest)
-                {
-                    reduced[rowState, colState] = reduced[rowState, colState] + densityMatrix[row, col];
-                }
-            }
-        }
-
-        double trace = reduced.Trace().Real;
-        if (trace > double.Epsilon)
-        {
-            reduced = reduced / trace;
-        }
-
-        return reduced;
+    public static ComplexMatrix PartialTrace(params int[] keepQubitIds)
+    {
+        EnsureInitialized();
+        return engine.PartialTrace(keepQubitIds);
     }
 
     public static double Entropy(int index)
     {
-        ComplexMatrix reduced = PartialTrace(index);
-        ComplexMatrix squared = reduced * reduced;
-        double purity = squared.Trace().Real;
-        purity = Math.Min(1.0, Math.Max(purity, 1e-8));
-        return -Math.Log(purity);
+        EnsureInitialized();
+        return engine.ComputeRenyi2Entropy(index);
     }
 
-    public static void ApplySpinExchange(float J, float time)
+    /// <summary>Legacy two-qubit debug API. Runtime proximity uses the composite Hamiltonian path.</summary>
+    public static void ApplySpinExchange(float coupling, float time)
     {
-        ComplexMatrix U = SpinExchange(J, time);
-        densityMatrix = U * densityMatrix * U.ConjugateTranspose();
-    }
-
-    private float[] CalculateProximity(List<Qubit> qList, float currentTime, float threshold)
-    {
-        float[] couplings = new float[qList.Count];
-        for (int i = 0; i < qList.Count; i++)
+        EnsureInitialized();
+        if (engine.QubitCount != 2)
         {
-            for (int j = i + 1; j < qList.Count; j++)
-            {
-                Qubit qubitA = qList[i];
-                Qubit qubitB = qList[j];
+            throw new InvalidOperationException(
+                "ApplySpinExchange(J,time) is a two-qubit compatibility API. Use pair couplings for three or more qubits.");
+        }
+        engine.StepHeisenberg(new[] { new QubitPairCoupling(0, 1, coupling) }, time);
+    }
 
+    public static DensityMatrixValidationResult ValidateDensityMatrix(double tolerance = 1e-9)
+    {
+        EnsureInitialized();
+        return engine.ValidateState(tolerance);
+    }
+
+    private static List<QubitPairCoupling> CalculateProximity(List<Qubit> qubits, float threshold)
+    {
+        var couplings = new List<QubitPairCoupling>();
+        if (J == null || J.Length != qubits.Count)
+        {
+            J = new float[qubits.Count];
+        }
+        Array.Clear(J, 0, J.Length);
+
+        for (int first = 0; first < qubits.Count; first++)
+        {
+            for (int second = first + 1; second < qubits.Count; second++)
+            {
+                Qubit qubitA = qubits[first];
+                Qubit qubitB = qubits[second];
                 float distance = Vector3.Distance(qubitA.transform.position, qubitB.transform.position);
-                if (distance <= threshold)
+                if (distance > threshold)
                 {
-                    float Jmax = 1f;
-                    float value = Jmax / 2f * (1f + (float)Math.Tanh(threshold / 2f) - distance);
-                    couplings[i] = value;
-                    couplings[j] = value;
-                    ApplySpinExchange(value, currentTime);
-                    RegisterEntanglementPair(qubitA, qubitB);
+                    continue;
                 }
+
+                float strength = 0.5f * (1f + (float)Math.Tanh(threshold / 2f) - distance);
+                J[qubitA.GetIndex()] = Mathf.Max(J[qubitA.GetIndex()], Mathf.Abs(strength));
+                J[qubitB.GetIndex()] = Mathf.Max(J[qubitB.GetIndex()], Mathf.Abs(strength));
+                couplings.Add(new QubitPairCoupling(
+                    qubitA.GetIndex(), qubitB.GetIndex(), strength));
             }
         }
-
         return couplings;
     }
 
-    private static void ApplyGateAcrossEntanglement(
-        Qubit source,
-        Func<Qubit, ComplexMatrix> leftFactory,
-        Func<Qubit, ComplexMatrix> rightFactory = null)
+    private static void EnsureInitialized()
     {
-        if (source == null || densityMatrix == null || leftFactory == null)
+        if (engine == null)
         {
-            return;
-        }
-
-        foreach (Qubit target in ResolveGateTargets(source))
-        {
-            if (target == null)
-            {
-                continue;
-            }
-
-            ComplexMatrix left = leftFactory(target);
-            ComplexMatrix right = rightFactory?.Invoke(target) ?? left;
-            densityMatrix = left * densityMatrix * right;
-        }
-    }
-
-    private static List<Qubit> ResolveGateTargets(Qubit source)
-    {
-        var targets = new List<Qubit>();
-        if (source == null)
-        {
-            return targets;
-        }
-
-        var visited = new HashSet<Qubit>();
-        var queue = new Queue<Qubit>();
-        visited.Add(source);
-        queue.Enqueue(source);
-
-        while (queue.Count > 0)
-        {
-            Qubit current = queue.Dequeue();
-            targets.Add(current);
-
-            foreach (Qubit neighbor in GetEntangledNeighbors(current))
-            {
-                if (neighbor != null && visited.Add(neighbor))
-                {
-                    queue.Enqueue(neighbor);
-                }
-            }
-        }
-
-        return targets;
-    }
-
-    private static IEnumerable<Qubit> GetEntangledNeighbors(Qubit qubit)
-    {
-        foreach (QubitPair pair in entangledPairs)
-        {
-            if (pair.Contains(qubit))
-            {
-                Qubit other = pair.Other(qubit);
-                if (other != null)
-                {
-                    yield return other;
-                }
-            }
-        }
-    }
-
-    private static void RegisterEntanglementPair(Qubit first, Qubit second)
-    {
-        if (first == null || second == null || ReferenceEquals(first, second))
-        {
-            return;
-        }
-
-        entangledPairs.Add(QubitPair.Create(first, second));
-    }
-
-    private static void RemoveEntanglementReferences(Qubit qubit)
-    {
-        if (qubit == null || entangledPairs.Count == 0)
-        {
-            return;
-        }
-
-        var toRemove = new List<QubitPair>();
-        foreach (QubitPair pair in entangledPairs)
-        {
-            if (pair.Contains(qubit))
-            {
-                toRemove.Add(pair);
-            }
-        }
-
-        foreach (QubitPair pair in toRemove)
-        {
-            entangledPairs.Remove(pair);
-        }
-    }
-
-    private static void ResetEntanglementGraph()
-    {
-        entangledPairs.Clear();
-    }
-
-    private static int RemoveBit(int value, int bitPosition)
-    {
-        int lowerMask = (1 << bitPosition) - 1;
-        int lower = value & lowerMask;
-        int upper = value >> (bitPosition + 1);
-        return (upper << bitPosition) | lower;
-    }
-
-
-    private readonly struct QubitPair : IEquatable<QubitPair>
-    {
-        public QubitPair(Qubit first, Qubit second)
-        {
-            First = first;
-            Second = second;
-        }
-
-        public Qubit First { get; }
-        public Qubit Second { get; }
-
-        public static QubitPair Create(Qubit first, Qubit second)
-        {
-            int firstId = first.GetInstanceID();
-            int secondId = second.GetInstanceID();
-            return firstId <= secondId ? new QubitPair(first, second) : new QubitPair(second, first);
-        }
-
-        public bool Contains(Qubit qubit)
-        {
-            return ReferenceEquals(qubit, First) || ReferenceEquals(qubit, Second);
-        }
-
-        public Qubit Other(Qubit qubit)
-        {
-            if (ReferenceEquals(qubit, First))
-            {
-                return Second;
-            }
-
-            if (ReferenceEquals(qubit, Second))
-            {
-                return First;
-            }
-
-            return null;
-        }
-
-        public bool Equals(QubitPair other)
-        {
-            return ReferenceEquals(First, other.First) && ReferenceEquals(Second, other.Second);
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is QubitPair other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                int hashFirst = First != null ? First.GetInstanceID() : 0;
-                int hashSecond = Second != null ? Second.GetInstanceID() : 0;
-                return (hashFirst * 397) ^ hashSecond;
-            }
+            throw new InvalidOperationException("QuantumStateEngine has not been initialized by QubitManager.Awake.");
         }
     }
 }
-
-

@@ -1,8 +1,7 @@
 ﻿using Complex = System.Numerics.Complex;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.VFX;
-using Random = UnityEngine.Random;
-using static Gates;
 using static QubitManager;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
@@ -16,15 +15,9 @@ public class Qubit : MonoBehaviour
     [SerializeField] private GameObject dot;
     [SerializeField] private LineRenderer lineRenderer;
 
-    private ComplexMatrix identityMatrix;
-    private ComplexMatrix pauliX;
-    private ComplexMatrix pauliZ;
-    private ComplexMatrix hadamard;
-    private ComplexMatrix phaseS;
-    private ComplexMatrix phaseSDagger;
-
-    private int initQubits;
-    public int index;
+    [FormerlySerializedAs("index")]
+    [SerializeField, Min(0)] private int qubitId;
+    public int index => qubitId;
     private AudioSource audioSource;
     private XRGrabInteractable grabInteractable;
 
@@ -35,39 +28,6 @@ public class Qubit : MonoBehaviour
     {
         audioSource = GetComponent<AudioSource>();
         grabInteractable = GetComponent<XRGrabInteractable>();
-        UpdateDensityMatrix();
-        IncrementInitQubits();
-        index = GetInitQubits() - 1;
-        initQubits = GetInitQubits();
-        RegisterQubitInstance(this);
-
-        identityMatrix = IdentityMatrix();
-        pauliX = initQubits == 1 ? PauliX() : IdentityMatrix();
-        pauliZ = initQubits == 1 ? PauliZ() : IdentityMatrix();
-        hadamard = initQubits == 1 ? Hadamard() : IdentityMatrix();
-        phaseS = initQubits == 1 ? PhaseS() : IdentityMatrix();
-        phaseSDagger = initQubits == 1 ? PhaseSDagger() : IdentityMatrix();
-
-        for (int i = 2; i <= initQubits; i++)
-        {
-            identityMatrix = identityMatrix.KroneckerProduct(IdentityMatrix());
-            pauliX = pauliX.KroneckerProduct(initQubits == i ? PauliX() : IdentityMatrix());
-            pauliZ = pauliZ.KroneckerProduct(initQubits == i ? PauliZ() : IdentityMatrix());
-            hadamard = hadamard.KroneckerProduct(initQubits == i ? Hadamard() : IdentityMatrix());
-            phaseS = phaseS.KroneckerProduct(initQubits == i ? PhaseS() : IdentityMatrix());
-            phaseSDagger = phaseSDagger.KroneckerProduct(initQubits == i ? PhaseSDagger() : IdentityMatrix());
-        }
-
-        for (int i = 0; i < GetQubits() - initQubits; i++)
-        {
-            identityMatrix = identityMatrix.KroneckerProduct(IdentityMatrix());
-            pauliX = pauliX.KroneckerProduct(IdentityMatrix());
-            pauliZ = pauliZ.KroneckerProduct(IdentityMatrix());
-            hadamard = hadamard.KroneckerProduct(IdentityMatrix());
-            phaseS = phaseS.KroneckerProduct(IdentityMatrix());
-            phaseSDagger = phaseSDagger.KroneckerProduct(IdentityMatrix());
-        }
-
         if (lineRenderer != null)
         {
             lineRenderer.positionCount = 2;
@@ -83,17 +43,6 @@ public class Qubit : MonoBehaviour
 
     private void Update()
     {
-        if (initQubits != GetInitQubits())
-        {
-            initQubits += 1;
-            identityMatrix = identityMatrix.KroneckerProduct(IdentityMatrix());
-            pauliX = pauliX.KroneckerProduct(IdentityMatrix());
-            pauliZ = pauliZ.KroneckerProduct(IdentityMatrix());
-            hadamard = hadamard.KroneckerProduct(IdentityMatrix());
-            phaseS = phaseS.KroneckerProduct(IdentityMatrix());
-            phaseSDagger = phaseSDagger.KroneckerProduct(IdentityMatrix());
-        }
-
         if (lineRenderer != null)
         {
             lineRenderer.SetPosition(0, transform.position);
@@ -104,44 +53,20 @@ public class Qubit : MonoBehaviour
         SyncGrabScale();
     }
 
-    public ComplexMatrix GetIdentityMatrix()
-    {
-        return identityMatrix;
-    }
-
-    public ComplexMatrix GetPauliX()
-    {
-        return pauliX;
-    }
-
-    public ComplexMatrix GetPauliZ()
-    {
-        return pauliZ;
-    }
-
-    public ComplexMatrix GetHadamard()
-    {
-        return hadamard;
-    }
-
-    public ComplexMatrix GetPhaseS()
-    {
-        return phaseS;
-    }
-
-    public ComplexMatrix GetPhaseSDagger()
-    {
-        return phaseSDagger;
-    }
-
     public int GetIndex()
     {
-        return index;
+        return qubitId;
     }
 
     public void UpdatePosition()
     {
-        if (GetDensityMatrix().Columns > 2)
+        ComplexMatrix state = GetDensityMatrix();
+        if (state == null || dot == null)
+        {
+            return;
+        }
+
+        if (state.Columns > 2)
         {
             ComplexMatrix reduced = PartialTrace(index);
             Complex p10 = reduced[1, 0];
@@ -159,7 +84,7 @@ public class Qubit : MonoBehaviour
         }
         else
         {
-            ComplexMatrix matrix = GetDensityMatrix();
+            ComplexMatrix matrix = state;
             Complex p10 = matrix[1, 0];
             Complex p01 = matrix[0, 1];
             Complex p00 = matrix[0, 0];

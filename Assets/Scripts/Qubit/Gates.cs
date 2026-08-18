@@ -32,6 +32,12 @@ public class Gates : MonoBehaviour
         { 1, 0 }
     });
 
+    private static readonly ComplexMatrix pauliY = ComplexMatrix.FromArray(new Complex[,]
+    {
+        { 0, -i },
+        { i, 0 }
+    });
+
     private static readonly ComplexMatrix pauliZ = ComplexMatrix.FromArray(new Complex[,]
     {
         { 1, 0 },
@@ -72,6 +78,14 @@ public class Gates : MonoBehaviour
         if (matrix == null)
         {
             throw new ArgumentNullException(nameof(matrix));
+        }
+        if (matrix.Rows != matrix.Columns)
+        {
+            throw new ArgumentException("Matrix exponential requires a square matrix.", nameof(matrix));
+        }
+        if (terms < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(terms));
         }
 
         var result = ComplexMatrix.Identity(matrix.Rows);
@@ -117,6 +131,11 @@ public class Gates : MonoBehaviour
     public static ComplexMatrix PauliX()
     {
         return pauliX;
+    }
+
+    public static ComplexMatrix PauliY()
+    {
+        return pauliY;
     }
 
     public static ComplexMatrix PauliZ()

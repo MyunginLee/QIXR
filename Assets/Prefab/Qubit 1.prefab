@@ -314,7 +314,7 @@ MonoBehaviour:
   PauliZGuide: {fileID: 0}
   dot: {fileID: 4904496465086199207}
   lineRenderer: {fileID: 8578457389521498890}
-  index: 0
+  qubitId: 0
   audioClipH: {fileID: 8300000, guid: 8f15743395e4ee3469a2ff90d15e815d, type: 3}
   audioClipX: {fileID: 8300000, guid: 4c5b6334f8d0e5c4e9df6f8af7c0a8e1, type: 3}
   audioClipZ: {fileID: 8300000, guid: 89b4153bb7c7c0d4f8c6e0c148679be3, type: 3}
