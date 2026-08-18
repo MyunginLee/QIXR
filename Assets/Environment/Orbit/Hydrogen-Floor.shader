@@ -2,7 +2,7 @@ Shader "Custom/MultipleHydrogen"
 {
     Properties
     {
-        _NumQubits ("Number of Qubits", Int) = 2 // Number of Qubits
+        _NumQubits ("Number of Qubits", Int) = 3
         _OrbitColor ("Color", Color) = (0.4, -0.3, 0.2, 1.0) 
         _MainTex ("Texture", 2D) = "white" {}
         _TimeScale ("Time Scale", Float) = 1
@@ -24,10 +24,11 @@ Shader "Custom/MultipleHydrogen"
             #pragma fragment frag
             #include "UnityCG.cginc"
 
+            #define MAX_QUBITS 8
             int _NumQubits;
-            float4 _Centers[2];  
-            float4 _OrbitColor;
-            float4 _WaveFunctionParams[2];
+            float4 _Centers[MAX_QUBITS];
+            float4 _OrbitColor[MAX_QUBITS];
+            float4 _WaveFunctionParams[MAX_QUBITS];
             float _TimeScale;
             sampler2D _MainTex;
             float4 _MainTex_ST;
@@ -73,7 +74,8 @@ Shader "Custom/MultipleHydrogen"
             float4 frag (v2f i) : SV_Target
             {
                 float4 value = float4(0.0,0.0,0.0,0.0);
-                for (int j = 0; j < _NumQubits; j++)
+                int activeQubits = min(_NumQubits, MAX_QUBITS);
+                for (int j = 0; j < activeQubits; j++)
                 {
                     float2 center = _Centers[j].xy;
                     // Time
@@ -110,7 +112,7 @@ Shader "Custom/MultipleHydrogen"
                     // float4 baseColor = float4(0.3+ _OrbitColor.r * j, 0.7+ _OrbitColor.g * (j), 0.8 + _OrbitColor.b*(j), 1.0*probabilityDensity);
 
                     // float4 baseColor = float4(0.99, 0.402, 0.79, 1*probabilityDensity);
-                    float4 baseColor = float4(_OrbitColor.r, _OrbitColor.g, _OrbitColor.b, 1.0);
+                    float4 baseColor = float4(_OrbitColor[j].rgb, 1.0);
 
                     float4 color = probabilityDensity * baseColor;
                     color.a = probabilityDensity > 0.0 ? probabilityDensity : 0.0;

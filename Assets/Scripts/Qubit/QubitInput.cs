@@ -104,9 +104,7 @@ public class QubitInput : MonoBehaviour
             {
                 Measure(qubit);
                 // Entanglement.entangled[qubit.GetIndex()] = false;
-                for (int i = 0; i < QubitManager.numQubits; i++){
-                    Entanglement.entangled[i] = false;
-                }
+                ClearInteractionFlags();
 
                 // int c = 0;
                 // ApplyPauliX(qubit);
@@ -146,9 +144,7 @@ public class QubitInput : MonoBehaviour
             if (rightHand.FindAction("A").WasPressedThisFrame() && buttonReleased)
             {
                 Measure(qubit);
-                for (int i = 0; i < QubitManager.numQubits; i++){
-                    Entanglement.entangled[i] = false;
-                }
+                ClearInteractionFlags();
 
                 // int c = 2;
                 // ApplyHadamard(qubit);
@@ -246,5 +242,13 @@ public class QubitInput : MonoBehaviour
     private void OnRelease(SelectExitEventArgs args)
     {
         grabbedObject = "";
+    }
+
+    private static void ClearInteractionFlags()
+    {
+        if (Entanglement.entangled != null)
+        {
+            System.Array.Clear(Entanglement.entangled, 0, Entanglement.entangled.Length);
+        }
     }
 }

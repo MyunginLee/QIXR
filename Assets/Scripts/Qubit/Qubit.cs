@@ -18,6 +18,7 @@ public class Qubit : MonoBehaviour
     [FormerlySerializedAs("index")]
     [SerializeField, Min(0)] private int qubitId;
     public int index => qubitId;
+    public Transform DotTransform => dot != null ? dot.transform : null;
     private AudioSource audioSource;
     private XRGrabInteractable grabInteractable;
 

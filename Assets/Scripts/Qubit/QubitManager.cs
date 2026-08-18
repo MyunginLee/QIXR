@@ -11,6 +11,7 @@ public class QubitManager : MonoBehaviour
 {
     private static QuantumStateEngine engine;
     private static readonly Dictionary<int, Qubit> qubitLookup = new Dictionary<int, Qubit>();
+    private static double[,] pairCouplings;
     private readonly List<Qubit> allQubits = new List<Qubit>();
 
     [SerializeField, Min(0f)] private float simulationTimeScale = 1f;
@@ -73,6 +74,7 @@ public class QubitManager : MonoBehaviour
             engine = null;
             numQubits = 0;
             J = null;
+            pairCouplings = null;
             entropy = 0.0;
             qubitLookup.Clear();
         }
@@ -115,6 +117,7 @@ public class QubitManager : MonoBehaviour
 
         numQubits = allQubits.Count;
         J = new float[numQubits];
+        pairCouplings = new double[numQubits, numQubits];
         engine = new QuantumStateEngine(numQubits);
         Debug.Log($"[QuantumStateEngine] Initialized {numQubits} qubits ({engine.Dimension}x{engine.Dimension} density matrix).", this);
     }
@@ -217,6 +220,16 @@ public class QubitManager : MonoBehaviour
         return engine.ValidateState(tolerance);
     }
 
+    public static double GetPairCoupling(int firstQubitId, int secondQubitId)
+    {
+        if (pairCouplings == null || firstQubitId < 0 || secondQubitId < 0 ||
+            firstQubitId >= pairCouplings.GetLength(0) || secondQubitId >= pairCouplings.GetLength(1))
+        {
+            return 0.0;
+        }
+        return pairCouplings[firstQubitId, secondQubitId];
+    }
+
     private static List<QubitPairCoupling> CalculateProximity(List<Qubit> qubits, float threshold)
     {
         var couplings = new List<QubitPairCoupling>();
@@ -225,6 +238,14 @@ public class QubitManager : MonoBehaviour
             J = new float[qubits.Count];
         }
         Array.Clear(J, 0, J.Length);
+        if (pairCouplings == null || pairCouplings.GetLength(0) != qubits.Count)
+        {
+            pairCouplings = new double[qubits.Count, qubits.Count];
+        }
+        else
+        {
+            Array.Clear(pairCouplings, 0, pairCouplings.Length);
+        }
 
         for (int first = 0; first < qubits.Count; first++)
         {
@@ -241,6 +262,8 @@ public class QubitManager : MonoBehaviour
                 float strength = 0.5f * (1f + (float)Math.Tanh(threshold / 2f) - distance);
                 J[qubitA.GetIndex()] = Mathf.Max(J[qubitA.GetIndex()], Mathf.Abs(strength));
                 J[qubitB.GetIndex()] = Mathf.Max(J[qubitB.GetIndex()], Mathf.Abs(strength));
+                pairCouplings[qubitA.GetIndex(), qubitB.GetIndex()] = strength;
+                pairCouplings[qubitB.GetIndex(), qubitA.GetIndex()] = strength;
                 couplings.Add(new QubitPairCoupling(
                     qubitA.GetIndex(), qubitB.GetIndex(), strength));
             }
