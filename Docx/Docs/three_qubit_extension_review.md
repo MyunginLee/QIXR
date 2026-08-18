@@ -189,13 +189,7 @@ GetVisualizationMetrics();
 - Qubit 3/shell/dot/line/prefab/scene 추가.
 - 3-node/3-edge/1-triad visual과 wave shader 상한 수정.
 - accessibility legend, 색각 보조, node/edge/triad label을 추가.
-- 하나의 pair만 먼저 가까이 하고, 이후 세 번째를 합류시키는 guided task를 작성한다.
-
-### Phase 4 — 검증과 연구 문서 갱신
-
-- 아래 acceptance test를 자동·수동으로 수행.
-- `00_main_with_supp.tex`의 모든 “two qubits”, 두 노드 figure, pair entropy 주장, limitation을 갱신.
-- 새 논문의 검증 범위와 한계를 기존 결과와 혼동하지 않게 분리한다.
+- XR 컨트롤러의 Grip으로 Q0을 직접 집어 Q1 근처에 놓고 release한 뒤, Q2를 다시 집어 Q0 또는 Q1 근처에 놓는 조작 안내를 제공한다. 시스템이 큐빗을 자동 이동시키거나 합류시키지 않는다.
 
 ## 필수 acceptance test
 
@@ -214,19 +208,6 @@ GetVisualizationMetrics();
 
 GHZ와 W 검증을 위해 최소한 **controlled two-qubit gate(CNOT 또는 CZ)**를 내부 test API로는 추가해야 한다. 교육 UI에 즉시 노출할 필요는 없지만, 3-큐빗 얽힘 시각화가 실제로 구별되는지 검증하려면 필요하다.
 
-## 논문(`00_main_with_supp.tex`)의 갱신 목록
-
-1. **Abstract / Introduction / contribution:** “two interactive qubits”를 “three interactive qubits”로 바꾸기 전에, pairwise와 three-party correlation을 구분하는 새 기여를 명시한다.
-2. **Density matrix 절:** 2^n×2^n 일반 설명을 실제 3-큐빗 8×8 구현, fixed ordering, partial trace 대상 집합으로 구체화한다.
-3. **Gates 절:** `I⊗X` 예시를 3-큐빗의 `I⊗I⊗X`와 arbitrary target embedding 예시로 확장한다. 얽힘이 있어도 local gate가 대상 하나에만 적용됨을 명시한다.
-4. **Exchange 절:** 4×4 두-spin Hamiltonian에서 세 pair term의 합성 8×8 Hamiltonian으로 바꾸고, simultaneous coupling의 time discretization/Trotter 여부를 적는다.
-5. **Entanglement 절:** 기존 `S_i+S_j-S_ij`는 entanglement entropy가 아니라 mutual-information형 correlation metric임을 교정한다. pair edge metric, node metric, triad metric을 각각 정의하고 GHZ counterexample을 포함한다.
-6. **Figures:** 두 Bloch sphere/한 arc 그림을 세 node, 세 pair edge, central triad를 포함한 그림으로 대체한다. GHZ와 Bell-pair-plus-spectator를 나란히 보여야 한다.
-7. **Wavefunction / audio:** 색/음향 parameter가 pair인지 global인지 명시한다. “보라색 = entangled”라는 이진 문구를 삭제한다.
-8. **Measurement:** 한 큐빗 측정의 projector, 확률, conditional global collapse와 새로운 3-큐빗 예시를 보충 자료에 추가한다.
-9. **Evaluation:** 기존 2-큐빗 전문가 인터뷰/사용자 연구 결과를 3-큐빗 효과의 증거로 재사용하지 않는다. 별도의 correctness validation과 최소 formative study가 필요하다.
-10. **Limitations:** 3개는 고전 simulation에 부담이 작지만 일반 n에선 density matrix memory가 `O(4^n)`, dense evolution이 더 비싸다는 점을 수치적으로 정확히 쓴다.
-
 ## 구현 전에 결정해야 할 연구/디자인 선택
 
 - 3개 큐빗 모두를 **교환 상호작용으로만** 얽히게 할지, 교육용 CNOT/CZ를 UI에 추가할지.
@@ -237,4 +218,4 @@ GHZ와 W 검증을 위해 최소한 **controlled two-qubit gate(CNOT 또는 CZ)*
 
 ## 이번 검토에서 의도적으로 하지 않은 일
 
-이 문서는 구현 계획이다. Qubit 3 프리팹 추가, 엔진 재작성, shader 변경, 논문 LaTeX 수정은 아직 수행하지 않았다. 먼저 위의 metric/interaction 결정을 확정한 뒤, 수학 엔진 → 자동 검증 → XR visual → 논문 순서로 구현해야 기존 2-큐빗 기능을 보존하면서 물리적으로 방어 가능한 3-큐빗 버전을 만들 수 있다.
+이 문서는 구현 계획이다. Qubit 3 프리팹 추가, 엔진 재작성, shader 변경, 논문 LaTeX 수정은 아직 수행하지 않았다. 먼저 위의 metric/interaction 결정을 확정한 뒤, 수학 엔진 → 자동 검증 → XR visual  구현해야 기존 2-큐빗 기능을 보존하면서 물리적으로 방어 가능한 3-큐빗 버전을 만들 수 있다.
