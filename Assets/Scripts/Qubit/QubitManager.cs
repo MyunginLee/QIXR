@@ -463,6 +463,7 @@ public class QubitManager : MonoBehaviour
         return (upper << bitPosition) | lower;
     }
 
+
     private readonly struct QubitPair : IEquatable<QubitPair>
     {
         public QubitPair(Qubit first, Qubit second)

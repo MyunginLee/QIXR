@@ -184,25 +184,37 @@ public class Qubit : MonoBehaviour
             case "Hadamard":
                 ApplyHadamard(this);
                 audioSource.PlayOneShot(audioClipH, 1f);
-                Instantiate(HadamardGuide, spawnPos, Quaternion.identity, transform);
+                if (HadamardGuide != null)
+                {
+                    Instantiate(HadamardGuide, spawnPos, Quaternion.identity, transform);
+                }
                 break;
 
             case "Pauli-X":
                 ApplyPauliX(this);
                 audioSource.PlayOneShot(audioClipX, 1f);
-                Instantiate(PauliXGuide, spawnPos, Quaternion.identity, transform);
+                if (PauliXGuide != null)
+                {
+                    Instantiate(PauliXGuide, spawnPos, Quaternion.identity, transform);
+                }
                 break;
 
             case "Pauli-Z":
                 ApplyPauliZ(this);
                 audioSource.PlayOneShot(audioClipZ, 1f);
-                Instantiate(PauliZGuide, spawnPos, Quaternion.identity, transform);
+                if (PauliZGuide != null)
+                {
+                    Instantiate(PauliZGuide, spawnPos, Quaternion.identity, transform);
+                }
                 break;
 
             case "Phase-S":
                 ApplyPhaseGate(this);
                 audioSource.PlayOneShot(audioClipS, 1f);
-                Instantiate(PhaseSGuide, spawnPos, Quaternion.identity, transform);
+                if (PhaseSGuide != null)
+                {
+                    Instantiate(PhaseSGuide, spawnPos, Quaternion.identity, transform);
+                }
                 break;
 
             default:
