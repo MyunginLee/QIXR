@@ -28,6 +28,7 @@ public sealed class QuantumStateEngine
 
     public int QubitCount { get; }
     public int Dimension { get; }
+    public long StateVersion { get; private set; }
     public ComplexMatrix DensityMatrix => densityMatrix;
 
     public void SetDensityMatrix(ComplexMatrix state)
@@ -40,6 +41,7 @@ public sealed class QuantumStateEngine
         }
 
         densityMatrix = state.Clone();
+        StateVersion++;
     }
 
     public void ApplySingleQubitGate(int qubitId, ComplexMatrix gate)
@@ -152,6 +154,7 @@ public sealed class QuantumStateEngine
         }
 
         densityMatrix = Stabilize(collapsed);
+        StateVersion++;
         return new MeasurementResult(qubitId, outcome, probability);
     }
 
@@ -333,6 +336,7 @@ public sealed class QuantumStateEngine
     {
         EnsureShape(unitary, Dimension, Dimension, nameof(unitary));
         densityMatrix = Stabilize(unitary * densityMatrix * unitary.ConjugateTranspose());
+        StateVersion++;
     }
 
     private static ComplexMatrix EmbedPairProduct(

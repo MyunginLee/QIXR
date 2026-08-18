@@ -46,6 +46,8 @@ public class FloorElectrons : MonoBehaviour
             return;
         }
 
+        EntanglementSnapshot snapshot = QubitManager.GetEntanglementSnapshot();
+
         for (int i = 0; i < qubits.Length; i++)
         {
             Qubit qubit = qubits[i];
@@ -53,14 +55,16 @@ public class FloorElectrons : MonoBehaviour
             qubitPositions[i] = new Vector4(position.x, position.z, position.y, 0f);
 
             Color nodeColor = NodeColors[i % NodeColors.Length];
-            bool interacting = Entanglement.entangled != null &&
-                               i < Entanglement.entangled.Length && Entanglement.entangled[i];
-            colors[i] = interacting
+            QubitMetric node = snapshot != null && i < snapshot.Nodes.Count
+                ? snapshot.GetNode(i)
+                : null;
+            bool correlated = node != null &&
+                              node.Renyi2Entropy > EntanglementMetrics.CorrelationEntropyThreshold;
+            colors[i] = correlated
                 ? new Vector4(nodeColor.r * 0.45f, nodeColor.g * 0.45f, 1f, 1f)
                 : (Vector4)nodeColor;
 
-            Transform dot = qubit.DotTransform;
-            float blochRadius = dot != null ? Mathf.Clamp01(dot.localPosition.magnitude * 2f) : 1f;
+            float blochRadius = node?.BlochRadius ?? 1f;
             wavefunctionParameters[i] = new Vector4(1f, 0f, 0f, Mathf.Lerp(1.35f, 0.85f, blochRadius));
         }
 

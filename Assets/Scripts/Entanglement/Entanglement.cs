@@ -53,6 +53,7 @@ public class Entanglement : MonoBehaviour
         public int Second;
         public LineRenderer Arc;
         public TextMeshPro Label;
+        public double LastDisplayedMetric = -1.0;
     }
 
     private void Start()
@@ -102,69 +103,62 @@ public class Entanglement : MonoBehaviour
 
     public float ComputeQubitScale(Qubit qubit)
     {
-        if (qubit == null || QubitManager.GetDensityMatrix() == null)
+        EntanglementSnapshot snapshot = QubitManager.GetEntanglementSnapshot();
+        if (qubit == null || snapshot == null)
         {
             return 1f;
         }
-
-        ComplexMatrix reduced = QubitManager.PartialTrace(qubit.GetIndex());
-        return ComputeBlochRadius(reduced);
-    }
-
-    private static float ComputeBlochRadius(ComplexMatrix reduced)
-    {
-        double x = 2.0 * reduced[0, 1].Real;
-        double y = -2.0 * reduced[0, 1].Imaginary;
-        double z = reduced[0, 0].Real - reduced[1, 1].Real;
-        return Mathf.Clamp01((float)Math.Sqrt(x * x + y * y + z * z));
+        return snapshot.GetNode(qubit.GetIndex()).BlochRadius;
     }
 
     private void UpdateNodeAndPairVisuals()
     {
+        EntanglementSnapshot snapshot = QubitManager.GetEntanglementSnapshot();
+        if (snapshot == null || snapshot.Nodes.Count != orderedQubits.Length)
+        {
+            return;
+        }
+
         Array.Clear(entangled, 0, entangled.Length);
-        int activePairCount = 0;
+        int activeInteractionCount = 0;
+        int entangledPairCount = 0;
         for (int pairIndex = 0; pairIndex < pairVisuals.Length; pairIndex++)
         {
             PairVisual pair = pairVisuals[pairIndex];
             Vector3 first = orderedQubits[pair.First].transform.position;
             Vector3 second = orderedQubits[pair.Second].transform.position;
             float distance = Vector3.Distance(first, second);
-            bool active = distance <= QubitManager.THRESHOLD_DISTANCE;
-            if (active)
+            if (distance <= QubitManager.THRESHOLD_DISTANCE)
             {
-                entangled[pair.First] = true;
-                entangled[pair.Second] = true;
-                activePairCount++;
+                activeInteractionCount++;
             }
-            UpdatePairArc(pair, first, second, distance, active, pairIndex);
+            PairEntanglementMetric pairMetric = snapshot.GetPair(pair.First, pair.Second);
+            if (pairMetric.IsEntangled)
+            {
+                entangledPairCount++;
+            }
+            UpdatePairArc(pair, first, second, pairMetric, pairIndex);
         }
 
         float entropySum = 0f;
-        int correlatedNodes = 0;
         for (int i = 0; i < orderedQubits.Length; i++)
         {
-            ComplexMatrix reduced = QubitManager.PartialTrace(i);
+            QubitMetric nodeMetric = snapshot.GetNode(i);
+            entangled[i] = nodeMetric.Renyi2Entropy > EntanglementMetrics.CorrelationEntropyThreshold;
             // Keep a small grab target even when the Bloch radius reaches zero.
-            float scale = Mathf.Lerp(0.06f, NodeBaseScale, ComputeBlochRadius(reduced));
+            float scale = Mathf.Lerp(0.06f, NodeBaseScale, nodeMetric.BlochRadius);
             orderedQubits[i].transform.localScale = Vector3.one * scale;
             if (shells[i] != null)
             {
                 shells[i].position = orderedQubits[i].transform.position;
             }
-
-            double purity = (reduced * reduced).Trace().Real;
-            float nodeEntropy = (float)-Math.Log(Math.Max(1e-8, Math.Min(1.0, purity)));
-            entropySum += nodeEntropy;
-            if (nodeEntropy > 0.05f)
-            {
-                correlatedNodes++;
-            }
+            entropySum += (float)nodeMetric.Renyi2Entropy;
         }
 
-        bool threePartyCorrelation = orderedQubits.Length == 3 && correlatedNodes == 3;
-        UpdateTriad(threePartyCorrelation, entropySum / orderedQubits.Length);
-        UpdateGuide(activePairCount, threePartyCorrelation);
-        UpdateInteractionAudio(activePairCount > 0);
+        UpdateTriad(snapshot.HasThreePartyCorrelation,
+            (float)snapshot.ThreePartyCorrelationStrength);
+        UpdateGuide(activeInteractionCount, snapshot.HasThreePartyCorrelation);
+        UpdateInteractionAudio(entangledPairCount > 0 || snapshot.HasThreePartyCorrelation);
 
         float meanEntropy = entropySum / orderedQubits.Length;
         if (Mathf.Abs(meanEntropy - lastTrailEntropy) > 0.02f)
@@ -195,7 +189,7 @@ public class Entanglement : MonoBehaviour
                 arc.endColor = arc.startColor;
 
                 TextMeshPro label = CreateWorldLabel(
-                    arcObject.transform, $"Q{first}–Q{second} interaction", 0.75f);
+                    arcObject.transform, $"Q{first}–Q{second} entanglement", 0.75f);
                 visuals.Add(new PairVisual { First = first, Second = second, Arc = arc, Label = label });
             }
         }
@@ -203,19 +197,17 @@ public class Entanglement : MonoBehaviour
     }
 
     private void UpdatePairArc(
-        PairVisual pair, Vector3 first, Vector3 second, float distance, bool active, int pairIndex)
+        PairVisual pair, Vector3 first, Vector3 second,
+        PairEntanglementMetric metric, int pairIndex)
     {
-        pair.Arc.enabled = active;
-        pair.Label.gameObject.SetActive(active);
-        if (!active)
+        pair.Arc.enabled = metric.IsEntangled;
+        pair.Label.gameObject.SetActive(metric.IsEntangled);
+        if (!metric.IsEntangled)
         {
             return;
         }
 
-        float proximity = 1f - Mathf.Clamp01(distance / QubitManager.THRESHOLD_DISTANCE);
-        float coupling = Mathf.Clamp01((float)Math.Abs(
-            QubitManager.GetPairCoupling(pair.First, pair.Second)));
-        float intensity = Mathf.Max(proximity, coupling);
+        float intensity = Mathf.Clamp01((float)metric.LogarithmicNegativity);
         float curvature = 0.12f + pairIndex * 0.08f + intensity * 0.18f;
         Vector3 midpoint = (first + second) * 0.5f + Vector3.up * curvature;
         for (int segment = 0; segment < ArcSegments; segment++)
@@ -233,6 +225,11 @@ public class Entanglement : MonoBehaviour
         pair.Arc.widthMultiplier = 0.008f + 0.018f * intensity;
         pair.Label.color = color;
         pair.Label.transform.position = midpoint + Vector3.up * 0.06f;
+        if (Math.Abs(metric.LogarithmicNegativity - pair.LastDisplayedMetric) > 0.01)
+        {
+            pair.Label.text = $"Q{pair.First}–Q{pair.Second}  E_N={metric.LogarithmicNegativity:F2}";
+            pair.LastDisplayedMetric = metric.LogarithmicNegativity;
+        }
     }
 
     private void CreateTriadVisual()
@@ -310,7 +307,7 @@ public class Entanglement : MonoBehaviour
         }
         else
         {
-            message = "◆ Three-party correlation\nPair arcs show interactions, not proof of entanglement";
+            message = "◆ Three-party correlation\nPair arcs show logarithmic negativity E_N";
         }
 
         if (!string.Equals(message, lastGuideText, StringComparison.Ordinal))

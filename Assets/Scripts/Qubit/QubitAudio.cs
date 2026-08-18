@@ -29,7 +29,7 @@ public class QubitAudio : MonoBehaviour
         reverb.reverbPreset = AudioReverbPreset.User;
         audioSource.playOnAwake = false;
         audioSource.Stop();
-        UpdateFrequencies(1f);
+        UpdateFrequencies(1f, 0f);
     }
 
     private void Update()
@@ -41,11 +41,28 @@ public class QubitAudio : MonoBehaviour
         }
 
         int id = qubit.GetIndex();
-        playSound = Entanglement.entangled != null && id < Entanglement.entangled.Length &&
-                    Entanglement.entangled[id];
+        EntanglementSnapshot snapshot = QubitManager.GetEntanglementSnapshot();
+        if (snapshot == null || id >= snapshot.Nodes.Count)
+        {
+            playSound = false;
+            return;
+        }
+
+        QubitMetric node = snapshot.GetNode(id);
+        float maximumPairEntanglement = 0f;
+        for (int pairIndex = 0; pairIndex < snapshot.Pairs.Count; pairIndex++)
+        {
+            PairEntanglementMetric pair = snapshot.Pairs[pairIndex];
+            if (pair.FirstQubitId == id || pair.SecondQubitId == id)
+            {
+                maximumPairEntanglement = Mathf.Max(
+                    maximumPairEntanglement, (float)pair.LogarithmicNegativity);
+            }
+        }
+        playSound = node.Renyi2Entropy > EntanglementMetrics.CorrelationEntropyThreshold;
         float adjust = 1f + new Vector2(transform.localPosition.x, transform.localPosition.y).magnitude * 3f;
-        masterAmp = Mathf.Clamp01(qubit.transform.localScale.x / 5f);
-        UpdateFrequencies(adjust);
+        masterAmp = Mathf.Clamp((float)(node.Renyi2Entropy / Math.Log(2.0)) * 0.08f, 0f, 0.08f);
+        UpdateFrequencies(adjust, (float)snapshot.ThreePartyCorrelationStrength);
 
         if (playSound && !audioSource.isPlaying)
         {
@@ -56,17 +73,14 @@ public class QubitAudio : MonoBehaviour
             audioSource.Stop();
         }
 
-        float coupling = QubitManager.J != null && id < QubitManager.J.Length
-            ? Mathf.Abs(QubitManager.J[id])
-            : 0f;
-        reverb.diffusion = Mathf.Clamp(coupling * 30f, 0f, 100f);
+        reverb.diffusion = Mathf.Clamp(maximumPairEntanglement * 100f, 0f, 100f);
     }
 
-    private void UpdateFrequencies(float adjust)
+    private void UpdateFrequencies(float adjust, float triadStrength)
     {
         frequency[0] = 130.81f * scale / adjust;
         frequency[1] = 164.81f * scale * adjust;
-        frequency[2] = 196.00f * scale;
+        frequency[2] = 196.00f * scale * (1f + 0.25f * triadStrength);
         frequency[3] = frequency[0] * 0.5f;
     }
 

@@ -10,6 +10,7 @@ using UnityEngine;
 public class QubitManager : MonoBehaviour
 {
     private static QuantumStateEngine engine;
+    private static EntanglementSnapshot currentSnapshot;
     private static readonly Dictionary<int, Qubit> qubitLookup = new Dictionary<int, Qubit>();
     private static double[,] pairCouplings;
     private readonly List<Qubit> allQubits = new List<Qubit>();
@@ -40,9 +41,9 @@ public class QubitManager : MonoBehaviour
 
     private void Update()
     {
-        if (engine != null && engine.QubitCount > 0)
+        if (currentSnapshot != null && currentSnapshot.Nodes.Count > 0)
         {
-            entropy = engine.ComputeRenyi2Entropy(0);
+            entropy = currentSnapshot.GetNode(0).Renyi2Entropy;
         }
     }
 
@@ -55,6 +56,7 @@ public class QubitManager : MonoBehaviour
 
         List<QubitPairCoupling> couplings = CalculateProximity(allQubits, THRESHOLD_DISTANCE);
         engine.StepHeisenberg(couplings, Time.fixedDeltaTime * simulationTimeScale);
+        RefreshSnapshot();
 
         if (validateEveryFixedStep)
         {
@@ -72,6 +74,7 @@ public class QubitManager : MonoBehaviour
         if (engine != null)
         {
             engine = null;
+            currentSnapshot = null;
             numQubits = 0;
             J = null;
             pairCouplings = null;
@@ -119,6 +122,7 @@ public class QubitManager : MonoBehaviour
         J = new float[numQubits];
         pairCouplings = new double[numQubits, numQubits];
         engine = new QuantumStateEngine(numQubits);
+        RefreshSnapshot(true);
         Debug.Log($"[QuantumStateEngine] Initialized {numQubits} qubits ({engine.Dimension}x{engine.Dimension} density matrix).", this);
     }
 
@@ -131,6 +135,7 @@ public class QubitManager : MonoBehaviour
     }
 
     public static ComplexMatrix GetDensityMatrix() => engine?.DensityMatrix;
+    public static EntanglementSnapshot GetEntanglementSnapshot() => currentSnapshot;
     public static int GetQubits() => engine?.QubitCount ?? 0;
 
     // Kept for old display/debug scripts. Initialization is now atomic.
@@ -166,6 +171,7 @@ public class QubitManager : MonoBehaviour
         }
         EnsureInitialized();
         engine.ApplySingleQubitGate(qubit.GetIndex(), gate);
+        RefreshSnapshot();
     }
 
     public static void Measure(Qubit qubit)
@@ -181,6 +187,7 @@ public class QubitManager : MonoBehaviour
     {
         EnsureInitialized();
         MeasurementResult result = engine.MeasureZ(qubitId, UnityEngine.Random.value);
+        RefreshSnapshot();
         Debug.Log($"Measured Q{result.QubitId}: {result.Outcome} (p={result.Probability:F4}).");
     }
 
@@ -212,6 +219,7 @@ public class QubitManager : MonoBehaviour
                 "ApplySpinExchange(J,time) is a two-qubit compatibility API. Use pair couplings for three or more qubits.");
         }
         engine.StepHeisenberg(new[] { new QubitPairCoupling(0, 1, coupling) }, time);
+        RefreshSnapshot();
     }
 
     public static DensityMatrixValidationResult ValidateDensityMatrix(double tolerance = 1e-9)
@@ -277,5 +285,20 @@ public class QubitManager : MonoBehaviour
         {
             throw new InvalidOperationException("QuantumStateEngine has not been initialized by QubitManager.Awake.");
         }
+    }
+
+    private static void RefreshSnapshot(bool force = false)
+    {
+        if (engine == null)
+        {
+            currentSnapshot = null;
+            return;
+        }
+        if (!force && currentSnapshot != null && currentSnapshot.StateVersion == engine.StateVersion)
+        {
+            return;
+        }
+        currentSnapshot = EntanglementMetrics.Build(
+            engine.DensityMatrix, engine.QubitCount, engine.StateVersion);
     }
 }

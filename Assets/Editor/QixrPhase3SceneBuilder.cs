@@ -25,6 +25,7 @@ public static class QixrPhase3SceneBuilder
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         QixrThreeQubitEngineChecks.Run();
+        QixrPhase2MetricChecks.Run();
         ValidateOpenScene();
         Debug.Log("[QIXR Phase 3] Three-qubit XR scene build and validation passed.");
     }

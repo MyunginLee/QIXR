@@ -12,20 +12,20 @@ Status: **implemented and editor-validated** (2026-08-18)
 
 ## Visual semantics
 
-- Three labeled arcs represent the active physical interactions Q0–Q1, Q0–Q2, and Q1–Q2.
+- After Phase 2 integration, three labeled arcs represent pair logarithmic negativity for Q0–Q1, Q0–Q2, and Q1–Q2. Physical proximity/coupling remains a separate input to evolution and XR guidance.
 - Pair identity is communicated by both text and color: cyan, amber, and magenta. Color is not the only signal.
 - Arc curvature differs per pair so overlapping connections remain readable.
 - The center diamond is labeled **three-party correlation**, not genuine tripartite entanglement.
 - The diamond appears when all three single-qubit reduced states have nonzero Rényi-2 entropy. This is a conservative visualization condition, not a GHZ/W classifier.
 - The world-space prompt explicitly tells the user to hold the XR controller Grip, grab a named qubit, move it, and release it. It never moves or joins qubits automatically.
-- Pair arcs explicitly say `interaction`; they must not be cited as proof of pair entanglement.
+- Pair arcs display `E_N` and appear only for positive logarithmic negativity. See `phase2_entanglement_metrics.md` for the metric definition.
 
 ## Existing visual and audio behavior
 
 - The correlation-trail field remains, but uses a pool of 96 lightweight TrailRenderers instead of 300 cube primitives.
 - Trail gradients update only when the mean node entropy changes materially rather than being allocated for every trail on every frame.
 - Qubits and shells are matched by explicit Qubit IDs, not tag discovery order.
-- Each qubit's audio now reads that qubit's own interaction state and coupling strength instead of always reading Q0.
+- After Phase 2 integration, each qubit's audio reads node entropy, incident pair logarithmic negativity, and triad strength from the shared snapshot.
 - A minimum visual/grab scale is retained when a reduced Bloch radius reaches zero.
 
 ## Wavefunction floor/top
