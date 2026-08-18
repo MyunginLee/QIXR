@@ -2087,7 +2087,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 8300000000000000107}
         m_TargetAssemblyTypeName: ArtsOfEntanglement.Colocation.ColocationUIController, Assembly-CSharp
-        m_MethodName: OnJoinClicked
+        m_MethodName: OnHostClicked
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -12404,8 +12404,8 @@ MonoBehaviour:
   sharedAnchorStatePrefab: {fileID: 11400000, guid: 410335d7ec604aaf9fb9dafd7da4675e, type: 2}
   avatarPrefab: {fileID: 11400000, guid: bd92683130804ea6ba2e71b20ecd9b89, type: 2}
   autoCreateRunner: 1
+  autoStartSingleOnNetworkFailure: 1
   defaultSessionName: MRRoom_
-  textMeshPro: {fileID: 0}
 --- !u!114 &8300000000000000104
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12428,6 +12428,7 @@ MonoBehaviour:
   triggerThreshold: 0.6
   placementCooldown: 0.5
   createTimeoutSeconds: 10
+  recipientPlatformUserIds: []
 --- !u!114 &8300000000000000105
 MonoBehaviour:
   m_ObjectHideFlags: 0

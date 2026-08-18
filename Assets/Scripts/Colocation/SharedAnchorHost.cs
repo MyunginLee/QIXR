@@ -3,6 +3,7 @@
 #endif
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.XR;
@@ -24,6 +25,10 @@ namespace ArtsOfEntanglement.Colocation
 
         [Header("Anchor")]
         [SerializeField] private float createTimeoutSeconds = 10f;
+
+        [Header("Anchor Access")]
+        [Tooltip("Quest platform user IDs allowed to load this shared anchor. Add every joining headset's user ID in the Inspector.")]
+        [SerializeField] private List<string> recipientPlatformUserIds = new List<string>();
 
         private bool isPlacing;
         private bool wasPressed;
@@ -145,10 +150,16 @@ namespace ArtsOfEntanglement.Colocation
                 return;
             }
 
-            bool saved = await spatialAnchor.SaveAsync();
-            if (!saved)
+            var saveResult = await spatialAnchor.SaveAnchorAsync();
+            if (!saveResult.Success)
             {
-                ReportStatus("Anchor save failed.");
+                ReportStatus($"Anchor save failed: {saveResult.Status}.");
+                Destroy(anchorGo);
+                return;
+            }
+
+            if (!await ShareAnchorWithRecipients(spatialAnchor))
+            {
                 Destroy(anchorGo);
                 return;
             }
@@ -176,6 +187,44 @@ namespace ArtsOfEntanglement.Colocation
         }
 
 #if META_XR_PRESENT
+        private async Task<bool> ShareAnchorWithRecipients(OVRSpatialAnchor spatialAnchor)
+        {
+            var recipients = new List<OVRSpaceUser>();
+            foreach (var userIdText in recipientPlatformUserIds)
+            {
+                if (string.IsNullOrWhiteSpace(userIdText))
+                {
+                    continue;
+                }
+
+                if (!ulong.TryParse(userIdText.Trim(), out var userId) ||
+                    !OVRSpaceUser.TryCreate(userId, out var recipient))
+                {
+                    ReportStatus($"Invalid Quest platform user ID: '{userIdText}'.");
+                    return false;
+                }
+
+                recipients.Add(recipient);
+            }
+
+            if (recipients.Count == 0)
+            {
+                ReportStatus("No anchor recipients configured. Add joining Quest platform user IDs before hosting.");
+                return false;
+            }
+
+            ReportStatus($"Sharing anchor with {recipients.Count} recipient(s)...");
+            var shareResult = await spatialAnchor.ShareAsync(recipients);
+            if (shareResult != OVRSpatialAnchor.OperationResult.Success)
+            {
+                ReportStatus($"Anchor sharing failed: {shareResult}.");
+                return false;
+            }
+
+            ReportStatus("Anchor access granted.");
+            return true;
+        }
+
         private static async Task<bool> WaitForAnchorCreated(OVRSpatialAnchor anchor, float timeoutSeconds)
         {
             float start = Time.realtimeSinceStartup;

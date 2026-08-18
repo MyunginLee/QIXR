@@ -29,7 +29,6 @@ namespace ArtsOfEntanglement.Colocation
         public event Action<string> StatusMessage;
         public event Action<string> SharedAnchorIdChanged;
         public event Action<string> AutoHostRequested;
-        public event Action<string> AutoHostRequested;
 
         public string DefaultSessionName => defaultSessionName;
         public NetworkRunner Runner => runner;
@@ -175,7 +174,7 @@ namespace ArtsOfEntanglement.Colocation
             if (runner == null)
             {
                 ReportStatus("NetworkRunner missing.");
-                return StartGameResult.BuildGameResultFromException(new InvalidOperationException("NetworkRunner missing."));
+                return default;
             }
 
             runner.AddCallbacks(this);

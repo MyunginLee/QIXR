@@ -96,10 +96,10 @@ namespace ArtsOfEntanglement.Colocation
             }
 
             var unboundAnchors = new List<OVRSpatialAnchor.UnboundAnchor>();
-            bool loaded = await OVRSpatialAnchor.LoadUnboundAnchorsAsync(new[] { guid }, unboundAnchors);
-            if (!loaded || unboundAnchors.Count == 0)
+            var loadResult = await OVRSpatialAnchor.LoadUnboundSharedAnchorsAsync(new[] { guid }, unboundAnchors);
+            if (!loadResult.Success || unboundAnchors.Count == 0)
             {
-                ReportStatus("Failed to load shared anchor.");
+                ReportStatus($"Failed to load shared anchor: {loadResult.Status}.");
                 isLocalizing = false;
                 return;
             }
