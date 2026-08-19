@@ -16,6 +16,7 @@ namespace ArtsOfEntanglement.Colocation
         [Header("Fusion")]
         [SerializeField] private NetworkRunner runnerPrefab;
         [SerializeField] private NetworkObject sharedAnchorStatePrefab;
+        [SerializeField] private NetworkObject quantumSessionStatePrefab;
         [SerializeField] private NetworkObject avatarPrefab;
         [SerializeField] private bool autoCreateRunner = true;
         [SerializeField] private bool autoStartSingleOnNetworkFailure = true;
@@ -23,6 +24,8 @@ namespace ArtsOfEntanglement.Colocation
 
         private NetworkRunner runner;
         private SharedAnchorState anchorState;
+        private QuantumSessionState quantumSessionState;
+        private bool quantumSessionSpawnRequested;
         private string pendingAnchorId;
         private static readonly ReliableKey AnchorReliableKey = ReliableKey.FromInts(0x414E4348, 0x4F524944, 0x5F4B4559, 0x00000001);
 
@@ -230,6 +233,26 @@ namespace ArtsOfEntanglement.Colocation
             }
         }
 
+        private void EnsureQuantumSessionStateSpawned(NetworkRunner runnerRef)
+        {
+            if (quantumSessionState != null || QuantumSessionState.Instance != null || quantumSessionSpawnRequested)
+            {
+                return;
+            }
+
+            if (quantumSessionStatePrefab != null)
+            {
+                quantumSessionSpawnRequested = true;
+                var spawned = runnerRef.Spawn(
+                    quantumSessionStatePrefab, Vector3.zero, Quaternion.identity, runnerRef.LocalPlayer);
+                quantumSessionState = spawned != null ? spawned.GetComponent<QuantumSessionState>() : null;
+            }
+            else
+            {
+                ReportStatus("QuantumSessionState prefab not set. Quantum state will not be shared.");
+            }
+        }
+
         private void SpawnAvatar(NetworkRunner runnerRef, PlayerRef player)
         {
             if (avatarPrefab == null)
@@ -247,6 +270,7 @@ namespace ArtsOfEntanglement.Colocation
             if (runnerRef.IsServer)
             {
                 EnsureAnchorStateSpawned(runnerRef);
+                EnsureQuantumSessionStateSpawned(runnerRef);
                 SpawnAvatar(runnerRef, player);
 
                 if (!string.IsNullOrEmpty(pendingAnchorId))
@@ -271,6 +295,8 @@ namespace ArtsOfEntanglement.Colocation
 
         public void OnShutdown(NetworkRunner runnerRef, ShutdownReason shutdownReason)
         {
+            quantumSessionState = null;
+            quantumSessionSpawnRequested = false;
             ReportStatus($"Shutdown: {shutdownReason}");
         }
 
@@ -337,6 +363,11 @@ namespace ArtsOfEntanglement.Colocation
 
         public void OnSceneLoadDone(NetworkRunner runnerRef)
         {
+            if (runnerRef.IsServer)
+            {
+                EnsureAnchorStateSpawned(runnerRef);
+                EnsureQuantumSessionStateSpawned(runnerRef);
+            }
         }
 
         public void OnSceneLoadStart(NetworkRunner runnerRef)

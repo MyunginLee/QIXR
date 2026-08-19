@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using ArtsOfEntanglement.Colocation;
 using TMPro;
 using UnityEngine;
 
@@ -9,6 +10,7 @@ using UnityEngine;
 /// </summary>
 public class QubitManager : MonoBehaviour
 {
+    private static QubitManager instance;
     private static QuantumStateEngine engine;
     private static EntanglementSnapshot currentSnapshot;
     private static readonly Dictionary<int, Qubit> qubitLookup = new Dictionary<int, Qubit>();
@@ -28,6 +30,7 @@ public class QubitManager : MonoBehaviour
 
     private void Awake()
     {
+        instance = this;
         InitializeFromScene();
     }
 
@@ -49,28 +52,55 @@ public class QubitManager : MonoBehaviour
 
     private void FixedUpdate()
     {
+        // Fusion's state authority owns simulation whenever a shared quantum
+        // session exists. Clients only render the replicated density matrix.
+        if (QuantumSessionState.IsNetworkSessionActive)
+        {
+            return;
+        }
+
+        AdvanceSimulation(Time.fixedDeltaTime);
+    }
+
+    /// <summary>
+    /// Advances the global state exactly once. In a Fusion session this is
+    /// called by QuantumSessionState.FixedUpdateNetwork on state authority.
+    /// </summary>
+    public static void AdvanceSimulation(double deltaTime)
+    {
         if (engine == null)
         {
             return;
         }
 
-        List<QubitPairCoupling> couplings = CalculateProximity(allQubits, THRESHOLD_DISTANCE);
-        engine.StepHeisenberg(couplings, Time.fixedDeltaTime * simulationTimeScale);
-        RefreshSnapshot();
+        var manager = instance;
+        if (manager == null)
+        {
+            return;
+        }
 
-        if (validateEveryFixedStep)
+        List<QubitPairCoupling> couplings = CalculateProximity(manager.allQubits, THRESHOLD_DISTANCE);
+        engine.StepHeisenberg(couplings, deltaTime * manager.simulationTimeScale);
+        if (manager.validateEveryFixedStep)
         {
             DensityMatrixValidationResult validation = engine.ValidateState(1e-7);
             if (!validation.IsValid)
             {
-                Debug.LogError($"[QuantumStateEngine] Invalid state after fixed step: {validation.Message}", this);
-                enabled = false;
+                Debug.LogError($"[QuantumStateEngine] Invalid state after fixed step: {validation.Message}", manager);
+                manager.enabled = false;
+                return;
             }
         }
+
+        RefreshSnapshot();
     }
 
     private void OnDestroy()
     {
+        if (ReferenceEquals(instance, this))
+        {
+            instance = null;
+        }
         if (engine != null)
         {
             engine = null;
@@ -137,6 +167,7 @@ public class QubitManager : MonoBehaviour
     public static ComplexMatrix GetDensityMatrix() => engine?.DensityMatrix;
     public static EntanglementSnapshot GetEntanglementSnapshot() => currentSnapshot;
     public static int GetQubits() => engine?.QubitCount ?? 0;
+    public static bool IsInitialized => engine != null;
 
     // Kept for old display/debug scripts. Initialization is now atomic.
     public static int GetInitQubits() => GetQubits();
@@ -158,19 +189,47 @@ public class QubitManager : MonoBehaviour
         }
     }
 
-    public static void ApplyPauliX(Qubit qubit) => ApplySingleGate(qubit, Gates.PauliX());
-    public static void ApplyPauliZ(Qubit qubit) => ApplySingleGate(qubit, Gates.PauliZ());
-    public static void ApplyHadamard(Qubit qubit) => ApplySingleGate(qubit, Gates.Hadamard());
-    public static void ApplyPhaseGate(Qubit qubit) => ApplySingleGate(qubit, Gates.PhaseS());
+    public static void ApplyPauliX(Qubit qubit) => RequestGate(qubit, QuantumGateOperation.PauliX);
+    public static void ApplyPauliZ(Qubit qubit) => RequestGate(qubit, QuantumGateOperation.PauliZ);
+    public static void ApplyHadamard(Qubit qubit) => RequestGate(qubit, QuantumGateOperation.Hadamard);
+    public static void ApplyPhaseGate(Qubit qubit) => RequestGate(qubit, QuantumGateOperation.PhaseS);
 
-    private static void ApplySingleGate(Qubit qubit, ComplexMatrix gate)
+    private static void RequestGate(Qubit qubit, QuantumGateOperation operation)
     {
         if (qubit == null)
         {
             throw new ArgumentNullException(nameof(qubit));
         }
+
+        if (QuantumSessionState.RequestGate(qubit.GetIndex(), operation))
+        {
+            return;
+        }
+
+        ApplyGateLocally(qubit.GetIndex(), operation);
+    }
+
+    /// <summary>Called only by the local single-player path or Fusion state authority.</summary>
+    public static void ApplyGateLocally(int qubitId, QuantumGateOperation operation)
+    {
         EnsureInitialized();
-        engine.ApplySingleQubitGate(qubit.GetIndex(), gate);
+        switch (operation)
+        {
+            case QuantumGateOperation.Hadamard:
+                engine.ApplySingleQubitGate(qubitId, Gates.Hadamard());
+                break;
+            case QuantumGateOperation.PauliX:
+                engine.ApplySingleQubitGate(qubitId, Gates.PauliX());
+                break;
+            case QuantumGateOperation.PauliZ:
+                engine.ApplySingleQubitGate(qubitId, Gates.PauliZ());
+                break;
+            case QuantumGateOperation.PhaseS:
+                engine.ApplySingleQubitGate(qubitId, Gates.PhaseS());
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(operation));
+        }
         RefreshSnapshot();
     }
 
@@ -186,9 +245,31 @@ public class QubitManager : MonoBehaviour
     public static void Measure(int qubitId)
     {
         EnsureInitialized();
-        MeasurementResult result = engine.MeasureZ(qubitId, UnityEngine.Random.value);
-        RefreshSnapshot();
+        if (QuantumSessionState.RequestMeasurement(qubitId))
+        {
+            return;
+        }
+
+        MeasurementResult result = MeasureLocally(qubitId, UnityEngine.Random.value);
         Debug.Log($"Measured Q{result.QubitId}: {result.Outcome} (p={result.Probability:F4}).");
+    }
+
+    /// <summary>Called only by the local single-player path or Fusion state authority.</summary>
+    public static MeasurementResult MeasureLocally(int qubitId, double randomSample)
+    {
+        EnsureInitialized();
+        MeasurementResult result = engine.MeasureZ(qubitId, randomSample);
+        RefreshSnapshot();
+        return result;
+    }
+
+    /// <summary>Installs the host's density matrix without running local evolution.</summary>
+    public static void ApplyAuthoritativeSnapshot(ComplexMatrix state, long authoritativeVersion)
+    {
+        EnsureInitialized();
+        engine.SetDensityMatrix(state);
+        currentSnapshot = EntanglementMetrics.Build(
+            engine.DensityMatrix, engine.QubitCount, authoritativeVersion);
     }
 
     public static ComplexMatrix PartialTrace(int index)

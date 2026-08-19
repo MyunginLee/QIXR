@@ -18,6 +18,16 @@ public class Entanglement : MonoBehaviour
 
     [SerializeField, Range(0, 300)] private int numberOfStrings = 96;
     [SerializeField] public float trailtime = 1f;
+    [Header("Pair Particle Fields")]
+    [SerializeField, Min(0f)] private float gravityStrength = 0.55f;
+    [SerializeField, Min(0.01f)] private float gravitySofteningRadius = 0.16f;
+    [SerializeField, Min(0.1f)] private float maximumParticleSpeed = 1.15f;
+    [SerializeField, Range(1, 8)] private int simulationSubsteps = 3;
+    [SerializeField, Min(0f)] private float velocityDamping = 0.7f;
+    [SerializeField, Min(0f)] private float particleRepulsion = 0.06f;
+    [SerializeField, Min(0.01f)] private float particleRepulsionRadius = 0.24f;
+    [SerializeField, Range(0f, 0.1f)] private float particleActivationThreshold = 0.0001f;
+    [SerializeField, Range(0f, 0.1f)] private float particleDeactivationThreshold = 0.00005f;
     [SerializeField] public AudioClip SoundUntangle;
     [SerializeField] public AudioClip SoundEntangle;
 
@@ -37,7 +47,6 @@ public class Entanglement : MonoBehaviour
     private Material sharedVisualMaterial;
     private AudioSource audioSource;
     private bool wasInteracting;
-    private float lastTrailEntropy = -1f;
     private string lastGuideText;
     private MaterialPropertyBlock triadProperties;
 
@@ -45,6 +54,11 @@ public class Entanglement : MonoBehaviour
     {
         public Vector3 velocity;
         public Vector3 acceleration;
+        public int pairIndex;
+        public float orbitDirection;
+        public bool trailWasActive;
+        public bool hasTrailSample;
+        public Vector3 lastTrailSample;
     }
 
     private sealed class PairVisual
@@ -54,6 +68,12 @@ public class Entanglement : MonoBehaviour
         public LineRenderer Arc;
         public TextMeshPro Label;
         public double LastDisplayedMetric = -1.0;
+        public float TargetStrength;
+        public float VisualStrength;
+        public float LastTrailStrength = -1f;
+        public bool ParticleFieldActive;
+        public bool HasSmoothedAxis;
+        public Vector3 SmoothedAxis;
     }
 
     private void Start()
@@ -91,6 +111,15 @@ public class Entanglement : MonoBehaviour
         UpdateNodeAndPairVisuals();
         UpdateStrings();
         FaceLabelsToViewer();
+    }
+
+    private void OnValidate()
+    {
+        particleActivationThreshold = Mathf.Max(0f, particleActivationThreshold);
+        particleDeactivationThreshold = Mathf.Clamp(
+            particleDeactivationThreshold, 0f, particleActivationThreshold);
+        gravitySofteningRadius = Mathf.Max(0.01f, gravitySofteningRadius);
+        simulationSubsteps = Mathf.Clamp(simulationSubsteps, 1, 8);
     }
 
     private void OnDestroy()
@@ -133,14 +162,13 @@ public class Entanglement : MonoBehaviour
                 activeInteractionCount++;
             }
             PairEntanglementMetric pairMetric = snapshot.GetPair(pair.First, pair.Second);
-            if (pairMetric.IsEntangled)
+            UpdatePairArc(pair, first, second, pairMetric, pairIndex);
+            if (pair.ParticleFieldActive)
             {
                 entangledPairCount++;
             }
-            UpdatePairArc(pair, first, second, pairMetric, pairIndex);
         }
 
-        float entropySum = 0f;
         for (int i = 0; i < orderedQubits.Length; i++)
         {
             QubitMetric nodeMetric = snapshot.GetNode(i);
@@ -152,7 +180,6 @@ public class Entanglement : MonoBehaviour
             {
                 shells[i].position = orderedQubits[i].transform.position;
             }
-            entropySum += (float)nodeMetric.Renyi2Entropy;
         }
 
         UpdateTriad(snapshot.HasThreePartyCorrelation,
@@ -160,12 +187,6 @@ public class Entanglement : MonoBehaviour
         UpdateGuide(activeInteractionCount, snapshot.HasThreePartyCorrelation);
         UpdateInteractionAudio(entangledPairCount > 0 || snapshot.HasThreePartyCorrelation);
 
-        float meanEntropy = entropySum / orderedQubits.Length;
-        if (Mathf.Abs(meanEntropy - lastTrailEntropy) > 0.02f)
-        {
-            UpdateTrailAppearance(meanEntropy);
-            lastTrailEntropy = meanEntropy;
-        }
     }
 
     private void CreatePairVisuals()
@@ -200,9 +221,36 @@ public class Entanglement : MonoBehaviour
         PairVisual pair, Vector3 first, Vector3 second,
         PairEntanglementMetric metric, int pairIndex)
     {
-        pair.Arc.enabled = metric.IsEntangled;
-        pair.Label.gameObject.SetActive(metric.IsEntangled);
-        if (!metric.IsEntangled)
+        pair.TargetStrength = Mathf.Clamp01((float)metric.LogarithmicNegativity);
+        float response = 1f - Mathf.Exp(-7f * Time.deltaTime);
+        pair.VisualStrength = Mathf.Lerp(pair.VisualStrength, pair.TargetStrength, response);
+        if (pair.ParticleFieldActive)
+        {
+            pair.ParticleFieldActive = pair.TargetStrength > particleDeactivationThreshold;
+        }
+        else
+        {
+            pair.ParticleFieldActive = pair.TargetStrength >= particleActivationThreshold;
+        }
+
+        Vector3 desiredAxis = second - first;
+        if (desiredAxis.sqrMagnitude > 0.0001f)
+        {
+            desiredAxis.Normalize();
+            if (!pair.HasSmoothedAxis)
+            {
+                pair.SmoothedAxis = desiredAxis;
+                pair.HasSmoothedAxis = true;
+            }
+            else
+            {
+                pair.SmoothedAxis = Vector3.Slerp(pair.SmoothedAxis, desiredAxis, response).normalized;
+            }
+        }
+
+        pair.Arc.enabled = pair.ParticleFieldActive;
+        pair.Label.gameObject.SetActive(pair.ParticleFieldActive);
+        if (!pair.ParticleFieldActive)
         {
             return;
         }
@@ -323,89 +371,237 @@ public class Entanglement : MonoBehaviour
         stringBodies = new BodyProperty[numberOfStrings];
         strings = new Transform[numberOfStrings];
         trails = new TrailRenderer[numberOfStrings];
-        Vector3 center = orderedQubits.Length > 0 ? orderedQubits[0].transform.position : Vector3.zero;
+        int pairCount = pairVisuals.Length;
 
         for (int i = 0; i < numberOfStrings; i++)
         {
             var stringObject = new GameObject($"Correlation Trail {i:000}");
             stringObject.transform.SetParent(transform, false);
-            float angle = Mathf.PI * 2f * i / Mathf.Max(1, numberOfStrings);
-            stringObject.transform.position = center + new Vector3(
-                2.5f * Mathf.Cos(angle), Random.Range(-1.5f, 1.5f), 2.5f * Mathf.Sin(angle));
             strings[i] = stringObject.transform;
-            stringBodies[i].velocity = new Vector3(-Mathf.Sin(angle), 0f, Mathf.Cos(angle)) * 0.1f;
+            stringBodies[i].pairIndex = pairCount > 0 ? i % pairCount : -1;
+            stringBodies[i].orbitDirection = ((i / Mathf.Max(1, pairCount)) & 1) == 0 ? 1f : -1f;
 
             TrailRenderer trail = stringObject.AddComponent<TrailRenderer>();
             trail.time = trailtime;
             trail.startWidth = 0.008f;
             trail.endWidth = 0.002f;
+            trail.minVertexDistance = 0.0025f;
+            trail.numCornerVertices = 2;
+            trail.numCapVertices = 3;
             trail.material = sharedVisualMaterial;
+            // Positions are also added explicitly at each physics substep. The
+            // automatic emission remains enabled while active so Unity builds
+            // the trail mesh on every supported renderer path.
             trail.emitting = false;
             trails[i] = trail;
+
+            PlaceStringInPairField(i);
         }
-        UpdateTrailAppearance(0f);
+
+        for (int pairIndex = 0; pairIndex < pairCount; pairIndex++)
+        {
+            UpdatePairTrailAppearance(pairIndex, 0f);
+        }
     }
 
     private void UpdateStrings()
     {
-        bool anyInteraction = false;
-        for (int i = 0; i < entangled.Length; i++)
+        if (pairVisuals.Length == 0)
         {
-            anyInteraction |= entangled[i];
+            return;
         }
 
+        for (int pairIndex = 0; pairIndex < pairVisuals.Length; pairIndex++)
+        {
+            PairVisual pair = pairVisuals[pairIndex];
+            if (Mathf.Abs(pair.VisualStrength - pair.LastTrailStrength) > 0.015f ||
+                pair.LastTrailStrength < 0f)
+            {
+                UpdatePairTrailAppearance(pairIndex, pair.VisualStrength);
+                pair.LastTrailStrength = pair.VisualStrength;
+            }
+        }
+
+        float frameTime = Mathf.Min(Time.deltaTime, 0.05f);
+        int substeps = Mathf.Clamp(simulationSubsteps, 1, 8);
+        float stepTime = frameTime / substeps;
         for (int stringIndex = 0; stringIndex < strings.Length; stringIndex++)
         {
-            TrailRenderer trail = trails[stringIndex];
-            trail.emitting = anyInteraction;
-            if (!anyInteraction)
+            BodyProperty body = stringBodies[stringIndex];
+            if (body.pairIndex < 0 || body.pairIndex >= pairVisuals.Length)
             {
-                stringBodies[stringIndex].velocity *= 0.97f;
                 continue;
             }
 
-            Vector3 acceleration = Vector3.zero;
-            for (int node = 0; node < orderedQubits.Length; node++)
+            PairVisual pair = pairVisuals[body.pairIndex];
+            TrailRenderer trail = trails[stringIndex];
+            bool active = pair.ParticleFieldActive;
+            trail.emitting = active;
+            if (active && !body.trailWasActive)
             {
-                if (!entangled[node])
+                trail.Clear();
+                body.lastTrailSample = strings[stringIndex].position;
+                body.hasTrailSample = true;
+                trail.AddPosition(body.lastTrailSample);
+            }
+            else if (!active)
+            {
+                body.hasTrailSample = false;
+            }
+            body.trailWasActive = active;
+
+            Vector3 first = orderedQubits[pair.First].transform.position;
+            Vector3 second = orderedQubits[pair.Second].transform.position;
+            Vector3 midpoint = (first + second) * 0.5f;
+            Vector3 pairAxis = pair.HasSmoothedAxis ? pair.SmoothedAxis : Vector3.right;
+            Vector3 position = strings[stringIndex].position;
+            float minimumSampleDistanceSquared = trail.minVertexDistance * trail.minVertexDistance;
+
+            for (int step = 0; step < substeps; step++)
+            {
+                float strength = pair.VisualStrength;
+                Vector3 acceleration = SoftenedGravity(position, first, strength) +
+                                       SoftenedGravity(position, second, strength);
+                acceleration += PairParticleRepulsion(position, stringIndex, body.pairIndex, strength);
+
+                // A weak center force confines each field to its own pair. The
+                // tangential component prevents trails collapsing into straight
+                // radial lines while remaining continuous as the qubits move.
+                Vector3 fromCenter = position - midpoint;
+                acceleration -= fromCenter * Mathf.Lerp(0.35f, 0.7f, strength);
+                Vector3 tangential = Vector3.Cross(pairAxis, fromCenter);
+                if (tangential.sqrMagnitude > 0.0001f)
                 {
-                    continue;
+                    acceleration += tangential.normalized *
+                                    (0.22f * strength * body.orbitDirection);
                 }
-                Vector3 offset = orderedQubits[node].transform.position - strings[stringIndex].position;
-                float squaredDistance = Mathf.Max(0.04f, offset.sqrMagnitude);
-                acceleration += offset.normalized * (0.45f / squaredDistance);
+
+                body.acceleration = Vector3.ClampMagnitude(acceleration, 3f);
+                body.velocity += body.acceleration * stepTime;
+                body.velocity *= Mathf.Exp(-velocityDamping * stepTime);
+                float speedLimit = Mathf.Lerp(0.4f, maximumParticleSpeed, strength);
+                body.velocity = Vector3.ClampMagnitude(body.velocity, speedLimit);
+                position += body.velocity * stepTime;
+
+                if (active && (!body.hasTrailSample ||
+                    (position - body.lastTrailSample).sqrMagnitude >= minimumSampleDistanceSquared))
+                {
+                    trail.AddPosition(position);
+                    body.lastTrailSample = position;
+                    body.hasTrailSample = true;
+                }
             }
 
-            acceleration = Vector3.ClampMagnitude(acceleration, 3f);
-            stringBodies[stringIndex].acceleration = acceleration;
-            stringBodies[stringIndex].velocity = Vector3.ClampMagnitude(
-                stringBodies[stringIndex].velocity + acceleration * Time.deltaTime, 1.2f);
-            strings[stringIndex].position += stringBodies[stringIndex].velocity * Time.deltaTime;
+            strings[stringIndex].position = position;
+            stringBodies[stringIndex] = body;
         }
     }
 
-    private void UpdateTrailAppearance(float meanEntropy)
+    private Vector3 SoftenedGravity(Vector3 position, Vector3 attractor, float strength)
     {
-        Color start = Color.Lerp(new Color(0.15f, 0.75f, 1f), new Color(1f, 0.3f, 0.9f),
-            Mathf.Clamp01(meanEntropy));
-        Color end = new Color(1f, 0.75f, 0.2f, 0.05f);
+        Vector3 offset = attractor - position;
+        float softenedSquaredDistance = offset.sqrMagnitude +
+                                        gravitySofteningRadius * gravitySofteningRadius;
+        float inverseDistance = 1f / Mathf.Sqrt(softenedSquaredDistance);
+        float inverseDistanceCubed = inverseDistance * inverseDistance * inverseDistance;
+        return offset * (gravityStrength * strength * inverseDistanceCubed);
+    }
+
+    private Vector3 PairParticleRepulsion(
+        Vector3 position, int stringIndex, int pairIndex, float strength)
+    {
+        float radiusSquared = particleRepulsionRadius * particleRepulsionRadius;
+        Vector3 acceleration = Vector3.zero;
+        for (int otherIndex = 0; otherIndex < strings.Length; otherIndex++)
+        {
+            if (otherIndex == stringIndex || stringBodies[otherIndex].pairIndex != pairIndex)
+            {
+                continue;
+            }
+
+            Vector3 separation = position - strings[otherIndex].position;
+            float distanceSquared = separation.sqrMagnitude;
+            if (distanceSquared < 0.000001f || distanceSquared >= radiusSquared)
+            {
+                continue;
+            }
+
+            float falloff = 1f - distanceSquared / radiusSquared;
+            acceleration += separation.normalized *
+                            (particleRepulsion * falloff * Mathf.Lerp(0.35f, 1f, strength) /
+                             (distanceSquared + 0.01f));
+        }
+        return acceleration;
+    }
+
+    private void PlaceStringInPairField(int stringIndex)
+    {
+        BodyProperty body = stringBodies[stringIndex];
+        if (body.pairIndex < 0 || body.pairIndex >= pairVisuals.Length)
+        {
+            strings[stringIndex].position = transform.position;
+            return;
+        }
+
+        PairVisual pair = pairVisuals[body.pairIndex];
+        Vector3 first = orderedQubits[pair.First].transform.position;
+        Vector3 second = orderedQubits[pair.Second].transform.position;
+        Vector3 axis = second - first;
+        if (axis.sqrMagnitude < 0.0001f)
+        {
+            axis = pair.HasSmoothedAxis ? pair.SmoothedAxis : Vector3.right;
+        }
+        axis.Normalize();
+        if (!pair.HasSmoothedAxis)
+        {
+            pair.SmoothedAxis = axis;
+            pair.HasSmoothedAxis = true;
+        }
+
+        Vector3 normal = Vector3.Cross(axis, Vector3.up);
+        if (normal.sqrMagnitude < 0.0001f)
+        {
+            normal = Vector3.Cross(axis, Vector3.right);
+        }
+        normal.Normalize();
+        Vector3 binormal = Vector3.Cross(axis, normal).normalized;
+        int particlesInPair = Mathf.Max(1,
+            (numberOfStrings + pairVisuals.Length - 1) / pairVisuals.Length);
+        int particleInPair = stringIndex / pairVisuals.Length;
+        // Golden-ratio spacing avoids the perfectly symmetric lanes that made
+        // particles collapse visually into a few repeated trails.
+        float phase = 2f * Mathf.PI * Mathf.Repeat(particleInPair * 0.61803398875f, 1f);
+        float radius = 0.11f + 0.09f * Mathf.Repeat(particleInPair * 0.38196601125f, 1f);
+        Vector3 radial = (normal * Mathf.Cos(phase) + binormal * Mathf.Sin(phase)) * radius;
+
+        strings[stringIndex].position = (first + second) * 0.5f + radial;
+        body.velocity = Vector3.Cross(axis, radial).normalized *
+                        (0.12f * body.orbitDirection);
+        stringBodies[stringIndex] = body;
+        trails[stringIndex].Clear();
+    }
+
+    private void UpdatePairTrailAppearance(int pairIndex, float strength)
+    {
+        Color pairColor = PairColors[pairIndex % PairColors.Length];
+        Color brightColor = Color.Lerp(pairColor * 0.65f, pairColor, Mathf.Clamp01(strength));
+        brightColor.a = Mathf.Lerp(0.18f, 0.65f, strength);
+        Color tailColor = pairColor;
+        tailColor.a = 0f;
+
         for (int i = 0; i < trails.Length; i++)
         {
-            float hueOffset = i / (float)Mathf.Max(1, trails.Length);
-            Color varied = Color.Lerp(start, Color.HSVToRGB(hueOffset, 0.55f, 1f), 0.25f);
-            trails[i].colorGradient = new Gradient
+            if (stringBodies[i].pairIndex != pairIndex)
             {
-                colorKeys = new[]
-                {
-                    new GradientColorKey(varied, 0f),
-                    new GradientColorKey(end, 1f)
-                },
-                alphaKeys = new[]
-                {
-                    new GradientAlphaKey(0.35f, 0f),
-                    new GradientAlphaKey(0f, 1f)
-                }
-            };
+                continue;
+            }
+
+            // startColor/endColor updates the renderer's existing gradient and
+            // avoids allocating Gradient/key arrays during strength transitions.
+            trails[i].startColor = brightColor;
+            trails[i].endColor = tailColor;
+            trails[i].startWidth = Mathf.Lerp(0.0035f, 0.01f, strength);
+            trails[i].endWidth = 0.001f;
         }
     }
 

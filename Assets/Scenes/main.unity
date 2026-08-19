@@ -10129,6 +10129,7 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   runnerPrefab: {fileID: 0}
   sharedAnchorStatePrefab: {fileID: 11400000, guid: 410335d7ec604aaf9fb9dafd7da4675e, type: 3}
+  quantumSessionStatePrefab: {fileID: 11400000, guid: 15d9b2a35f6940a689ca1a97b53f5272, type: 3}
   avatarPrefab: {fileID: 11400000, guid: bd92683130804ea6ba2e71b20ecd9b89, type: 3}
   autoCreateRunner: 1
   autoStartSingleOnNetworkFailure: 1

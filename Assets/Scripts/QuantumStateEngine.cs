@@ -101,8 +101,12 @@ public sealed class QuantumStateEngine
         }
 
         ComplexMatrix hamiltonian = BuildHeisenbergHamiltonian(couplings, QubitCount);
-        ComplexMatrix unitary = Gates.MatrixExponential(
+        ComplexMatrix approximateUnitary = Gates.MatrixExponential(
             hamiltonian * (-Complex.ImaginaryOne * deltaTime), 24);
+        // A truncated exponential is close to unitary but repeated fixed-step
+        // use can accumulate enough drift to make a density matrix non-PSD.
+        // Orthonormalising its columns keeps the evolution physically unitary.
+        ComplexMatrix unitary = OrthonormalizeColumns(approximateUnitary);
         ApplyUnitary(unitary);
     }
 
@@ -357,6 +361,50 @@ public sealed class QuantumStateEngine
             throw new InvalidOperationException("Quantum state has zero trace.");
         }
         return hermitian / trace;
+    }
+
+    private static ComplexMatrix OrthonormalizeColumns(ComplexMatrix matrix)
+    {
+        int size = matrix.Rows;
+        var result = new ComplexMatrix(size, size);
+        var vector = new Complex[size];
+        for (int column = 0; column < size; column++)
+        {
+            for (int row = 0; row < size; row++)
+            {
+                vector[row] = matrix[row, column];
+            }
+
+            for (int previous = 0; previous < column; previous++)
+            {
+                Complex projection = Complex.Zero;
+                for (int row = 0; row < size; row++)
+                {
+                    projection += Complex.Conjugate(result[row, previous]) * vector[row];
+                }
+                for (int row = 0; row < size; row++)
+                {
+                    vector[row] -= projection * result[row, previous];
+                }
+            }
+
+            double normSquared = 0.0;
+            for (int row = 0; row < size; row++)
+            {
+                normSquared += Complex.Abs(vector[row]) * Complex.Abs(vector[row]);
+            }
+            if (normSquared <= DefaultTolerance * DefaultTolerance)
+            {
+                throw new InvalidOperationException("Heisenberg evolution produced a singular unitary approximation.");
+            }
+
+            double inverseNorm = 1.0 / Math.Sqrt(normSquared);
+            for (int row = 0; row < size; row++)
+            {
+                result[row, column] = vector[row] * inverseNorm;
+            }
+        }
+        return result;
     }
 
     // LDL* factorisation specialised for a Hermitian positive-semidefinite matrix.

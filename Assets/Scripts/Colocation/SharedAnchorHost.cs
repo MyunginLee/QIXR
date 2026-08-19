@@ -7,6 +7,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.XR;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 
 namespace ArtsOfEntanglement.Colocation
 {
@@ -92,18 +95,24 @@ namespace ArtsOfEntanglement.Colocation
 
             if (device.isValid)
             {
-                if (device.TryGetFeatureValue(CommonUsages.triggerButton, out bool triggerButton))
+                if (device.TryGetFeatureValue(UnityEngine.XR.CommonUsages.triggerButton, out bool triggerButton))
                 {
                     return triggerButton;
                 }
 
-                if (device.TryGetFeatureValue(CommonUsages.trigger, out float triggerValue))
+                if (device.TryGetFeatureValue(UnityEngine.XR.CommonUsages.trigger, out float triggerValue))
                 {
                     return triggerValue >= triggerThreshold;
                 }
             }
 
-            return Input.GetMouseButtonDown(0);
+#if ENABLE_INPUT_SYSTEM
+            // The project uses the Input System package. Keep the mouse path as
+            // an Editor fallback without invoking the legacy Input API.
+            return Mouse.current != null && Mouse.current.leftButton.isPressed;
+#else
+            return false;
+#endif
         }
 
         private bool TryGetPlacementPose(out Pose pose)
