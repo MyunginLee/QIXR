@@ -17,6 +17,9 @@ public class QubitManager : MonoBehaviour
     private static double[,] pairCouplings;
     private readonly List<Qubit> allQubits = new List<Qubit>();
 
+    /// <summary>Raised after a locally-authoritative Z measurement collapses the state.</summary>
+    public static event Action<MeasurementResult> MeasurementCompleted;
+
     [SerializeField, Min(0f)] private float simulationTimeScale = 1f;
     [SerializeField] private bool validateEveryFixedStep = true;
     [SerializeField] private bool applyInitialPauliX = true;
@@ -110,6 +113,7 @@ public class QubitManager : MonoBehaviour
             pairCouplings = null;
             entropy = 0.0;
             qubitLookup.Clear();
+            MeasurementCompleted = null;
         }
     }
 
@@ -260,6 +264,7 @@ public class QubitManager : MonoBehaviour
         EnsureInitialized();
         MeasurementResult result = engine.MeasureZ(qubitId, randomSample);
         RefreshSnapshot();
+        MeasurementCompleted?.Invoke(result);
         return result;
     }
 

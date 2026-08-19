@@ -4,6 +4,12 @@ using UnityEngine;
 [RequireComponent(typeof(AudioSource), typeof(AudioReverbFilter))]
 public class QubitAudio : MonoBehaviour
 {
+    /// <summary>
+    /// Set by dedicated musical scenes to silence the original FM sonifier.
+    /// Kept false by default so legacy scenes retain their original behaviour.
+    /// </summary>
+    public static bool SuppressLegacyFm { get; set; }
+
     private const int NumberOfNotes = 4;
     private readonly float[] frequency = new float[NumberOfNotes];
     private readonly double[] phase = new double[NumberOfNotes];
@@ -34,6 +40,16 @@ public class QubitAudio : MonoBehaviour
 
     private void Update()
     {
+        if (SuppressLegacyFm)
+        {
+            playSound = false;
+            if (audioSource != null && audioSource.isPlaying)
+            {
+                audioSource.Stop();
+            }
+            return;
+        }
+
         if (qubit == null)
         {
             playSound = false;
@@ -86,7 +102,7 @@ public class QubitAudio : MonoBehaviour
 
     private void OnAudioFilterRead(float[] data, int channels)
     {
-        if (!playSound || channels < 1)
+        if (SuppressLegacyFm || !playSound || channels < 1)
         {
             return;
         }
