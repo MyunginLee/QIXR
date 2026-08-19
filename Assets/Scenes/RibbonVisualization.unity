@@ -1724,7 +1724,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   numberOfStrings: 96
   trailtime: 1
-  visualizationMode: 0
+  visualizationMode: 1
+  ribbonOnlyScene: 1
   gravityStrength: 0.55
   gravitySofteningRadius: 0.16
   maximumParticleSpeed: 1.15

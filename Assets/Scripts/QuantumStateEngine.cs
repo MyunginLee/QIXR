@@ -425,7 +425,10 @@ public sealed class QuantumStateEngine
                 return false;
             }
 
-            diagonal[k] = Math.Abs(pivot.Real) <= tolerance ? 0.0 : pivot.Real;
+            // Do not discard a small *positive* pivot. Pure density matrices
+            // are rank-deficient, and treating every pivot below the validation
+            // tolerance as zero creates a false non-PSD residual on later rows.
+            diagonal[k] = Math.Max(0.0, pivot.Real);
             lower[k, k] = Complex.One;
             for (int i = k + 1; i < size; i++)
             {

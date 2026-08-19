@@ -2,6 +2,10 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.XR;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 using Random = UnityEngine.Random;
 
 [RequireComponent(typeof(AudioSource))]
@@ -9,6 +13,7 @@ public class Entanglement : MonoBehaviour
 {
     private const float NodeBaseScale = 0.3f;
     private const int ArcSegments = 20;
+    private const int RibbonSegments = 16;
     private static readonly Color[] PairColors =
     {
         new Color(0.10f, 0.85f, 1.00f), // Q0-Q1: cyan
@@ -16,8 +21,23 @@ public class Entanglement : MonoBehaviour
         new Color(0.95f, 0.25f, 0.90f)  // Q1-Q2: magenta
     };
 
+    private static readonly Color[] PearlColors =
+    {
+        new Color(0.38f, 0.92f, 0.92f),
+        new Color(0.48f, 0.68f, 1.00f),
+        new Color(0.78f, 0.58f, 1.00f),
+        new Color(1.00f, 0.58f, 0.78f),
+        new Color(1.00f, 0.78f, 0.55f)
+    };
+
     [SerializeField, Range(0, 300)] private int numberOfStrings = 96;
     [SerializeField] public float trailtime = 1f;
+    [Header("Visualization Mode")]
+    [SerializeField] private EntanglementVisualizationMode visualizationMode = EntanglementVisualizationMode.GravityTrails;
+    [SerializeField] private bool ribbonOnlyScene;
+    [SerializeField, Range(0f, 0.12f)] private float ribbonWaveAmplitude = 0.055f;
+    [SerializeField, Range(0f, 5f)] private float ribbonWaveSpeed = 1.35f;
+    [SerializeField, Range(0f, 3f)] private float ribbonIridescenceSpeed = 0.55f;
     [Header("Pair Particle Fields")]
     [SerializeField, Min(0f)] private float gravityStrength = 0.55f;
     [SerializeField, Min(0.01f)] private float gravitySofteningRadius = 0.16f;
@@ -47,6 +67,8 @@ public class Entanglement : MonoBehaviour
     private Material sharedVisualMaterial;
     private AudioSource audioSource;
     private bool wasInteracting;
+    private bool wasModeTogglePressed;
+    private bool metricRevealPressed;
     private string lastGuideText;
     private MaterialPropertyBlock triadProperties;
 
@@ -61,12 +83,23 @@ public class Entanglement : MonoBehaviour
         public Vector3 lastTrailSample;
     }
 
+    private enum EntanglementVisualizationMode
+    {
+        GravityTrails,
+        BraidedRibbons
+    }
+
     private sealed class PairVisual
     {
         public int First;
         public int Second;
         public LineRenderer Arc;
         public TextMeshPro Label;
+        public Mesh RibbonMesh;
+        public MeshRenderer RibbonRenderer;
+        public Vector3[] RibbonVertices;
+        public Color[] RibbonColors;
+        public int[] RibbonTriangles;
         public double LastDisplayedMetric = -1.0;
         public float TargetStrength;
         public float VisualStrength;
@@ -97,7 +130,14 @@ public class Entanglement : MonoBehaviour
         CreatePairVisuals();
         CreateTriadVisual();
         CreateGuideLabel();
-        CreateStringPool();
+        if (ribbonOnlyScene)
+        {
+            visualizationMode = EntanglementVisualizationMode.BraidedRibbons;
+        }
+        else
+        {
+            CreateStringPool();
+        }
         UpdateNodeAndPairVisuals();
     }
 
@@ -108,8 +148,12 @@ public class Entanglement : MonoBehaviour
             return;
         }
 
+        UpdateVisualizationInput();
         UpdateNodeAndPairVisuals();
-        UpdateStrings();
+        if (!ribbonOnlyScene)
+        {
+            UpdateStrings();
+        }
         FaceLabelsToViewer();
     }
 
@@ -128,6 +172,37 @@ public class Entanglement : MonoBehaviour
         {
             Destroy(sharedVisualMaterial);
         }
+    }
+
+    private void UpdateVisualizationInput()
+    {
+        bool pressed = false;
+        UnityEngine.XR.InputDevice rightHand = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
+        if (rightHand.isValid)
+        {
+            rightHand.TryGetFeatureValue(UnityEngine.XR.CommonUsages.secondaryButton, out pressed);
+        }
+#if ENABLE_INPUT_SYSTEM
+        pressed |= Keyboard.current != null && Keyboard.current.spaceKey.isPressed;
+#endif
+
+        // In the ribbon-only experience this input is a deliberate, hold-to-reveal
+        // inspection gesture. Pair labels remain absent from the visual field otherwise.
+        metricRevealPressed = ribbonOnlyScene && pressed;
+
+        if (ribbonOnlyScene)
+        {
+            return;
+        }
+
+        if (pressed && !wasModeTogglePressed)
+        {
+            visualizationMode = visualizationMode == EntanglementVisualizationMode.GravityTrails
+                ? EntanglementVisualizationMode.BraidedRibbons
+                : EntanglementVisualizationMode.GravityTrails;
+            lastGuideText = null;
+        }
+        wasModeTogglePressed = pressed;
     }
 
     public float ComputeQubitScale(Qubit qubit)
@@ -209,9 +284,30 @@ public class Entanglement : MonoBehaviour
                 arc.startColor = PairColors[pairIndex % PairColors.Length];
                 arc.endColor = arc.startColor;
 
+                var ribbonObject = new GameObject($"Entanglement Ribbon Q{first}-Q{second}");
+                ribbonObject.transform.SetParent(transform, false);
+                MeshFilter ribbonFilter = ribbonObject.AddComponent<MeshFilter>();
+                MeshRenderer ribbonRenderer = ribbonObject.AddComponent<MeshRenderer>();
+                Mesh ribbonMesh = new Mesh { name = $"Entanglement Ribbon Mesh Q{first}-Q{second}" };
+                ribbonMesh.MarkDynamic();
+                ribbonFilter.sharedMesh = ribbonMesh;
+                ribbonRenderer.sharedMaterial = sharedVisualMaterial;
+                ribbonRenderer.enabled = false;
+
                 TextMeshPro label = CreateWorldLabel(
                     arcObject.transform, $"Q{first}–Q{second} entanglement", 0.75f);
-                visuals.Add(new PairVisual { First = first, Second = second, Arc = arc, Label = label });
+                visuals.Add(new PairVisual
+                {
+                    First = first,
+                    Second = second,
+                    Arc = arc,
+                    Label = label,
+                    RibbonMesh = ribbonMesh,
+                    RibbonRenderer = ribbonRenderer,
+                    RibbonVertices = new Vector3[(RibbonSegments + 1) * 2],
+                    RibbonColors = new Color[(RibbonSegments + 1) * 2],
+                    RibbonTriangles = GetRibbonTriangles()
+                });
             }
         }
         pairVisuals = visuals.ToArray();
@@ -248,8 +344,14 @@ public class Entanglement : MonoBehaviour
             }
         }
 
-        pair.Arc.enabled = pair.ParticleFieldActive;
-        pair.Label.gameObject.SetActive(pair.ParticleFieldActive);
+        bool showRibbon = visualizationMode == EntanglementVisualizationMode.BraidedRibbons &&
+                          pair.ParticleFieldActive;
+        pair.Arc.enabled = visualizationMode == EntanglementVisualizationMode.GravityTrails &&
+                           pair.ParticleFieldActive;
+        bool showMetricLabel = pair.ParticleFieldActive &&
+                               (!ribbonOnlyScene || metricRevealPressed);
+        pair.Label.gameObject.SetActive(showMetricLabel);
+        pair.RibbonRenderer.enabled = showRibbon;
         if (!pair.ParticleFieldActive)
         {
             return;
@@ -273,11 +375,107 @@ public class Entanglement : MonoBehaviour
         pair.Arc.widthMultiplier = 0.008f + 0.018f * intensity;
         pair.Label.color = color;
         pair.Label.transform.position = midpoint + Vector3.up * 0.06f;
+        if (showRibbon)
+        {
+            UpdateRibbon(pair, first, second, pairIndex, intensity, curvature);
+        }
         if (Math.Abs(metric.LogarithmicNegativity - pair.LastDisplayedMetric) > 0.01)
         {
             pair.Label.text = $"Q{pair.First}–Q{pair.Second}  E_N={metric.LogarithmicNegativity:F2}";
             pair.LastDisplayedMetric = metric.LogarithmicNegativity;
         }
+    }
+
+    private void UpdateRibbon(
+        PairVisual pair, Vector3 first, Vector3 second, int pairIndex,
+        float intensity, float curvature)
+    {
+        Camera viewer = Camera.main;
+        Vector3 control = (first + second) * 0.5f + Vector3.up * curvature;
+        Color pairColor = PairColors[pairIndex % PairColors.Length];
+        float time = Time.unscaledTime;
+        for (int segment = 0; segment <= RibbonSegments; segment++)
+        {
+            float t = segment / (float)RibbonSegments;
+            Vector3 position = QuadraticBezier(first, control, second, t);
+            Vector3 tangent = QuadraticBezierTangent(first, control, second, t);
+            if (tangent.sqrMagnitude < 0.0001f)
+            {
+                tangent = Vector3.right;
+            }
+            Vector3 viewDirection = viewer != null
+                ? viewer.transform.position - position
+                : Vector3.forward;
+            Vector3 lateral = Vector3.Cross(viewDirection, tangent);
+            if (lateral.sqrMagnitude < 0.0001f)
+            {
+                lateral = Vector3.Cross(Vector3.up, tangent);
+            }
+            lateral.Normalize();
+
+            float taper = Mathf.Sin(Mathf.PI * t);
+            float flow = time * ribbonWaveSpeed;
+            float primaryWave = Mathf.Sin(t * Mathf.PI * 4f - flow * 2.1f + pairIndex * 1.7f);
+            float secondaryWave = Mathf.Sin(t * Mathf.PI * 9f + flow * 1.3f + pairIndex * 0.8f);
+            float wave = (primaryWave * 0.75f + secondaryWave * 0.25f) *
+                         ribbonWaveAmplitude * Mathf.Lerp(0.3f, 1f, intensity) * taper;
+            Vector3 center = position + Vector3.Cross(tangent.normalized, lateral) * wave;
+            float breathing = 1f + 0.24f * Mathf.Sin(t * Mathf.PI * 6f + flow * 1.6f);
+            float width = Mathf.Lerp(0.009f, 0.065f, intensity) * taper * breathing;
+            int vertex = segment * 2;
+            pair.RibbonVertices[vertex] = center - lateral * width;
+            pair.RibbonVertices[vertex + 1] = center + lateral * width;
+            float colorPhase = t * 0.85f + time * ribbonIridescenceSpeed + pairIndex * 0.19f;
+            Color leftColor = Color.Lerp(PearlColor(colorPhase - 0.09f), pairColor, 0.16f);
+            Color rightColor = Color.Lerp(PearlColor(colorPhase + 0.09f), pairColor, 0.16f);
+            float alpha = Mathf.Lerp(0.28f, 0.88f, intensity) * taper;
+            leftColor.a = alpha;
+            rightColor.a = alpha;
+            pair.RibbonColors[vertex] = leftColor;
+            pair.RibbonColors[vertex + 1] = rightColor;
+        }
+
+        pair.RibbonMesh.Clear(false);
+        pair.RibbonMesh.vertices = pair.RibbonVertices;
+        pair.RibbonMesh.colors = pair.RibbonColors;
+        pair.RibbonMesh.triangles = pair.RibbonTriangles;
+        pair.RibbonMesh.RecalculateBounds();
+    }
+
+    private static Color PearlColor(float phase)
+    {
+        float scaled = Mathf.Repeat(phase, 1f) * PearlColors.Length;
+        int first = Mathf.FloorToInt(scaled) % PearlColors.Length;
+        int second = (first + 1) % PearlColors.Length;
+        return Color.Lerp(PearlColors[first], PearlColors[second], scaled - Mathf.Floor(scaled));
+    }
+
+    private static Vector3 QuadraticBezier(Vector3 first, Vector3 control, Vector3 second, float t)
+    {
+        float inverse = 1f - t;
+        return inverse * inverse * first + 2f * inverse * t * control + t * t * second;
+    }
+
+    private static Vector3 QuadraticBezierTangent(Vector3 first, Vector3 control, Vector3 second, float t)
+    {
+        return 2f * (1f - t) * (control - first) + 2f * t * (second - control);
+    }
+
+    private static int[] GetRibbonTriangles()
+    {
+        var triangles = new int[RibbonSegments * 6];
+        for (int segment = 0; segment < RibbonSegments; segment++)
+        {
+            int vertex = segment * 2;
+            int triangle = segment * 6;
+            triangles[triangle] = vertex;
+            triangles[triangle + 1] = vertex + 2;
+            triangles[triangle + 2] = vertex + 1;
+            triangles[triangle + 3] = vertex + 1;
+            triangles[triangle + 4] = vertex + 2;
+            triangles[triangle + 5] = vertex + 3;
+        }
+        return triangles;
     }
 
     private void CreateTriadVisual()
@@ -358,6 +556,17 @@ public class Entanglement : MonoBehaviour
             message = "◆ Three-party correlation\nPair arcs show logarithmic negativity E_N";
         }
 
+        if (!ribbonOnlyScene)
+        {
+            message += visualizationMode == EntanglementVisualizationMode.GravityTrails
+                ? "\nB / Space: switch to ribbons"
+                : "\nB / Space: switch to gravity trails";
+        }
+        else
+        {
+            message += "\nHold B / Space: show pair E_N";
+        }
+
         if (!string.Equals(message, lastGuideText, StringComparison.Ordinal))
         {
             guideLabel.text = message;
@@ -435,7 +644,8 @@ public class Entanglement : MonoBehaviour
 
             PairVisual pair = pairVisuals[body.pairIndex];
             TrailRenderer trail = trails[stringIndex];
-            bool active = pair.ParticleFieldActive;
+            bool active = visualizationMode == EntanglementVisualizationMode.GravityTrails &&
+                          pair.ParticleFieldActive;
             trail.emitting = active;
             if (active && !body.trailWasActive)
             {
