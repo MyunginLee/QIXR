@@ -4,12 +4,8 @@ using UnityEngine;
 public class FloorElectrons : MonoBehaviour
 {
     private const int MaxShaderQubits = 8;
-    private static readonly Color[] NodeColors =
-    {
-        new Color(0.10f, 0.80f, 1.00f, 1f),
-        new Color(1.00f, 0.48f, 0.12f, 1f),
-        new Color(0.90f, 0.25f, 0.95f, 1f)
-    };
+    private static readonly Color PureColor = new Color(0.99f, 0.402f, 0.79f, 1f);
+    private static readonly Color EntangledColor = new Color(0.1f, 0.1f, 0.9f, 1f);
 
     public Material orbits;
 
@@ -28,9 +24,10 @@ public class FloorElectrons : MonoBehaviour
             Array.Resize(ref qubits, MaxShaderQubits);
         }
 
-        qubitPositions = new Vector4[qubits.Length];
-        colors = new Vector4[qubits.Length];
-        wavefunctionParameters = new Vector4[qubits.Length];
+        // Unity fixes a material array's capacity on its first upload.
+        qubitPositions = new Vector4[MaxShaderQubits];
+        colors = new Vector4[MaxShaderQubits];
+        wavefunctionParameters = new Vector4[MaxShaderQubits];
         UpdateMaterial();
     }
 
@@ -54,18 +51,14 @@ public class FloorElectrons : MonoBehaviour
             Vector3 position = qubit.transform.position;
             qubitPositions[i] = new Vector4(position.x, position.z, position.y, 0f);
 
-            Color nodeColor = NodeColors[i % NodeColors.Length];
-            QubitMetric node = snapshot != null && i < snapshot.Nodes.Count
-                ? snapshot.GetNode(i)
+            int id = qubit.GetIndex();
+            QubitMetric node = snapshot != null && id < snapshot.Nodes.Count
+                ? snapshot.GetNode(id)
                 : null;
-            bool correlated = node != null &&
-                              node.Renyi2Entropy > EntanglementMetrics.CorrelationEntropyThreshold;
-            colors[i] = correlated
-                ? new Vector4(nodeColor.r * 0.45f, nodeColor.g * 0.45f, 1f, 1f)
-                : (Vector4)nodeColor;
-
-            float blochRadius = node?.BlochRadius ?? 1f;
-            wavefunctionParameters[i] = new Vector4(1f, 0f, 0f, Mathf.Lerp(1.35f, 0.85f, blochRadius));
+            bool isEntangled = node != null &&
+                node.Renyi2Entropy > EntanglementMetrics.CorrelationEntropyThreshold;
+            colors[i] = (Vector4)(isEntangled ? EntangledColor : PureColor);
+            wavefunctionParameters[i] = new Vector4(1f, 0f, 0f, 1f);
         }
 
         orbits.SetInt("_NumQubits", qubits.Length);

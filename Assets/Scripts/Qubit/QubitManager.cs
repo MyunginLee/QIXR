@@ -19,6 +19,15 @@ public class QubitManager : MonoBehaviour
 
     /// <summary>Raised after a locally-authoritative Z measurement collapses the state.</summary>
     public static event Action<MeasurementResult> MeasurementCompleted;
+    public static event Action MeasurementDisentangled;
+
+    public static bool IsQubitEntangled(int qubitId)
+    {
+        return currentSnapshot != null && qubitId >= 0 && qubitId < currentSnapshot.Nodes.Count &&
+            currentSnapshot.GetNode(qubitId).Renyi2Entropy > EntanglementMetrics.CorrelationEntropyThreshold;
+    }
+
+    public static void NotifyMeasurementDisentangled() => MeasurementDisentangled?.Invoke();
 
     [SerializeField, Min(0f)] private float simulationTimeScale = 1f;
     [SerializeField] private bool validateEveryFixedStep = true;
@@ -114,6 +123,7 @@ public class QubitManager : MonoBehaviour
             entropy = 0.0;
             qubitLookup.Clear();
             MeasurementCompleted = null;
+            MeasurementDisentangled = null;
         }
     }
 
@@ -262,8 +272,13 @@ public class QubitManager : MonoBehaviour
     public static MeasurementResult MeasureLocally(int qubitId, double randomSample)
     {
         EnsureInitialized();
+        bool wasEntangled = IsQubitEntangled(qubitId);
         MeasurementResult result = engine.MeasureZ(qubitId, randomSample);
         RefreshSnapshot();
+        if (wasEntangled && !IsQubitEntangled(qubitId))
+        {
+            NotifyMeasurementDisentangled();
+        }
         MeasurementCompleted?.Invoke(result);
         return result;
     }

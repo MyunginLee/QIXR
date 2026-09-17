@@ -6,7 +6,6 @@ using UnityEngine.XR;
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
-using Random = UnityEngine.Random;
 
 [RequireComponent(typeof(AudioSource))]
 public class Entanglement : MonoBehaviour
@@ -64,9 +63,10 @@ public class Entanglement : MonoBehaviour
     private Renderer triadRenderer;
     private TextMeshPro triadLabel;
     private TextMeshPro guideLabel;
+    private GameObject conceptPanel;
+    private bool wasHelpPressed;
     private Material sharedVisualMaterial;
     private AudioSource audioSource;
-    private bool wasInteracting;
     private bool wasModeTogglePressed;
     private bool metricRevealPressed;
     private string lastGuideText;
@@ -101,12 +101,37 @@ public class Entanglement : MonoBehaviour
         public Color[] RibbonColors;
         public int[] RibbonTriangles;
         public double LastDisplayedMetric = -1.0;
+        public double LastDisplayedSecondMetric = -1.0;
         public float TargetStrength;
         public float VisualStrength;
+        public float FlowPhase;
         public float LastTrailStrength = -1f;
         public bool ParticleFieldActive;
         public bool HasSmoothedAxis;
         public Vector3 SmoothedAxis;
+    }
+
+    private void OnEnable()
+    {
+        QubitManager.MeasurementDisentangled += OnMeasurementDisentangled;
+    }
+
+    private void OnDisable()
+    {
+        QubitManager.MeasurementDisentangled -= OnMeasurementDisentangled;
+        if (conceptPanel != null) conceptPanel.SetActive(false);
+        wasHelpPressed = false;
+    }
+
+    private void OnMeasurementDisentangled()
+    {
+        PlayNotification(SoundUntangle);
+        // Capture the collapsed state even if evolution resumes before Update.
+        if (entangled != null)
+        {
+            for (int i = 0; i < entangled.Length; i++)
+                entangled[i] = QubitManager.IsQubitEntangled(i);
+        }
     }
 
     private void Start()
@@ -130,6 +155,7 @@ public class Entanglement : MonoBehaviour
         CreatePairVisuals();
         CreateTriadVisual();
         CreateGuideLabel();
+        CreateConceptPanel();
         if (ribbonOnlyScene)
         {
             visualizationMode = EntanglementVisualizationMode.BraidedRibbons;
@@ -154,7 +180,13 @@ public class Entanglement : MonoBehaviour
         {
             UpdateStrings();
         }
-        FaceLabelsToViewer();
+    }
+
+    private void LateUpdate()
+    {
+        if (guideLabel != null && pairVisuals != null) FaceLabelsToViewer();
+        if (conceptPanel != null && conceptPanel.activeSelf && Camera.main != null)
+            conceptPanel.transform.rotation = Camera.main.transform.rotation;
     }
 
     private void OnValidate()
@@ -186,23 +218,37 @@ public class Entanglement : MonoBehaviour
         pressed |= Keyboard.current != null && Keyboard.current.spaceKey.isPressed;
 #endif
 
-        // In the ribbon-only experience this input is a deliberate, hold-to-reveal
-        // inspection gesture. Pair labels remain absent from the visual field otherwise.
-        metricRevealPressed = ribbonOnlyScene && pressed;
+        metricRevealPressed = pressed;
+
+        var leftHand = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
+        bool helpPressed = false;
+        if (leftHand.isValid)
+            leftHand.TryGetFeatureValue(UnityEngine.XR.CommonUsages.secondaryButton, out helpPressed);
+#if ENABLE_INPUT_SYSTEM
+        helpPressed |= Keyboard.current != null && Keyboard.current.hKey.isPressed;
+#endif
+        if (helpPressed && !wasHelpPressed) ToggleConceptPanel();
+        wasHelpPressed = helpPressed;
 
         if (ribbonOnlyScene)
         {
             return;
         }
 
-        if (pressed && !wasModeTogglePressed)
+        bool togglePressed = false;
+        if (leftHand.isValid)
+            leftHand.TryGetFeatureValue(UnityEngine.XR.CommonUsages.primary2DAxisClick, out togglePressed);
+#if ENABLE_INPUT_SYSTEM
+        togglePressed |= Keyboard.current != null && Keyboard.current.tabKey.isPressed;
+#endif
+        if (togglePressed && !wasModeTogglePressed)
         {
             visualizationMode = visualizationMode == EntanglementVisualizationMode.GravityTrails
                 ? EntanglementVisualizationMode.BraidedRibbons
                 : EntanglementVisualizationMode.GravityTrails;
             lastGuideText = null;
         }
-        wasModeTogglePressed = pressed;
+        wasModeTogglePressed = togglePressed;
     }
 
     public float ComputeQubitScale(Qubit qubit)
@@ -223,9 +269,8 @@ public class Entanglement : MonoBehaviour
             return;
         }
 
-        Array.Clear(entangled, 0, entangled.Length);
+        bool newlyEntangled = false;
         int activeInteractionCount = 0;
-        int entangledPairCount = 0;
         for (int pairIndex = 0; pairIndex < pairVisuals.Length; pairIndex++)
         {
             PairVisual pair = pairVisuals[pairIndex];
@@ -238,16 +283,14 @@ public class Entanglement : MonoBehaviour
             }
             PairEntanglementMetric pairMetric = snapshot.GetPair(pair.First, pair.Second);
             UpdatePairArc(pair, first, second, pairMetric, pairIndex);
-            if (pair.ParticleFieldActive)
-            {
-                entangledPairCount++;
-            }
         }
 
         for (int i = 0; i < orderedQubits.Length; i++)
         {
             QubitMetric nodeMetric = snapshot.GetNode(i);
+            bool wasEntangled = entangled[i];
             entangled[i] = nodeMetric.Renyi2Entropy > EntanglementMetrics.CorrelationEntropyThreshold;
+            newlyEntangled |= entangled[i] && !wasEntangled;
             // Keep a small grab target even when the Bloch radius reaches zero.
             float scale = Mathf.Lerp(0.06f, NodeBaseScale, nodeMetric.BlochRadius);
             orderedQubits[i].transform.localScale = Vector3.one * scale;
@@ -260,7 +303,10 @@ public class Entanglement : MonoBehaviour
         UpdateTriad(snapshot.HasThreePartyCorrelation,
             (float)snapshot.ThreePartyCorrelationStrength);
         UpdateGuide(activeInteractionCount, snapshot.HasThreePartyCorrelation);
-        UpdateInteractionAudio(entangledPairCount > 0 || snapshot.HasThreePartyCorrelation);
+        if (newlyEntangled)
+        {
+            PlayNotification(SoundEntangle);
+        }
 
     }
 
@@ -320,6 +366,8 @@ public class Entanglement : MonoBehaviour
         pair.TargetStrength = Mathf.Clamp01((float)metric.LogarithmicNegativity);
         float response = 1f - Mathf.Exp(-7f * Time.deltaTime);
         pair.VisualStrength = Mathf.Lerp(pair.VisualStrength, pair.TargetStrength, response);
+        // Integrate speed to avoid phase jumps when entanglement changes.
+        pair.FlowPhase += Time.deltaTime * ribbonWaveSpeed * Mathf.Lerp(0.2f, 2.4f, pair.VisualStrength);
         if (pair.ParticleFieldActive)
         {
             pair.ParticleFieldActive = pair.TargetStrength > particleDeactivationThreshold;
@@ -348,8 +396,7 @@ public class Entanglement : MonoBehaviour
                           pair.ParticleFieldActive;
         pair.Arc.enabled = visualizationMode == EntanglementVisualizationMode.GravityTrails &&
                            pair.ParticleFieldActive;
-        bool showMetricLabel = pair.ParticleFieldActive &&
-                               (!ribbonOnlyScene || metricRevealPressed);
+        bool showMetricLabel = pair.ParticleFieldActive && metricRevealPressed;
         pair.Label.gameObject.SetActive(showMetricLabel);
         pair.RibbonRenderer.enabled = showRibbon;
         if (!pair.ParticleFieldActive)
@@ -357,7 +404,7 @@ public class Entanglement : MonoBehaviour
             return;
         }
 
-        float intensity = Mathf.Clamp01((float)metric.LogarithmicNegativity);
+        float intensity = pair.VisualStrength;
         float curvature = 0.12f + pairIndex * 0.08f + intensity * 0.18f;
         Vector3 midpoint = (first + second) * 0.5f + Vector3.up * curvature;
         for (int segment = 0; segment < ArcSegments; segment++)
@@ -369,20 +416,25 @@ public class Entanglement : MonoBehaviour
         }
 
         Color color = PairColors[pairIndex % PairColors.Length];
-        color.a = 0.45f + 0.55f * intensity;
+        color.a = Mathf.Lerp(0.12f, 1f, intensity);
         pair.Arc.startColor = color;
         pair.Arc.endColor = color;
-        pair.Arc.widthMultiplier = 0.008f + 0.018f * intensity;
-        pair.Label.color = color;
+        pair.Arc.widthMultiplier = Mathf.Lerp(0.003f, 0.04f, intensity);
+        pair.Label.color = Color.white;
         pair.Label.transform.position = midpoint + Vector3.up * 0.06f;
         if (showRibbon)
         {
             UpdateRibbon(pair, first, second, pairIndex, intensity, curvature);
         }
-        if (Math.Abs(metric.LogarithmicNegativity - pair.LastDisplayedMetric) > 0.01)
+        EntanglementSnapshot snapshot = QubitManager.GetEntanglementSnapshot();
+        double firstEntropy = snapshot.GetNode(pair.First).VonNeumannEntropyBits;
+        double secondEntropy = snapshot.GetNode(pair.Second).VonNeumannEntropyBits;
+        if (showMetricLabel && (Math.Abs(firstEntropy - pair.LastDisplayedMetric) > 0.005 ||
+            Math.Abs(secondEntropy - pair.LastDisplayedSecondMetric) > 0.005))
         {
-            pair.Label.text = $"Q{pair.First}–Q{pair.Second}  E_N={metric.LogarithmicNegativity:F2}";
-            pair.LastDisplayedMetric = metric.LogarithmicNegativity;
+            pair.Label.text = $"Entropy (bits)\nQ{pair.First}: {firstEntropy:F2}   Q{pair.Second}: {secondEntropy:F2}";
+            pair.LastDisplayedMetric = firstEntropy;
+            pair.LastDisplayedSecondMetric = secondEntropy;
         }
     }
 
@@ -414,21 +466,21 @@ public class Entanglement : MonoBehaviour
             lateral.Normalize();
 
             float taper = Mathf.Sin(Mathf.PI * t);
-            float flow = time * ribbonWaveSpeed;
+            float flow = pair.FlowPhase;
             float primaryWave = Mathf.Sin(t * Mathf.PI * 4f - flow * 2.1f + pairIndex * 1.7f);
             float secondaryWave = Mathf.Sin(t * Mathf.PI * 9f + flow * 1.3f + pairIndex * 0.8f);
             float wave = (primaryWave * 0.75f + secondaryWave * 0.25f) *
-                         ribbonWaveAmplitude * Mathf.Lerp(0.3f, 1f, intensity) * taper;
+                         ribbonWaveAmplitude * Mathf.Lerp(0.08f, 1.8f, intensity) * taper;
             Vector3 center = position + Vector3.Cross(tangent.normalized, lateral) * wave;
             float breathing = 1f + 0.24f * Mathf.Sin(t * Mathf.PI * 6f + flow * 1.6f);
-            float width = Mathf.Lerp(0.009f, 0.065f, intensity) * taper * breathing;
+            float width = Mathf.Lerp(0.003f, 0.085f, intensity) * taper * breathing;
             int vertex = segment * 2;
             pair.RibbonVertices[vertex] = center - lateral * width;
             pair.RibbonVertices[vertex + 1] = center + lateral * width;
             float colorPhase = t * 0.85f + time * ribbonIridescenceSpeed + pairIndex * 0.19f;
             Color leftColor = Color.Lerp(PearlColor(colorPhase - 0.09f), pairColor, 0.16f);
             Color rightColor = Color.Lerp(PearlColor(colorPhase + 0.09f), pairColor, 0.16f);
-            float alpha = Mathf.Lerp(0.28f, 0.88f, intensity) * taper;
+            float alpha = Mathf.Lerp(0.08f, 0.95f, intensity) * taper;
             leftColor.a = alpha;
             rightColor.a = alpha;
             pair.RibbonColors[vertex] = leftColor;
@@ -497,6 +549,7 @@ public class Entanglement : MonoBehaviour
 
     private void UpdateTriad(bool visible, float meanEntropy)
     {
+        triadLabel.gameObject.SetActive(visible && metricRevealPressed);
         triadMarker.SetActive(visible);
         if (!visible)
         {
@@ -526,6 +579,7 @@ public class Entanglement : MonoBehaviour
 
     private void UpdateGuide(int activePairCount, bool threePartyCorrelation)
     {
+        guideLabel.gameObject.SetActive(metricRevealPressed);
         Vector3 center = Vector3.zero;
         for (int i = 0; i < orderedQubits.Length; i++)
         {
@@ -553,19 +607,20 @@ public class Entanglement : MonoBehaviour
         }
         else
         {
-            message = "◆ Three-party correlation\nPair arcs show logarithmic negativity E_N";
+            message = "◆ Three-party correlation\nEntropy describes each qubit vs. the rest";
         }
 
         if (!ribbonOnlyScene)
         {
             message += visualizationMode == EntanglementVisualizationMode.GravityTrails
-                ? "\nB / Space: switch to ribbons"
-                : "\nB / Space: switch to gravity trails";
+                ? "\nLeft stick click / Tab: switch to ribbons"
+                : "\nLeft stick click / Tab: switch to gravity trails";
         }
         else
         {
-            message += "\nHold B / Space: show pair E_N";
+            message += "\nHold B / Space: show Entropy";
         }
+        message += "\nY / H: concepts and controls";
 
         if (!string.Equals(message, lastGuideText, StringComparison.Ordinal))
         {
@@ -795,7 +850,7 @@ public class Entanglement : MonoBehaviour
     {
         Color pairColor = PairColors[pairIndex % PairColors.Length];
         Color brightColor = Color.Lerp(pairColor * 0.65f, pairColor, Mathf.Clamp01(strength));
-        brightColor.a = Mathf.Lerp(0.18f, 0.65f, strength);
+        brightColor.a = Mathf.Lerp(0.08f, 0.9f, strength);
         Color tailColor = pairColor;
         tailColor.a = 0f;
 
@@ -810,25 +865,83 @@ public class Entanglement : MonoBehaviour
             // avoids allocating Gradient/key arrays during strength transitions.
             trails[i].startColor = brightColor;
             trails[i].endColor = tailColor;
-            trails[i].startWidth = Mathf.Lerp(0.0035f, 0.01f, strength);
+            trails[i].time = trailtime * Mathf.Lerp(0.25f, 1.5f, strength);
+            trails[i].startWidth = Mathf.Lerp(0.002f, 0.018f, strength);
             trails[i].endWidth = 0.001f;
         }
     }
 
-    private void UpdateInteractionAudio(bool interacting)
+    private void PlayNotification(AudioClip clip)
     {
-        if (interacting == wasInteracting)
-        {
-            return;
-        }
-
-        AudioClip clip = interacting ? SoundEntangle : SoundUntangle;
         if (clip != null)
         {
-            audioSource.pitch = Random.Range(0.85f, 1.2f);
-            audioSource.PlayOneShot(clip, interacting ? 1f : 0.5f);
+            if (audioSource == null) audioSource = GetComponent<AudioSource>();
+            audioSource.pitch = 1f;
+            audioSource.PlayOneShot(clip, 1f);
         }
-        wasInteracting = interacting;
+    }
+
+    private void CreateConceptPanel()
+    {
+        conceptPanel = new GameObject("Quantum Concepts", typeof(RectTransform), typeof(Canvas),
+            typeof(UnityEngine.UI.Image));
+        conceptPanel.SetActive(false);
+        conceptPanel.transform.SetParent(transform, false);
+        var canvas = conceptPanel.GetComponent<Canvas>();
+        canvas.renderMode = RenderMode.WorldSpace;
+        var rect = conceptPanel.GetComponent<RectTransform>();
+        rect.sizeDelta = new Vector2(1100f, 1250f);
+        var background = conceptPanel.GetComponent<UnityEngine.UI.Image>();
+        background.color = new Color(0.025f, 0.045f, 0.065f, 0.97f);
+        background.raycastTarget = false;
+
+        var textObject = new GameObject("Concepts Text", typeof(RectTransform));
+        textObject.transform.SetParent(conceptPanel.transform, false);
+        var text = textObject.AddComponent<TextMeshProUGUI>();
+        text.rectTransform.anchorMin = Vector2.zero;
+        text.rectTransform.anchorMax = Vector2.one;
+        text.rectTransform.offsetMin = new Vector2(44f, 36f);
+        text.rectTransform.offsetMax = new Vector2(-44f, -36f);
+        text.fontSize = 28f;
+        text.enableAutoSizing = true;
+        text.fontSizeMin = 22f;
+        text.fontSizeMax = 28f;
+        text.color = Color.white;
+        text.alignment = TextAlignmentOptions.TopLeft;
+        text.textWrappingMode = TextWrappingModes.Normal;
+        text.raycastTarget = false;
+        text.text =
+            "<size=42><b>QUANTUM CONCEPTS</b></size>\nY / H: close this panel\n\n" +
+            "<b>Entanglement</b>\nQubits share a joint quantum state that cannot be described independently. Moving them apart does not erase entanglement.\n\n" +
+            "<b>Entropy (bits)</b>\nA single qubit's uncertainty: 0 means pure; 1 means maximally mixed. For a pure global state, it measures that qubit's entanglement with the rest, not with a specific partner.\n\n" +
+            "<b>Pair Entanglement (E_N)</b>\nLogarithmic negativity measures entanglement between two qubits: 0 means none; 1 means maximal (a Bell pair). It drives the connections, and is different from Entropy.\n\n" +
+            "<b>Three-party correlation</b>\nAll three qubits can be entangled together even when pair entanglement is zero, as in a GHZ state.\n\n" +
+            "<b>Measurement</b>\nZ measurement returns 0 or 1 and disentangles the measured qubit. The other two may remain entangled. Nearby qubits can interact and become entangled again.\n\n" +
+            "<b>Wavefunction Colors</b>\nPink: not entangled. Blue: entangled with the rest. Size stays fixed; this is a visual indicator, not a literal spatial wavefunction.\n\n" +
+            "<b>CONTROLS</b>\nY: toggle help | Hold B: inspect values\nGrip: grab | X / A while grabbed: measure" +
+            (ribbonOnlyScene ? "" : "\nLeft stick click: switch ribbons / trails") +
+            "\nDesktop: H help | Hold Space inspect | Tab visual mode";
+    }
+
+    private void ToggleConceptPanel()
+    {
+        if (conceptPanel == null) return;
+        if (conceptPanel.activeSelf)
+        {
+            conceptPanel.SetActive(false);
+            return;
+        }
+        Camera viewer = Camera.main;
+        if (viewer == null) return;
+        // Reopen in front of the viewer, then leave the panel in world space.
+        conceptPanel.transform.SetPositionAndRotation(
+            viewer.transform.position + viewer.transform.forward * 1.4f, viewer.transform.rotation);
+        Vector3 parentScale = transform.lossyScale;
+        conceptPanel.transform.localScale = new Vector3(
+            0.0008f / Mathf.Max(Mathf.Abs(parentScale.x), 0.0001f),
+            0.0008f / Mathf.Max(Mathf.Abs(parentScale.y), 0.0001f),
+            0.0008f / Mathf.Max(Mathf.Abs(parentScale.z), 0.0001f));
+        conceptPanel.SetActive(true);
     }
 
     private TextMeshPro CreateWorldLabel(Transform parent, string text, float fontSize)
@@ -842,6 +955,7 @@ public class Entanglement : MonoBehaviour
         label.textWrappingMode = TextWrappingModes.NoWrap;
         label.color = Color.white;
         label.raycastTarget = false;
+        labelObject.SetActive(false);
         return label;
     }
 
@@ -869,9 +983,7 @@ public class Entanglement : MonoBehaviour
 
     private static Quaternion FaceCamera(Transform label, Camera viewer)
     {
-        Vector3 direction = viewer.transform.position - label.position;
-        return direction.sqrMagnitude > 0.0001f
-            ? Quaternion.LookRotation(direction.normalized, Vector3.up)
-            : label.rotation;
+        // TMP's readable face points along local -Z, like a camera-facing canvas.
+        return viewer.transform.rotation;
     }
 }

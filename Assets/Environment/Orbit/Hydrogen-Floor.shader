@@ -3,7 +3,7 @@ Shader "Custom/MultipleHydrogen"
     Properties
     {
         _NumQubits ("Number of Qubits", Int) = 3
-        _OrbitColor ("Color", Color) = (0.4, -0.3, 0.2, 1.0) 
+        // _OrbitColor is a per-qubit array uploaded by FloorElectrons, not a material Color.
         _MainTex ("Texture", 2D) = "white" {}
         _TimeScale ("Time Scale", Float) = 1
         // _WaveFunctionParams ("Wave Function Parameters", Vector) = (1.0, 0.0, 0.0, 1.0)
@@ -118,7 +118,10 @@ Shader "Custom/MultipleHydrogen"
                     color.a = probabilityDensity > 0.0 ? probabilityDensity : 0.0;
                     value +=color;
                 }
-                value = saturate(value);  // ensure output stays within 0-1 range
+                // RGB already contains density. Convert to straight alpha so the
+                // blend stage does not multiply by density a second time.
+                value.rgb /= max(value.a, 0.00001);
+                value = saturate(value);
 
                 // Output the Gaussian value with an orange color
                 return value;  // Apply the orange color and alpha

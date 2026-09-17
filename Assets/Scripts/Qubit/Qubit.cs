@@ -99,6 +99,7 @@ public class Qubit : MonoBehaviour
 
     private void LateUpdate()
     {
+        Camera viewer = Camera.main;
         if (uiAnchorCacheDirty)
         {
             RefreshUiAnchors();
@@ -131,6 +132,7 @@ public class Qubit : MonoBehaviour
                 anchor.WorldScale.z / parentScale.z);
             anchor.Transform.localPosition = parent.InverseTransformVector(
                 parent.rotation * anchor.OffsetInParentSpace);
+            if (viewer != null) anchor.Transform.rotation = viewer.transform.rotation;
         }
     }
 
@@ -233,7 +235,7 @@ public class Qubit : MonoBehaviour
         {
             case "Hadamard":
                 ApplyHadamard(this);
-                audioSource.PlayOneShot(audioClipH, 1f);
+                audioSource.PlayOneShot(audioClipH, 0.5f);
                 if (HadamardGuide != null)
                 {
                     Instantiate(HadamardGuide, spawnPos, Quaternion.identity, transform);
@@ -242,7 +244,7 @@ public class Qubit : MonoBehaviour
 
             case "Pauli-X":
                 ApplyPauliX(this);
-                audioSource.PlayOneShot(audioClipX, 1f);
+                audioSource.PlayOneShot(audioClipX, 0.5f);
                 if (PauliXGuide != null)
                 {
                     Instantiate(PauliXGuide, spawnPos, Quaternion.identity, transform);
@@ -251,7 +253,7 @@ public class Qubit : MonoBehaviour
 
             case "Pauli-Z":
                 ApplyPauliZ(this);
-                audioSource.PlayOneShot(audioClipZ, 1f);
+                audioSource.PlayOneShot(audioClipZ, 0.5f);
                 if (PauliZGuide != null)
                 {
                     Instantiate(PauliZGuide, spawnPos, Quaternion.identity, transform);
@@ -260,7 +262,7 @@ public class Qubit : MonoBehaviour
 
             case "Phase-S":
                 ApplyPhaseGate(this);
-                audioSource.PlayOneShot(audioClipS, 1f);
+                audioSource.PlayOneShot(audioClipS, 0.5f);
                 if (PhaseSGuide != null)
                 {
                     Instantiate(PhaseSGuide, spawnPos, Quaternion.identity, transform);

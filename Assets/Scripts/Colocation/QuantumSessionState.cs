@@ -242,6 +242,13 @@ namespace ArtsOfEntanglement.Colocation
             ApplyMeasurementRequest(qubitId, requestId, info.Source);
         }
 
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All, Channel = RpcChannel.Reliable)]
+        private void RPC_NotifyMeasurementDisentangled()
+        {
+            // The authority already received the local measurement event.
+            if (!HasStateAuthority) QubitManager.NotifyMeasurementDisentangled();
+        }
+
         [Rpc(RpcSources.All, RpcTargets.StateAuthority, Channel = RpcChannel.Reliable)]
         private void RPC_SetGrabOwner(int qubitId, NetworkBool grabbing, RpcInfo info = default)
         {
@@ -309,7 +316,12 @@ namespace ArtsOfEntanglement.Colocation
                 return;
             }
 
+            bool wasEntangled = QubitManager.IsQubitEntangled(qubitId);
             MeasurementResult result = QubitManager.MeasureLocally(qubitId, UnityEngine.Random.value);
+            if (wasEntangled && !QubitManager.IsQubitEntangled(qubitId))
+            {
+                RPC_NotifyMeasurementDisentangled();
+            }
             LastMeasurementQubit = result.QubitId;
             LastMeasurementOutcome = result.Outcome;
             LastMeasurementProbability = (float)result.Probability;
