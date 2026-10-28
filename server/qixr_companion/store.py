@@ -24,6 +24,7 @@ class Room:
     joinHash: str
     epoch: int = 0
     allowShared: bool = False
+    passwordHash: str | None = None
     snapshots: OrderedDict = field(default_factory=OrderedDict)
     events: OrderedDict = field(default_factory=OrderedDict)
     latestId: str | None = None
@@ -64,6 +65,7 @@ class Conversation:
     roomId: str
     participantId: str
     tokenHash: str
+    passwordHashAtJoin: str | None = None
     generation: int = 0
     selectionId: str = ''
     lastActive: float = field(default_factory=time.monotonic)
@@ -82,7 +84,7 @@ class Store:
             self.rooms[room_id] = Room(**json.loads(payload))
 
     def save(self, room):
-        payload = {k: getattr(room, k) for k in ['id','name','authorityHash','joinHash','epoch','allowShared']}
+        payload = {k: getattr(room, k) for k in ['id','name','authorityHash','joinHash','epoch','allowShared','passwordHash']}
         self.db.execute('INSERT OR REPLACE INTO rooms VALUES (?,?)', (room.id, json.dumps(payload)))
         self.db.commit()
 

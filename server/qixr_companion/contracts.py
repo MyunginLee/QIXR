@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, FiniteFloat, model_validator
+from pydantic import BaseModel, ConfigDict, Field, FiniteFloat, SecretStr, model_validator
 
 
 class Record(BaseModel):
@@ -94,6 +94,14 @@ class Plan(Record):
 
 class Join(Record):
     participantId: str = Field(min_length=1, max_length=96)
+
+
+class PasswordLogin(Join):
+    password: SecretStr = Field(min_length=1, max_length=256)
+
+
+class PasswordChange(Record):
+    password: SecretStr = Field(min_length=8, max_length=256)
 
 
 class RoomOptions(Record):

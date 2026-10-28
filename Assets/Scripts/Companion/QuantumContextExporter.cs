@@ -11,15 +11,32 @@ namespace Qixr.Companion
         public string RoomId { get; set; }
         public int AuthorityEpoch { get; set; }
         public int EventSequence { get; set; }
+        public static bool AllowStandalonePublishing { get; set; }
+        public static bool JoinOnlyParticipant { get; set; }
+        private static bool networkObserved;
+        public static bool NetworkStateRequired
+        {
+            get
+            {
+#if FUSION_PRESENT || FUSION_WEAVER
+                if (SessionManager.Instance != null && SessionManager.Instance.Runner != null) networkObserved=true;
+#endif
+                return JoinOnlyParticipant || networkObserved;
+            }
+        }
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetPolicy() { networkObserved=false; AllowStandalonePublishing=false; JoinOnlyParticipant=false; }
         public static bool IsAuthority
         {
             get
             {
 #if FUSION_PRESENT || FUSION_WEAVER
-                return !QuantumSessionState.IsNetworkSessionActive ||
-                       (QuantumSessionState.Instance != null && QuantumSessionState.Instance.HasStateAuthority);
+                if (SessionManager.Instance != null && SessionManager.Instance.Runner != null) networkObserved=true;
+                if (QuantumSessionState.IsNetworkSessionActive)
+                    return !JoinOnlyParticipant && QuantumSessionState.Instance != null && QuantumSessionState.Instance.HasStateAuthority;
+                return !JoinOnlyParticipant && AllowStandalonePublishing && !networkObserved;
 #else
-                return true;
+                return !JoinOnlyParticipant && AllowStandalonePublishing;
 #endif
             }
         }

@@ -7,11 +7,10 @@ public static class QuantumCompanionSetup
     [MenuItem("QIXR/Companion/Install pairing configuration")]
     public static void InstallConfiguration()
     {
-        string file=EditorUtility.OpenFilePanel("Select host-config.json for the authority, client-config.json for other headsets", "", "json");
+        string file=EditorUtility.OpenFilePanel("Select a role pairing file or quest-password-profile.json", "", "json");
         if(string.IsNullOrEmpty(file)) return;
-        var config=JsonUtility.FromJson<Qixr.Companion.CompanionConfig>(File.ReadAllText(file));
-        if(config==null || string.IsNullOrEmpty(config.roomId) || string.IsNullOrEmpty(config.joinToken))
-        { Debug.LogError("Invalid QIXR pairing configuration."); return; }
+        if(!Qixr.Companion.QuantumCompanionConfiguration.TryParse(File.ReadAllText(file),out var config,out var error))
+        { Debug.LogError(error); return; }
         Directory.CreateDirectory(Application.streamingAssetsPath);
         File.Copy(file,Path.Combine(Application.streamingAssetsPath,"qixr-companion.json"),true);
         AssetDatabase.Refresh();

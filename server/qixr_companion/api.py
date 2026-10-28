@@ -9,8 +9,11 @@ import wave
 
 from fastapi import FastAPI, Header, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse, Response
+from fastapi.exceptions import RequestValidationError
+from fastapi.exception_handlers import request_validation_exception_handler
 
-from .contracts import EpochChange, Join, Question, QuantumEvent, RoomOptions, Snapshot
+from .contracts import EpochChange, Join, PasswordLogin, PasswordChange, Question, QuantumEvent, RoomOptions, Snapshot
+from .passwords import LoginLimiter, hash_password, verify_password
 from .dialogue import Planner
 from .service import Service
 from .store import Store, authorized, digest
@@ -30,6 +33,8 @@ def create_app(runtime=None, planner=None, voice=None):
     voice = voice or Voice(root/'models', os.getenv('QIXR_VOICE','1') == '1')
     service = Service(store, planner, voice, int(os.getenv('QIXR_PARALLEL','2')), int(os.getenv('QIXR_QUEUE','8')))
     asr_semaphore, asr_pending = asyncio.Semaphore(1), set()
+    password_semaphore, password_limiter = asyncio.Semaphore(2), LoginLimiter()
+    password_pending = 0
 
     @asynccontextmanager
     async def lifespan(app):
@@ -57,6 +62,8 @@ def create_app(runtime=None, planner=None, voice=None):
     def conv_auth(cid, value):
         c = store.conversations.get(cid)
         if c is None: raise HTTPException(404, 'Conversation not found')
+        if c.passwordHashAtJoin is not None and c.passwordHashAtJoin != store.rooms[c.roomId].passwordHash:
+            raise HTTPException(401, 'Password changed; sign in again')
         if time.monotonic()-c.lastActive > 120 or not authorized(bearer(value), c.tokenHash):
             raise HTTPException(401, 'Invalid or expired conversation credential')
         c.lastActive = time.monotonic()
@@ -70,6 +77,12 @@ def create_app(runtime=None, planner=None, voice=None):
 
     @app.exception_handler(ValueError)
     async def invalid(_, exc): return JSONResponse(status_code=422, content={'detail':str(exc)[:300]})
+
+    @app.exception_handler(RequestValidationError)
+    async def invalid_request(request, exc):
+        if request.url.path.endswith(('/password-conversations', '/password')):
+            return JSONResponse(status_code=422, content={'detail':'Invalid password request'})
+        return await request_validation_exception_handler(request, exc)
 
     @app.middleware('http')
     async def limit_body(request: Request, call_next):
@@ -136,6 +149,40 @@ def create_app(runtime=None, planner=None, voice=None):
     async def room_status(rid: str, authorization: str=Header(default='')):
         room = room_auth(rid, authorization)
         return {'roomId':rid, 'authorityEpoch':room.epoch, 'latestSnapshotId':room.latestId, 'eventSequence':room.eventSequence}
+
+    @app.put('/v1/rooms/{rid}/password')
+    async def change_password(rid: str, data: PasswordChange, authorization: str=Header(default='')):
+        if not authorized(bearer(authorization), admin_hash): raise HTTPException(401)
+        room = store.rooms.get(rid)
+        if room is None: raise HTTPException(404)
+        room.passwordHash = await asyncio.to_thread(hash_password, data.password.get_secret_value())
+        store.save(room)
+        for c in list(store.conversations.values()):
+            if c.roomId == rid and c.passwordHashAtJoin is not None:
+                service.cancel(c)
+                store.conversations.pop(c.id, None)
+        return {'status':'password_updated'}
+
+    @app.post('/v1/rooms/{rid}/password-conversations')
+    async def password_login(rid: str, data: PasswordLogin, request: Request):
+        nonlocal password_pending
+        peer = request.client.host if request.client else 'unknown'
+        if not password_limiter.allow(peer) or password_pending >= 8:
+            raise HTTPException(429, 'Too many sign-in attempts; wait before retrying', headers={'Retry-After':'60'})
+        password_pending += 1
+        try:
+            room = store.rooms.get(rid)
+            encoded = room.passwordHash if room else None
+            async with password_semaphore:
+                accepted = await asyncio.to_thread(verify_password, data.password.get_secret_value(), encoded)
+            if not accepted or room is None or room.passwordHash != encoded:
+                raise HTTPException(401, 'Incorrect password or unavailable room')
+            try: c, token = store.join(room, data.participantId)
+            except OverflowError as e: fail(e)
+            c.passwordHashAtJoin = encoded
+            return {'conversationId':c.id, 'conversationToken':token,'authorityEpoch':room.epoch}
+        finally:
+            password_pending -= 1
 
     @app.post('/v1/rooms/{rid}/snapshots')
     async def snapshot(rid: str, data: Snapshot, authorization: str=Header(default='')):

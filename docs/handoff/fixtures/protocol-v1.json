@@ -4,13 +4,14 @@
   "agentPolicy": "quantum-companion-en-1",
   "notice": "Synthetic analytical states and constructed job envelopes; not live traces, timing, or model evaluation. No usable credentials.",
   "sourceSha256": {
-    "server/qixr_companion/agent.py": "6d9245327f31eda0ab7d9485f6c84ccbe35a6cf48c18c98c4f7e2b8639cdb3a2",
-    "server/qixr_companion/api.py": "e67a4d709424472e0acfd3d0de763fb1c25e6e4f4b91c528009b06f94a53cf43",
-    "server/qixr_companion/contracts.py": "271592857d4ff4d17fb51cea8e491bd3794ddbe7f7085893f922a48a20f3d2e2",
-    "server/qixr_companion/dialogue.py": "977ea6334c62702b954f871f6ec06660ac3eb19d82bd846365588d9b27469c05",
-    "server/qixr_companion/physics.py": "1b13f869bd287adc75fb8f57b148f0e9623eb3ade66a4c02cb7db7af902f8233",
-    "server/qixr_companion/service.py": "5ce64ccd37b9510394d64e2d4c1bc1e4aa7fcd0e643da8158e69ae9d2628555f",
-    "Assets/Scripts/Companion/QuantumCompanionContracts.cs": "89ef324ca75176f4b7a09777e8614f05624aa273baee11d08005ee53d7ca756e"
+    "server/qixr_companion/agent.py": "c345a4f3fe76fbc8fa55ead15ac06946b97db73bedb012afcc4aa5fabce2882a",
+    "server/qixr_companion/api.py": "3ba2a3b9f2ae2f647596f40180010547258834f853e46dab47301a0c21232b33",
+    "server/qixr_companion/contracts.py": "a2cdd42fb53f0e76c137e3cc10b26d620782a23e2ea13e16a15d7c19d348c63b",
+    "server/qixr_companion/dialogue.py": "052a67a4b1cb2b9e0e18ce929098e647ddba734699b2499d394ed2701808fb34",
+    "server/qixr_companion/physics.py": "26b55f2aeec50c130e82a2a6d862c9df4bf4524b109e06a51e306bb74bffa12b",
+    "server/qixr_companion/service.py": "a00c72281a8141068c38c95a84cbc179721f40a36d92dd0875b59e83150f76f9",
+    "server/qixr_companion/passwords.py": "5259dd365297879435e28f40e9e097a9b4aa7b1e48c68f6d94f7cc17df60d6cb",
+    "Assets/Scripts/Companion/QuantumCompanionContracts.cs": "1c93f11dffbe1571574a2383bd05b9a6baf98d89ebe60f454527fe213ca1f942"
   },
   "schemas": {
     "Snapshot": {
@@ -3267,7 +3268,7 @@
           ],
           "referenceMode": "captured",
           "referenceCue": {
-            "label": "Earlier answer Â· details",
+            "label": "Earlier answer · details",
             "snapshotId": "fixture-superposition",
             "stateVersion": 1,
             "eventSequence": 1,

@@ -21,7 +21,7 @@ namespace Qixr.Companion
             if(answer.referenceCue==null || !answer.referenceCue.showState || answer.facts?.nodes==null || Camera.main==null) return;
             root=new GameObject("Quantum answer reference (read only)");
             root.transform.SetParent(Camera.main.transform,false);
-            root.transform.localPosition=new Vector3(.42f,.02f,1.1f);
+            root.transform.localPosition=new Vector3(.42f,.28f,1.4f);
             DrawTitle(answer.referenceCue.label,new Vector3(-.09f,.13f,0));
             DrawNodes(answer.facts.nodes,answer.targetQubitIds,0);
             if(answer.comparison?.nodes!=null)
@@ -54,7 +54,9 @@ namespace Qixr.Companion
                     var dot=GameObject.CreatePrimitive(PrimitiveType.Sphere);
                     dot.name="Captured Bloch endpoint"; Destroy(dot.GetComponent<Collider>());
                     dot.transform.SetParent(root.transform,false); dot.transform.localPosition=end; dot.transform.localScale=Vector3.one*.009f;
-                    var material=dot.GetComponent<Renderer>().material; material.color=new Color(.3f,.9f,1); materials.Add(material);
+                    var material=new Material(Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Sprites/Default"));
+                    dot.GetComponent<Renderer>().sharedMaterial=material;
+                    material.color=new Color(.3f,.9f,1); materials.Add(material);
                 }
                 DrawTitle(node.label+" · 0: "+node.p0.ToString("P1"),center+new Vector3(-.06f,.075f,0));
             }

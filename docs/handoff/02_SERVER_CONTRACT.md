@@ -1,5 +1,9 @@
 # Companion protocol reference for the Unity implementer
 
+## Optional shared-password extension
+
+Password-enabled Quest profiles set `authenticationMode: "password"`, include only public server/room/certificate information, and do not embed a join token. `POST /v1/rooms/{rid}/password-conversations` accepts `{participantId,password}` without a bearer credential and returns the existing conversation response shape. The returned credential authorizes only that conversation. Admin-only `PUT /v1/rooms/{rid}/password` sets or rotates the password and invalidates password-created sessions. Existing token pairing remains supported. See `docs/PASSWORD_ACCESS.md` for offline operator setup, limits and deployment. These endpoints require the server source update; no service is started by preparing it.
+
 Snapshot schema and gateway protocol are version 1. This is a handoff reference derived from the current Python source. If it differs from `server/qixr_companion/contracts.py`, `api.py`, `service.py` or `agent.py`, inspect the difference and align both ends explicitly. Do not silently introduce an incompatible API.
 
 ## Roles and topology

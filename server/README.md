@@ -126,3 +126,9 @@ The live smoke scripts create a separate fixture room and remove it afterward. T
 - [Sherpa ONNX](https://github.com/k2-fsa/sherpa-onnx), [model releases](https://github.com/k2-fsa/sherpa-onnx/releases/tag/tts-models): local TTS. Korean weights are converted from [Mimic3 KSS](https://github.com/MycroftAI/mimic3-voices/tree/master/voices/ko_KO/kss_low); English weights include their original `MODEL_CARD`. Keep the upstream model/data license terms with any redistribution.
 - [Nanum Gothic](https://github.com/google/fonts/tree/main/ofl/nanumgothic): bundled Korean/Latin font, SIL Open Font License included in `Assets/Resources/Quantum/OFL.txt`.
 - Scientific concepts and reviewed source links are versioned in `qixr_companion/dialogue.py`; the original QIXR paper and pair-separability reference remain cited in the design/audit.
+## Shared password sign-in
+
+Quest can use a shared room password instead of embedding its join token. See
+[`docs/PASSWORD_ACCESS.md`](../docs/PASSWORD_ACCESS.md) for offline password setup,
+the public Quest connection profile, build menus, and the server update procedure.
+Password sign-in never grants simulation authority and does not start services.

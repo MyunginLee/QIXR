@@ -73,7 +73,7 @@ async def export():
     await case('detail', 'Tell me more', pair, [0], Plan(intent='detail'), [memories['probability']])
     await case('event', 'What just happened?', superposition, [0], Plan(intent='event'), recorded_event=event)
     await case('mixed-guard', 'Explain this arrow', mixed, [0], Plan(intent='qubit'))
-    sources = [f'server/qixr_companion/{name}.py' for name in ('agent','api','contracts','dialogue','physics','service')]
+    sources = [f'server/qixr_companion/{name}.py' for name in ('agent','api','contracts','dialogue','physics','service','passwords')]
     sources.append('Assets/Scripts/Companion/QuantumCompanionContracts.cs')
     data = dict(fixtureOnly=True, protocolVersion=1, agentPolicy=POLICY_VERSION,
                 notice='Synthetic analytical states and constructed job envelopes; not live traces, timing, or model evaluation. No usable credentials.',

@@ -1727,6 +1727,9 @@ MonoBehaviour:
   trailtime: 1
   visualizationMode: 1
   ribbonOnlyScene: 1
+  ribbonWaveAmplitude: 0.055
+  ribbonWaveSpeed: 1.35
+  ribbonIridescenceSpeed: 0.55
   gravityStrength: 0.55
   gravitySofteningRadius: 0.16
   maximumParticleSpeed: 1.15
@@ -1753,18 +1756,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &562807679
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 562807674}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4a0f9e1b2b8b4cc8a2f2cd487348965f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!82 &562807677
 AudioSource:
   m_ObjectHideFlags: 0
@@ -1885,6 +1876,23 @@ AudioReverbFilter:
   m_LFReference: 250
   m_ReflectionsDelay: 0
   m_ReverbPreset: 9
+--- !u!114 &562807679
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 562807674}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a0f9e1b2b8b4cc8a2f2cd487348965f, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  tempoBpm: 66
+  entryThreshold: 0.01
+  noteGain: 0.12
+  minimumStepSeconds: 0.26
+  maximumStepBeats: 0.72
 --- !u!114 &568746527
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2125,7 +2133,6 @@ GameObject:
   - component: {fileID: 784692032}
   - component: {fileID: 784692031}
   - component: {fileID: 784692030}
-  - component: {fileID: 784692029}
   m_Layer: 5
   m_Name: Test
   m_TagString: Untagged
@@ -2153,18 +2160,6 @@ RectTransform:
   m_AnchoredPosition: {x: 80.333374, y: -98.6}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &784692029
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 784692027}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8a7a8635140737c41b5039732de5665d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &784692030
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2209,7 +2204,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 784692029}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: ArtsOfEntanglement.Colocation.ColocationUIController,
           Assembly-CSharp
         m_MethodName: OnJoinClicked
@@ -8819,7 +8814,7 @@ MonoBehaviour:
   m_HoverTimeToSelect: 0.5
   m_AutoDeselect: 0
   m_TimeToAutoDeselect: 1
-  m_EnableUIInteraction: 0
+  m_EnableUIInteraction: 1
   m_BlockInteractionsWithScreenSpaceUI: 0
   m_BlockUIOnInteractableSelection: 1
   m_ManipulateAttachTransform: 1
@@ -10231,7 +10226,7 @@ MonoBehaviour:
   sessionNameInput: {fileID: 0}
   statusText: {fileID: 8400000000000000203}
   maxStatusLines: 12
-  autoStartOnEnable: 1
+  autoStartOnEnable: 0
   autoHostIfNoSession: 1
   autoStartDelay: 0.5
 --- !u!4 &8330918385393999535
@@ -11516,7 +11511,7 @@ MonoBehaviour:
   m_HoverTimeToSelect: 0.5
   m_AutoDeselect: 0
   m_TimeToAutoDeselect: 1
-  m_EnableUIInteraction: 0
+  m_EnableUIInteraction: 1
   m_BlockInteractionsWithScreenSpaceUI: 0
   m_BlockUIOnInteractableSelection: 1
   m_ManipulateAttachTransform: 1

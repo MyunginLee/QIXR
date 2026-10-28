@@ -7,6 +7,17 @@ using UnityEngine;
 /// </summary>
 public sealed class QuantumArpeggioComposer : MonoBehaviour
 {
+    private float companionDuckGain=1f;
+    public float CompanionDuckGain
+    {
+        get => companionDuckGain;
+        set
+        {
+            float next=Mathf.Clamp01(value);
+            if(instrument!=null) instrument.volume*=next/Mathf.Max(companionDuckGain,0.0001f);
+            companionDuckGain=next;
+        }
+    }
     public float EntryThreshold => entryThreshold;
     private static readonly int[] CircleOfFifths = { 0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5 };
 
@@ -200,7 +211,7 @@ public sealed class QuantumArpeggioComposer : MonoBehaviour
         // audible pitch even during rapid, high-information arpeggios.
         instrument.Stop();
         instrument.clip = noteBank[Mod(semitone, 12), Mathf.Clamp(register, 0, 2)];
-        instrument.volume = gain;
+        instrument.volume = gain * companionDuckGain;
         instrument.Play();
     }
 

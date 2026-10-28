@@ -68,7 +68,7 @@ public class QubitManager : MonoBehaviour
     {
         // Fusion's state authority owns simulation whenever a shared quantum
         // session exists. Clients only render the replicated density matrix.
-        if (QuantumSessionState.IsNetworkSessionActive)
+        if (QuantumSessionState.IsNetworkSessionActive || QuantumContextExporter.NetworkStateRequired)
         {
             return;
         }
@@ -82,6 +82,7 @@ public class QubitManager : MonoBehaviour
     /// </summary>
     public static void AdvanceSimulation(double deltaTime)
     {
+        if (QuantumContextExporter.JoinOnlyParticipant) return;
         if (engine == null)
         {
             return;
@@ -177,7 +178,14 @@ public class QubitManager : MonoBehaviour
     {
         if (allQubits.Count > 0)
         {
-            ApplyPauliX(allQubits[0]);
+            // Preserve the scene's initial preparation while the designated host
+            // is connecting. Participants must wait for the replicated state.
+            if (!QuantumSessionState.IsNetworkSessionActive && QuantumContextExporter.NetworkStateRequired)
+            {
+                if (!QuantumContextExporter.JoinOnlyParticipant)
+                    ApplyGateLocally(allQubits[0].GetIndex(), QuantumGateOperation.PauliX, "initial");
+            }
+            else ApplyPauliX(allQubits[0]);
         }
     }
 
@@ -223,6 +231,7 @@ public class QubitManager : MonoBehaviour
             return;
         }
 
+        if (QuantumContextExporter.NetworkStateRequired) return;
         ApplyGateLocally(qubit.GetIndex(), operation);
     }
 
@@ -276,6 +285,7 @@ public class QubitManager : MonoBehaviour
             return;
         }
 
+        if (QuantumContextExporter.NetworkStateRequired) return;
         MeasurementResult result = MeasureLocally(qubitId, UnityEngine.Random.value);
         Debug.Log($"Measured Q{result.QubitId}: {result.Outcome} (p={result.Probability:F4}).");
     }

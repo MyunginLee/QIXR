@@ -4,7 +4,9 @@ namespace Qixr.Companion
 {
     [Serializable] public class CompanionConfig
     {
-        public string serverUrl = "https://localhost:8786";
+        public string serverUrl = "";
+        public string simulationMode = "standalone";
+        public string authenticationMode = "token";
         public string certificateSha256;
         public string roomId;
         public string authorityToken;
@@ -76,6 +78,8 @@ namespace Qixr.Companion
     {
         public string text, status, referenceSnapshotId, selectionId, planner, intent, voiceStatus, referenceMode;
         public int authorityEpoch;
+        public long stateVersion;
+        public string visibility;
         public int[] targetQubitIds;
         public PreviewDto preview;
         public string detailText, agentPolicy, responseLanguage;
@@ -93,6 +97,7 @@ namespace Qixr.Companion
     }
     [Serializable] public class RoomStatusDto { public int authorityEpoch, eventSequence; public string latestSnapshotId; }
     [Serializable] public class JoinDto { public string participantId; }
+    [Serializable] public class PasswordJoinDto { public string participantId, password; }
     [Serializable] public class JoinResultDto { public string conversationId, conversationToken; public int authorityEpoch; }
     [Serializable] public class EpochDto { public int expectedEpoch; }
     [Serializable] public class EpochResultDto { public int authorityEpoch; }
@@ -102,6 +107,8 @@ namespace Qixr.Companion
     {
         public string type, speakerConversationId, requestId;
         public int messageSequence, audioIndex;
+        public int generation;
+        public int authorityEpoch;
         public CompanionAnswer result;
     }
     [Serializable] public class SharedMessages { public SharedMessage[] messages; public int cursor; }

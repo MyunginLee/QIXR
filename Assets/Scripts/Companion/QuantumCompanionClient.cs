@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Security.Cryptography;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -15,13 +14,30 @@ namespace Qixr.Companion
     [RequireComponent(typeof(QuantumContextExporter), typeof(QuantumEventJournal))]
     public sealed class QuantumCompanionClient : MonoBehaviour
     {
-        public CompanionConfig Config { get; private set; }
+        public CompanionConfig Config { get; private set; } = new CompanionConfig();
+        public static bool SuppressBootstrap { get; set; }
+        public IQuantumCompanionTransport Transport { get; set; } = new QuantumCompanionTransport();
+        public bool IsPaired { get; private set; }
+        public bool IsConnected => !string.IsNullOrEmpty(conversationId);
+        public bool UsesPassword => Config.authenticationMode == "password";
+        public bool IsSigningIn { get; private set; }
+        public long LastHttpStatus { get; private set; }
+        public string Diagnostics => !IsPaired ? "Unpaired / offline" :
+            $"{(string.IsNullOrEmpty(Config.authorityToken) ? "Participant" : "Authority")} | {Config.roomId} | epoch {sessionEpoch} | queued events {journal.Count}\n" +
+            $"snapshot {ShortId(referenceSnapshot)} | version {referenceVersion} | turn {ShortId(pendingRequest)}" +
+            (QuantumContextExporter.NetworkStateRequired && !ArtsOfEntanglement.Colocation.QuantumSessionState.IsNetworkSessionActive ? " | Fusion authority unavailable: rejoin required" : "");
         public string Status { get; private set; } = "Connecting to Quantum…";
         public string Caption { get; private set; } = "";
         public int[] Targets => targets.ToArray();
-        public bool SharedPresentation { get; set; }
+        private bool sharedPresentation;
+        public bool SharedPresentation
+        {
+            get => sharedPresentation;
+            set { if (sharedPresentation == value) return; Interrupt(); sharedPresentation = value; }
+        }
         public bool IsRecording => microphoneClip != null;
         public bool IsRemotePresentation { get; private set; }
+        public bool PlaybackActive { get; set; }
         public event Action<CompanionAnswer> AnswerReceived;
         public event Action<AudioClip> SpeechReceived;
         public event Action Interrupted;
@@ -37,11 +53,22 @@ namespace Qixr.Companion
         private AudioClip microphoneClip;
         private int[] recordingTargets;
         private float recordingStarted;
+        private int sessionEpoch;
+        private bool suspended, started;
+        private bool publicationBlocked;
+        private bool applicationPaused, applicationUnfocused;
+        private string pendingRequest, referenceSnapshot;
+        private long referenceVersion;
+        private static string ShortId(string id) => string.IsNullOrEmpty(id)?"none":id.Substring(0,Math.Min(8,id.Length));
+        private string sharedSpeaker, sharedRequest;
+        private int sharedGeneration = -1;
+        private readonly HashSet<int> sharedAudio = new HashSet<int>();
+        private readonly Dictionary<string, int> cancelledShared = new Dictionary<string, int>();
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Bootstrap()
         {
-            if (FindFirstObjectByType<QuantumCompanionClient>() != null) return;
+            if (SuppressBootstrap || Application.isBatchMode || FindFirstObjectByType<QuantumCompanionClient>() != null) return;
             new GameObject("QIXR Quantum Companion").AddComponent<QuantumCompanionClient>();
         }
         private void Awake()
@@ -50,19 +77,22 @@ namespace Qixr.Companion
         }
         private IEnumerator Start()
         {
-            string path=Application.streamingAssetsPath+"/qixr-companion.json";
+            started = true;
+            if (GetComponent<QuantumCompanionPresenter>() == null) gameObject.AddComponent<QuantumCompanionPresenter>();
+            string path=File.Exists(QuantumCompanionConfiguration.OverridePath)
+                ? QuantumCompanionConfiguration.OverridePath : Application.streamingAssetsPath+"/qixr-companion.json";
             if (!path.Contains("://")) path="file://"+path;
             using (var request=UnityWebRequest.Get(path))
             {
                 yield return request.SendWebRequest();
                 if (request.result != UnityWebRequest.Result.Success)
-                { Status="Companion disabled: install qixr-companion.json (see server/README.md)."; enabled=false; yield break; }
-                Config=Parse<CompanionConfig>(request.downloadHandler.text);
+                { Status="Unpaired. Quantum simulation is available. Install a role-specific pairing configuration to connect."; yield break; }
+                if (!QuantumCompanionConfiguration.TryParse(request.downloadHandler.text, out var loaded, out var error))
+                { Status=error; yield break; }
+                Config=loaded;
             }
-            if (Config==null || string.IsNullOrEmpty(Config.roomId) || string.IsNullOrEmpty(Config.joinToken))
-            { Status="Invalid companion configuration."; enabled=false; yield break; }
-            if (!Config.serverUrl.StartsWith("https://",StringComparison.OrdinalIgnoreCase))
-            { Status="Companion requires HTTPS."; enabled=false; yield break; }
+            IsPaired = true;
+            publicationBlocked=false;
             Config.serverUrl=Config.serverUrl.TrimEnd('/');
             if(Config.language!="ko" && Config.language!="en") Config.language="en";
             if (string.IsNullOrEmpty(Config.participantId))
@@ -71,20 +101,81 @@ namespace Qixr.Companion
                 if(string.IsNullOrEmpty(Config.participantId))
                 { Config.participantId=Guid.NewGuid().ToString("N"); PlayerPrefs.SetString("QixrCompanionParticipant",Config.participantId); PlayerPrefs.Save(); }
             }
-            gameObject.AddComponent<QuantumCompanionPresenter>();
             exporter.RoomId=Config.roomId;
+            QuantumContextExporter.AllowStandalonePublishing = Config.simulationMode == "standalone" && !string.IsNullOrEmpty(Config.authorityToken);
+            QuantumContextExporter.JoinOnlyParticipant = string.IsNullOrEmpty(Config.authorityToken);
+            if(UsesPassword) { Status="Enter Server Password and press Connect. Your password is not saved."; yield break; }
+            yield return Connect();
+        }
+        public void SignInWithPassword(string password)
+        {
+            if(!IsPaired || !UsesPassword)
+            { Status="Install a password connection profile first (server address, certificate and room)."; return; }
+            if(IsConnected || IsSigningIn) return;
+            if(string.IsNullOrEmpty(password) || password.Length>256)
+            { Status="Enter a server password (up to 256 characters)."; return; }
+            Suspend(); suspended=false;
+            StartCoroutine(PasswordConnect(password,generation));
+        }
+        private IEnumerator PasswordConnect(string password,int attempt)
+        {
+            IsSigningIn=true;
+            Status="Signing in...";
+            try
+            {
+                yield return Send("POST","/v1/rooms/"+Config.roomId+"/password-conversations",
+                    JsonUtility.ToJson(new PasswordJoinDto { participantId=Config.participantId,password=password }),null,
+                    text=>
+                    {
+                        var result=Parse<JoinResultDto>(text);
+                        if(attempt==generation && result!=null && !string.IsNullOrEmpty(result.conversationId) && !string.IsNullOrEmpty(result.conversationToken))
+                        { conversationId=result.conversationId; token=result.conversationToken; sessionEpoch=result.authorityEpoch; }
+                    });
+                if(attempt!=generation) yield break;
+                if(IsConnected) BeginConversationLoops();
+                else Status=LastHttpStatus==401?"Incorrect password or unavailable room. Try again.":
+                    LastHttpStatus==429?"Too many sign-in attempts. Wait one minute before trying again.":
+                    "Sign-in unavailable. Check the server connection and retry; local simulation is available.";
+            }
+            finally { IsSigningIn=false; }
+        }
+        public void DisconnectPasswordSession()
+        {
+            if(!UsesPassword) return;
+            string path=ConversationPath, credential=token;
+            Suspend(); suspended=false;
+            if(!string.IsNullOrEmpty(credential)) StartCoroutine(LeavePasswordConversation(path,credential));
+            Status="Disconnected. Enter Server Password to connect again.";
+        }
+        private IEnumerator LeavePasswordConversation(string path,string credential)
+        {
+            yield return Transport.Send(Config.serverUrl+path,"DELETE",null,null,credential,Config.certificateSha256,_=>{});
+        }
+        private IEnumerator Connect()
+        {
+            float retry = 1f;
             while (conversationId==null)
             {
                 yield return Send("POST","/v1/rooms/"+Config.roomId+"/conversations",JsonUtility.ToJson(new JoinDto { participantId=Config.participantId }),Config.joinToken,
-                    text => { var r=Parse<JoinResultDto>(text); if(r!=null) { conversationId=r.conversationId; token=r.conversationToken; } });
-                if (conversationId==null) yield return new WaitForSecondsRealtime(2);
+                    text => { var r=Parse<JoinResultDto>(text); if(r!=null && !string.IsNullOrEmpty(r.conversationId) && !string.IsNullOrEmpty(r.conversationToken))
+                    { conversationId=r.conversationId; token=r.conversationToken; sessionEpoch=r.authorityEpoch; } });
+                if (conversationId==null) { yield return new WaitForSecondsRealtime(retry); retry=Mathf.Min(16f,retry*2); }
             }
-            StartCoroutine(PublishLoop());
-            StartCoroutine(SharedLoop());
+            BeginConversationLoops();
+        }
+        private void BeginConversationLoops()
+        {
+            StartCoroutine(PublishLoop()); StartCoroutine(SharedLoop());
             Status=Config.language=="ko" ? "큐빗을 잡거나 선택하고 질문해 주세요." : "Select or grab a qubit and ask me.";
         }
         private void Update()
         {
+            if (IsRecording)
+            {
+                var right = UnityEngine.XR.InputDevices.GetDeviceAtXRNode(UnityEngine.XR.XRNode.RightHand);
+                if (right.isValid && right.TryGetFeatureValue(UnityEngine.XR.CommonUsages.isTracked, out bool tracked) && !tracked)
+                    Interrupt();
+            }
             if (microphoneClip != null && Time.realtimeSinceStartup-recordingStarted>=14.5f) EndTalk();
 #if ENABLE_INPUT_SYSTEM
             if (Keyboard.current != null)
@@ -119,21 +210,39 @@ namespace Qixr.Companion
             generation++;
             turnActive=false;
             Caption="";
+            pendingRequest=null;
+            sharedSpeaker = sharedRequest = null;
+            sharedAudio.Clear();
             if(microphoneClip!=null) { Microphone.End(null); Destroy(microphoneClip); microphoneClip=null; }
             Interrupted?.Invoke();
             if(conversationId!=null) StartCoroutine(CancelRemote());
         }
         private IEnumerator CancelRemote()
         {
+            string path = ConversationPath + "/cancel", credential = token;
             pendingCancels++;
-            try { yield return Send("POST",ConversationPath+"/cancel","{}",token); }
+            try { yield return Send("POST",path,"{}",credential); }
             finally { pendingCancels--; }
         }
         private string ConversationPath => "/v1/conversations/"+conversationId;
         public void AskText(string text)
         {
             if(conversationId==null || string.IsNullOrWhiteSpace(text)) return;
+            if(text.Length>2000) { Status="Questions must be at most 2000 characters."; return; }
             Interrupt(); StartCoroutine(Ask(text,generation,Targets));
+        }
+        public void SetLanguage(string language)
+        {
+            if (language != "en" && language != "ko") return;
+            Interrupt(); Config.language = language;
+        }
+        public bool InstallPairing(string json)
+        {
+            if (!QuantumCompanionConfiguration.TryParse(json, out _, out var error)) { Status=error; return false; }
+            QuantumCompanionConfiguration.SaveOverride(json);
+            Suspend(); suspended=false;
+            StartCoroutine(Start());
+            return true;
         }
         public void BeginTalk()
         {
@@ -199,17 +308,23 @@ namespace Qixr.Companion
             var question=new CompanionQuestion { requestId=Guid.NewGuid().ToString("N"), selectionId=selectionId,
                 referenceSnapshotId=context.snapshot.snapshotId, referenceEventId=context.lastEventId,
                 targetQubitIds=lockedTargets, language=Config.language, text=text, visibility=SharedPresentation?"room":"private" };
+            pendingRequest=question.requestId;
+            referenceSnapshot=context.snapshot.snapshotId;
+            referenceVersion=context.snapshot.stateVersion;
             CompanionJob accepted=null;
             Status=Config.language=="ko"?"확인하고 있어요…":"Let me check…";
             yield return Send("POST",ConversationPath+"/questions",JsonUtility.ToJson(question),token,value=>accepted=Parse<CompanionJob>(value));
             if(accepted==null || turn!=generation) yield break;
+            var owner = new CompanionTurn { Conversation=conversationId, Request=question.requestId, Selection=selectionId,
+                Snapshot=question.referenceSnapshotId, LocalGeneration=turn, ServerGeneration=accepted.generation, Epoch=context.snapshot.authorityEpoch };
+            sessionEpoch = context.snapshot.authorityEpoch;
             int audioIndex=0; bool displayed=false;
             while(turn==generation)
             {
                 CompanionJob job=null;
                 yield return Send("GET",ConversationPath+"/requests/"+question.requestId,null,token,value=>job=Parse<CompanionJob>(value));
                 if(job==null) yield break;
-                if(turn!=generation || job.state=="cancelled") yield break;
+                if(!owner.Matches(job, conversationId, selectionId, generation, sessionEpoch) || job.state=="cancelled") yield break;
                 if(job.result!=null && job.result.selectionId==selectionId && !displayed)
                 {
                     IsRemotePresentation=false;
@@ -218,12 +333,12 @@ namespace Qixr.Companion
                 }
                 if(job.result!=null && job.result.status=="context_changed")
                 { Interrupt(); Status="The live state changed. Ask again for a fresh explanation."; yield break; }
-                while(audioIndex<job.audioCount && turn==generation)
+                while(job.result?.status!="quiet" && audioIndex<job.audioCount && turn==generation)
                 {
                     byte[] data=null;
                     yield return SendBytes("GET",ConversationPath+"/requests/"+question.requestId+"/audio/"+audioIndex,null,null,token,value=>data=value);
                     audioIndex++;
-                    if(data!=null && turn==generation)
+                    if(data!=null && owner.Matches(job, conversationId, selectionId, generation, sessionEpoch))
                     {
                         AudioClip clip=DecodeAudio(data);
                         if(clip!=null) SpeechReceived?.Invoke(clip);
@@ -238,6 +353,8 @@ namespace Qixr.Companion
         {
             while(enabled)
             {
+                if(publicationBlocked)
+                { Status="State publication blocked: check role credentials/payload and reinstall pairing. Local simulation is available."; yield return new WaitForSecondsRealtime(5); continue; }
                 if(string.IsNullOrEmpty(Config.authorityToken) || !QuantumContextExporter.IsAuthority || !QubitManager.IsInitialized)
                 { yield return new WaitForSecondsRealtime(.2f); continue; }
                 if(exporter.AuthorityEpoch==0 || journal.Overflowed)
@@ -248,7 +365,7 @@ namespace Qixr.Companion
                     EpochResultDto next=null;
                     yield return Send("POST","/v1/rooms/"+Config.roomId+"/epoch",JsonUtility.ToJson(new EpochDto {expectedEpoch=current.authorityEpoch}),Config.authorityToken,text=>next=Parse<EpochResultDto>(text));
                     if(next==null) { yield return new WaitForSecondsRealtime(2); continue; }
-                    exporter.AuthorityEpoch=next.authorityEpoch; journal.ClearJournal();
+                    exporter.AuthorityEpoch=next.authorityEpoch; sessionEpoch=next.authorityEpoch; journal.ClearJournal();
                 }
                 bool success=true;
                 var entry=journal.Peek();
@@ -278,9 +395,11 @@ namespace Qixr.Companion
         private IEnumerator SharedLoop()
         {
             int cursor=0;
+            string joined=conversationId;
             while(enabled)
             {
                 if(conversationId==null) { yield return new WaitForSecondsRealtime(1); continue; }
+                if (joined != conversationId) { cursor=0; joined=conversationId; cancelledShared.Clear(); }
                 SharedMessages batch=null;
                 yield return Send("GET",ConversationPath+"/messages?after="+cursor,null,token,text=>batch=Parse<SharedMessages>(text));
                 if(batch!=null)
@@ -288,18 +407,41 @@ namespace Qixr.Companion
                     cursor=batch.cursor;
                     foreach(var message in batch.messages ?? new SharedMessage[0])
                     {
-                        if(message.type=="authority_reset") { Interrupt(); continue; }
-                        if(!SharedPresentation || turnActive || message.speakerConversationId==conversationId) continue;
+                        if(message.type=="authority_reset")
+                        {
+                            // Join/publish may already have observed this epoch; old backlog cannot reset it again.
+                            if(message.authorityEpoch>sessionEpoch)
+                            { Interrupt(); exporter.AuthorityEpoch=0; sessionEpoch=message.authorityEpoch; journal.ClearJournal(); }
+                            continue;
+                        }
+                        if(message.type=="room_closed") { Suspend(); Status="Companion room closed. Install pairing and reconnect."; yield break; }
+                        if(!SharedPresentation || turnActive || (!IsRemotePresentation && PlaybackActive) || message.speakerConversationId==conversationId) continue;
+                        string key=message.speakerConversationId+":"+message.requestId;
+                        if (message.type=="cancelled" || message.type=="context_changed")
+                        {
+                            cancelledShared[key]=message.generation;
+                            if (IsRemotePresentation && sharedSpeaker==message.speakerConversationId &&
+                                (string.IsNullOrEmpty(message.requestId) || sharedRequest==message.requestId) && message.generation>=sharedGeneration)
+                            { Interrupted?.Invoke(); sharedSpeaker=sharedRequest=null; }
+                            continue;
+                        }
+                        if (cancelledShared.TryGetValue(key, out int cancelled) && message.generation<=cancelled) continue;
                         if(message.type=="answer" && message.result!=null)
-                        { IsRemotePresentation=true; Caption="[Shared] "+message.result.text; AnswerReceived?.Invoke(message.result); }
-                        if(message.type=="audio_ready")
+                        {
+                            if (message.result.authorityEpoch != sessionEpoch || message.result.visibility!="room") continue;
+                            Interrupted?.Invoke(); sharedAudio.Clear();
+                            sharedSpeaker=message.speakerConversationId; sharedRequest=message.requestId; sharedGeneration=message.generation;
+                            IsRemotePresentation=true; Caption="[Shared] "+message.result.text; AnswerReceived?.Invoke(message.result);
+                        }
+                        if(message.type=="audio_ready" && sharedSpeaker==message.speakerConversationId &&
+                            sharedRequest==message.requestId && sharedGeneration==message.generation && !sharedAudio.Contains(message.audioIndex))
                         {
                             byte[] data=null; int turn=generation;
                             yield return SendBytes("GET",ConversationPath+"/shared/"+message.speakerConversationId+"/"+message.requestId+"/audio/"+message.audioIndex,null,null,token,value=>data=value);
-                            if(data!=null && turn==generation && SharedPresentation && !turnActive)
-                            { var clip=DecodeAudio(data); if(clip!=null) SpeechReceived?.Invoke(clip); }
+                            if(data!=null && turn==generation && SharedPresentation && !turnActive &&
+                                sharedSpeaker==message.speakerConversationId && sharedRequest==message.requestId && sharedGeneration==message.generation)
+                            { sharedAudio.Add(message.audioIndex); var clip=DecodeAudio(data); if(clip!=null) SpeechReceived?.Invoke(clip); }
                         }
-                        if(message.type=="cancelled" || message.type=="context_changed") Interrupted?.Invoke();
                     }
                 }
                 yield return new WaitForSecondsRealtime(.3f);
@@ -307,12 +449,20 @@ namespace Qixr.Companion
         }
         private IEnumerator Reconnect()
         {
+            if(UsesPassword)
+            {
+                Suspend(); suspended=false;
+                Status="Session expired. Enter Server Password to connect again.";
+                yield break;
+            }
             reconnecting=true; Interrupt(); conversationId=null; token=null;
+            // A new conversation establishes a fresh history boundary, including gateway restarts.
+            exporter.AuthorityEpoch=0; journal.ClearJournal();
             Status="Reconnecting to Quantum…";
             while(enabled && conversationId==null)
             {
                 yield return Send("POST","/v1/rooms/"+Config.roomId+"/conversations",JsonUtility.ToJson(new JoinDto {participantId=Config.participantId}),Config.joinToken,
-                    text=>{ var r=Parse<JoinResultDto>(text); if(r!=null) {conversationId=r.conversationId; token=r.conversationToken;} });
+                    text=>{ var r=Parse<JoinResultDto>(text); if(r!=null) {conversationId=r.conversationId; token=r.conversationToken; sessionEpoch=r.authorityEpoch;} });
                 if(conversationId==null) yield return new WaitForSecondsRealtime(2);
             }
             reconnecting=false;
@@ -331,23 +481,33 @@ namespace Qixr.Companion
         }
         private IEnumerator SendBytes(string method,string path,byte[] body,string contentType,string credential,Action<byte[]> receive=null)
         {
-            using(var request=new UnityWebRequest(Config.serverUrl+path,method))
+            string owner=conversationId;
+            for (int attempt=0; attempt<3 && !suspended; attempt++)
             {
-                request.downloadHandler=new DownloadHandlerBuffer(); request.timeout=35;
-                if(body!=null) { request.uploadHandler=new UploadHandlerRaw(body); request.SetRequestHeader("Content-Type",contentType); }
-                request.SetRequestHeader("Authorization","Bearer "+credential);
-                if(!string.IsNullOrEmpty(Config.certificateSha256)) request.certificateHandler=new PinnedCertificate(Config.certificateSha256);
-                yield return request.SendWebRequest();
-                if(request.result!=UnityWebRequest.Result.Success)
+                bool publishing=path.EndsWith("/snapshots") || path.EndsWith("/events") || path.EndsWith("/epoch");
+                if (publishing && (string.IsNullOrEmpty(Config.authorityToken) || !QuantumContextExporter.IsAuthority)) yield break;
+                CompanionHttpResult result=null;
+                yield return Transport.Send(Config.serverUrl+path,method,body,contentType,credential,Config.certificateSha256,r=>result=r);
+                if (owner!=conversationId || suspended) yield break;
+                LastHttpStatus=result?.Status ?? 0;
+                if(result!=null && result.Success)
                 {
-                    Status="Conversation unavailable. You can keep exploring the qubits.";
-                    if(request.responseCode==409 && (path.EndsWith("/snapshots") || path.EndsWith("/events"))) exporter.AuthorityEpoch=0;
-                    if(!reconnecting && !string.IsNullOrEmpty(conversationId) &&
-                        (request.responseCode==401 || request.responseCode==404) && path.StartsWith(ConversationPath+"/",StringComparison.Ordinal))
-                        StartCoroutine(Reconnect());
+                    receive?.Invoke(result.Data ?? new byte[0]);
                     yield break;
                 }
-                receive?.Invoke(request.downloadHandler.data);
+                long code=result?.Status ?? 0;
+                LastHttpStatus=code;
+                Status=$"Conversation unavailable (HTTP {code}). Quantum simulation remains available.";
+                if(path.EndsWith("/password-conversations",StringComparison.Ordinal)) yield break;
+                if ((code==409 || code==404) && publishing) { exporter.AuthorityEpoch=0; yield break; }
+                if(publishing && (code==400 || code==401 || code==403 || code==422))
+                { publicationBlocked=true; yield break; }
+                // A missing job/reference is not a missing conversation.
+                if(!reconnecting && owner!=null && path.StartsWith(ConversationPath+"/",StringComparison.Ordinal) && (code==401 || (code==404 &&
+                    (path==ConversationPath+"/context" || path.StartsWith(ConversationPath+"/messages",StringComparison.Ordinal)))))
+                { StartCoroutine(Reconnect()); yield break; }
+                if (code!=0 && code!=429 && code!=502 && code!=503 && code!=504) yield break;
+                yield return new WaitForSecondsRealtime(1 << attempt);
             }
         }
         private static T Parse<T>(string json) where T:class
@@ -357,16 +517,31 @@ namespace Qixr.Companion
             try { int rate; float[] samples=QuantumWav.Decode(bytes,out rate); var clip=AudioClip.Create("Quantum speech",samples.Length,1,rate,false); clip.SetData(samples,0); return clip; }
             catch(Exception e) { Debug.LogWarning("Invalid companion audio: "+e.Message); return null; }
         }
-        private void OnDisable() { Interrupt(); }
-        private sealed class PinnedCertificate:CertificateHandler
+        private void Suspend()
         {
-            private readonly string expected;
-            public PinnedCertificate(string hash) { expected=hash.Replace(":","").ToLowerInvariant(); }
-            protected override bool ValidateCertificate(byte[] certificateData)
-            {
-                using(var sha=SHA256.Create())
-                    return BitConverter.ToString(sha.ComputeHash(certificateData)).Replace("-","").ToLowerInvariant()==expected;
-            }
+            suspended=true;
+            generation++;
+            if(microphoneClip!=null) { Microphone.End(null); Destroy(microphoneClip); microphoneClip=null; }
+            Transport.AbortAll();
+            StopAllCoroutines();
+            conversationId=token=null;
+            pendingCancels=0; turnActive=reconnecting=false;
+            IsSigningIn=false;
+            sharedSpeaker=sharedRequest=null;
+            if(exporter!=null) exporter.AuthorityEpoch=0;
+            if(journal!=null) journal.ClearJournal();
+            Interrupted?.Invoke();
         }
+        private void Resume()
+        {
+            if(!suspended || !isActiveAndEnabled || applicationPaused || applicationUnfocused) return;
+            suspended=false;
+            if (IsPaired && !UsesPassword) StartCoroutine(Connect());
+            else if(IsPaired) Status="Enter Server Password to reconnect. Your password is not saved.";
+        }
+        private void OnApplicationPause(bool pause) { applicationPaused=pause; if(pause) Suspend(); else Resume(); }
+        private void OnApplicationFocus(bool focus) { applicationUnfocused=!focus; if(!focus) Suspend(); else Resume(); }
+        private void OnDisable() { Suspend(); }
+        private void OnEnable() { if(started) Resume(); }
     }
 }

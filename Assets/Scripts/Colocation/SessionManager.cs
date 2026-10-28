@@ -50,6 +50,8 @@ namespace ArtsOfEntanglement.Colocation
 
         public async void StartHost(string sessionName)
         {
+            if (Qixr.Companion.QuantumContextExporter.JoinOnlyParticipant)
+            { ReportStatus("Join-only participant: wait for the designated authority and rejoin."); return; }
             await StartSession(GameMode.Host, sessionName, reportFailure: true, allowSingleFallback: true);
         }
 
@@ -80,6 +82,8 @@ namespace ArtsOfEntanglement.Colocation
 
             if (IsHostFallbackReason(clientResult.ShutdownReason))
             {
+                if (Qixr.Companion.QuantumContextExporter.JoinOnlyParticipant)
+                { ReportStatus("Authority unavailable. Join-only participant must rejoin; no host promotion."); return; }
                 ReportStatus("Auto start: switching to Host.");
                 if (AutoHostRequested != null)
                 {
@@ -93,7 +97,7 @@ namespace ArtsOfEntanglement.Colocation
                 return;
             }
 
-            if (autoStartSingleOnNetworkFailure && IsNetworkFailureReason(clientResult.ShutdownReason))
+            if (!Qixr.Companion.QuantumContextExporter.JoinOnlyParticipant && autoStartSingleOnNetworkFailure && IsNetworkFailureReason(clientResult.ShutdownReason))
             {
                 ReportStatus("Auto start: network unavailable. Starting Single mode.");
                 await StartSession(GameMode.Single, sessionName, reportFailure: true, allowSingleFallback: false);
@@ -205,7 +209,7 @@ namespace ArtsOfEntanglement.Colocation
                     ReportStatus($"StartGame failed: {result.ShutdownReason}");
                 }
 
-                if (allowSingleFallback && autoStartSingleOnNetworkFailure && mode != GameMode.Single &&
+                if (!Qixr.Companion.QuantumContextExporter.JoinOnlyParticipant && allowSingleFallback && autoStartSingleOnNetworkFailure && mode != GameMode.Single &&
                     IsNetworkFailureReason(result.ShutdownReason))
                 {
                     ReportStatus("Network unavailable. Starting Single mode.");
