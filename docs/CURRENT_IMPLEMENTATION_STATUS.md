@@ -2,6 +2,10 @@
 
 Updated: 2026-08-18
 
+Quantum companion update, 2026-10-28: [implemented server and Unity integration](QUANTUM_COMPANION_IMPLEMENTATION.md), with [launch/pairing instructions](../server/README.md). The older status below describes the existing quantum/XR baseline; its historical compilation/device claims are not a new full Unity regression result.
+
+Standalone Quest handoff, 2026-10-28: companion Unity source exists, but full Editor compilation, Android IL2CPP build and on-device integration remain unverified. Follow [the other-PC implementation prompt](handoff/01_UNITY_QUEST_IMPLEMENTATION_PROMPT.md) after importing the matching [source handoff](handoff/00_START_HERE.md).
+
 ## Scope
 
 The active build target is a three-qubit Quest/XR experience. `QubitManager` evolves one shared 8x8 density matrix; visualization, audio, and networking read the resulting `EntanglementSnapshot` instead of calculating separate local quantum states.

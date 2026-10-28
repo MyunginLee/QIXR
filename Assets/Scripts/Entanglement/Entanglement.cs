@@ -10,6 +10,8 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(AudioSource))]
 public class Entanglement : MonoBehaviour
 {
+    public float RibbonActivationThreshold => particleActivationThreshold;
+    public float RibbonReleaseThreshold => particleDeactivationThreshold;
     private const float NodeBaseScale = 0.3f;
     private const int ArcSegments = 20;
     private const int RibbonSegments = 16;

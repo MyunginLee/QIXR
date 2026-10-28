@@ -1,0 +1,20 @@
+{
+  "tts": [
+    {
+      "file": "vits-mimic3-ko_KO-kss_low.tar.bz2",
+      "directory": "vits-mimic3-ko_KO-kss_low",
+      "url": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-mimic3-ko_KO-kss_low.tar.bz2",
+      "sha256": "f015d1d15a52ed00d6fe22757c5ef4a74283c53daf829c838fa5c22616ed789c"
+    },
+    {
+      "file": "vits-piper-en_US-lessac-medium-int8.tar.bz2",
+      "directory": "vits-piper-en_US-lessac-medium-int8",
+      "url": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_US-lessac-medium-int8.tar.bz2",
+      "sha256": "f1c6d0295cf16087b05f80fdca5b44daca5cd78e2c425d419a42ba34929805f9"
+    }
+  ],
+  "asr": {
+    "repository": "Systran/faster-whisper-small",
+    "revision": "536b0662742c02347bc0e980a01041f333bce120"
+  }
+}

@@ -1,6 +1,13 @@
 # About Quantum Intuition XR
 
 Current implementation status: [docs/CURRENT_IMPLEMENTATION_STATUS.md](docs/CURRENT_IMPLEMENTATION_STATUS.md)
+
+Quantum companion: [Server launch and Unity pairing](server/README.md), [implementation and validation](docs/QUANTUM_COMPANION_IMPLEMENTATION.md), [design](docs/QUANTUM_COMPANION_DESIGN.md), and [repository/source audit](docs/QUANTUM_COMPANION_AUDIT.md).
+
+User experience: [English-first Quantum agent](docs/QUANTUM_AGENT.md) · [사용자 스토리보드](docs/QUANTUM_COMPANION_STORYBOARD_KO.md) · [예상 다이얼로그](docs/QUANTUM_COMPANION_DIALOGUE_KO.md).
+
+Standalone Quest completion on a Unity-capable PC: [handoff/import guide](docs/handoff/00_START_HERE.md) · [implementation prompt](docs/handoff/01_UNITY_QUEST_IMPLEMENTATION_PROMPT.md) · [server contract](docs/handoff/02_SERVER_CONTRACT.md) · [acceptance checks](docs/handoff/03_QUEST_ACCEPTANCE.md). Unity integration source is present; full Editor/Android/device validation and the listed hardening tasks remain.
+
 Quantum Intuition XR is an interactive, extended reality (XR) experience designed to make quantum concepts tangible. The system visualizes core principles of quantum computing, including qubits, superposition, entanglement, and measurement, through immersive interaction. Using a Mixed Reality headset, users engage with floating qubits, manipulate their states via controllers, and observe entanglement dynamics through real-time audiovisual feedback. A key feature of the implementation is the mathematically accurate and dynamic representation of qubits, both individually and while interacting with each other. The visualization of the qubit states evolve—rotate, shrink, grow, entangle—depending on their actual quantum states, which depend on variables such as proximity to other qubits and user interaction.
 
 # How to install

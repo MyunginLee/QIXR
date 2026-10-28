@@ -73,3 +73,19 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
 .fake
+
+# Companion server environments, credentials and downloaded models
+.venv/
+.tools/
+.runtime/
+__pycache__/
+.pytest_cache/
+*.egg-info/
+Assets/StreamingAssets/qixr-companion.json
+Assets/StreamingAssets/qixr-companion.json.meta
+!server/csharp/*.csproj
+server/csharp/bin/
+server/csharp/obj/
+
+# Reproducible source handoff archives; source instructions stay in docs/handoff.
+/handoff-export/

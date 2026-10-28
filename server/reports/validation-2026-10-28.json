@@ -1,0 +1,482 @@
+{
+  "date": "2026-10-28",
+  "host": {
+    "architecture": "aarch64",
+    "gpu": "NVIDIA GB10",
+    "memoryGiB": 121,
+    "driver": "580.178.04"
+  },
+  "pipeline": {
+    "model": "qwen3:8b",
+    "asr": "faster-whisper-small int8 CPU beam5",
+    "tts": [
+      "sherpa-onnx mimic3 Korean KSS",
+      "sherpa-onnx piper English lessac medium int8"
+    ],
+    "answerJobs": 2,
+    "clientLimitPerRoom": 8
+  },
+  "pythonTests": {
+    "passed": 21
+  },
+  "csharp": {
+    "originalMathSuitesPassed": 3,
+    "wireMetricComparisonStates": 6,
+    "tolerance": 1e-07,
+    "fullUnityBuild": false,
+    "questDeviceRun": false,
+    "pcm16RoundTrip": true
+  },
+  "measurementScope": "Single bursts on loopback; not p95 or a capacity guarantee. Text/TTS exclude ASR. Synthetic speech loopback excludes real microphone and headset playback.",
+  "loadText": [
+    {
+      "concurrency": 1,
+      "voice": false,
+      "turns": [
+        {
+          "client": 0,
+          "state": "done",
+          "planner": "ollama:qwen3:8b",
+          "status": "answered",
+          "intent": "concept",
+          "captionSeconds": 4.434101541992277,
+          "firstAudioSeconds": null,
+          "totalSeconds": 4.436679863953032,
+          "modelTiming": {
+            "eval_count": 13,
+            "eval_duration": 347061000,
+            "prompt_eval_count": 192,
+            "prompt_eval_duration": 149526000
+          }
+        }
+      ],
+      "medianCaptionSeconds": 4.434101541992277,
+      "maxCaptionSeconds": 4.434101541992277
+    },
+    {
+      "concurrency": 2,
+      "voice": false,
+      "turns": [
+        {
+          "client": 0,
+          "state": "done",
+          "planner": "ollama:qwen3:8b",
+          "status": "answered",
+          "intent": "concept",
+          "captionSeconds": 0.678671348025091,
+          "firstAudioSeconds": null,
+          "totalSeconds": 0.6969407350406982,
+          "modelTiming": {
+            "eval_count": 22,
+            "eval_duration": 598348000,
+            "prompt_eval_count": 232,
+            "prompt_eval_duration": 48796000
+          }
+        },
+        {
+          "client": 1,
+          "state": "done",
+          "planner": "ollama:qwen3:8b",
+          "status": "answered",
+          "intent": "concept",
+          "captionSeconds": 1.0149915390065871,
+          "firstAudioSeconds": null,
+          "totalSeconds": 1.0688001809758134,
+          "modelTiming": {
+            "eval_count": 13,
+            "eval_duration": 322142000,
+            "prompt_eval_count": 192,
+            "prompt_eval_duration": 38381000
+          }
+        }
+      ],
+      "medianCaptionSeconds": 0.846831443515839,
+      "maxCaptionSeconds": 1.0149915390065871
+    },
+    {
+      "concurrency": 4,
+      "voice": false,
+      "turns": [
+        {
+          "client": 0,
+          "state": "done",
+          "planner": "ollama:qwen3:8b",
+          "status": "answered",
+          "intent": "concept",
+          "captionSeconds": 0.4035317209782079,
+          "firstAudioSeconds": null,
+          "totalSeconds": 0.42412685399176553,
+          "modelTiming": {
+            "eval_count": 13,
+            "eval_duration": 313345000,
+            "prompt_eval_count": 272,
+            "prompt_eval_duration": 52145000
+          }
+        },
+        {
+          "client": 1,
+          "state": "done",
+          "planner": "ollama:qwen3:8b",
+          "status": "answered",
+          "intent": "concept",
+          "captionSeconds": 0.9806151819648221,
+          "firstAudioSeconds": null,
+          "totalSeconds": 1.0367755049956031,
+          "modelTiming": {
+            "eval_count": 21,
+            "eval_duration": 556323000,
+            "prompt_eval_count": 232,
+            "prompt_eval_duration": 36713000
+          }
+        },
+        {
+          "client": 2,
+          "state": "done",
+          "planner": "ollama:qwen3:8b",
+          "status": "answered",
+          "intent": "concept",
+          "captionSeconds": 1.3319975430495106,
+          "firstAudioSeconds": null,
+          "totalSeconds": 1.3673606530064717,
+          "modelTiming": {
+            "eval_count": 13,
+            "eval_duration": 321293000,
+            "prompt_eval_count": 192,
+            "prompt_eval_duration": 39032000
+          }
+        },
+        {
+          "client": 3,
+          "state": "done",
+          "planner": "ollama:qwen3:8b",
+          "status": "answered",
+          "intent": "concept",
+          "captionSeconds": 1.674327931017615,
+          "firstAudioSeconds": null,
+          "totalSeconds": 1.746529127995018,
+          "modelTiming": {
+            "eval_count": 13,
+            "eval_duration": 314591000,
+            "prompt_eval_count": 192,
+            "prompt_eval_duration": 25196000
+          }
+        }
+      ],
+      "medianCaptionSeconds": 1.1563063625071663,
+      "maxCaptionSeconds": 1.674327931017615
+    },
+    {
+      "concurrency": 8,
+      "voice": false,
+      "turns": [
+        {
+          "client": 0,
+          "state": "done",
+          "planner": "ollama:qwen3:8b",
+          "status": "answered",
+          "intent": "concept",
+          "captionSeconds": 0.4495701019768603,
+          "firstAudioSeconds": null,
+          "totalSeconds": 0.4986417320324108,
+          "modelTiming": {
+            "eval_count": 13,
+            "eval_duration": 309474000,
+            "prompt_eval_count": 312,
+            "prompt_eval_duration": 69821000
+          }
+        },
+        {
+          "client": 1,
+          "state": "done",
+          "planner": "ollama:qwen3:8b",
+          "status": "answered",
+          "intent": "concept",
+          "captionSeconds": 0.7508960959967226,
+          "firstAudioSeconds": null,
+          "totalSeconds": 0.8439076730282977,
+          "modelTiming": {
+            "eval_count": 13,
+            "eval_duration": 303632000,
+            "prompt_eval_count": 272,
+            "prompt_eval_duration": 39726000
+          }
+        },
+        {
+          "client": 2,
+          "state": "done",
+          "planner": "ollama:qwen3:8b",
+          "status": "answered",
+          "intent": "concept",
+          "captionSeconds": 2.7029902460053563,
+          "firstAudioSeconds": null,
+          "totalSeconds": 2.786855898972135,
+          "modelTiming": {
+            "eval_count": 22,
+            "eval_duration": 597315000,
+            "prompt_eval_count": 232,
+            "prompt_eval_duration": 25882000
+          }
+        },
+        {
+          "client": 3,
+          "state": "done",
+          "planner": "ollama:qwen3:8b",
+          "status": "answered",
+          "intent": "concept",
+          "captionSeconds": 2.078061156964395,
+          "firstAudioSeconds": null,
+          "totalSeconds": 2.1751505130087025,
+          "modelTiming": {
+            "eval_count": 22,
+            "eval_duration": 592562000,
+            "prompt_eval_count": 232,
+            "prompt_eval_duration": 42715000
+          }
+        },
+        {
+          "client": 4,
+          "state": "done",
+          "planner": "ollama:qwen3:8b",
+          "status": "answered",
+          "intent": "concept",
+          "captionSeconds": 1.0917747390340082,
+          "firstAudioSeconds": null,
+          "totalSeconds": 1.1882060310454108,
+          "modelTiming": {
+            "eval_count": 13,
+            "eval_duration": 316846000,
+            "prompt_eval_count": 192,
+            "prompt_eval_duration": 38238000
+          }
+        },
+        {
+          "client": 5,
+          "state": "done",
+          "planner": "ollama:qwen3:8b",
+          "status": "answered",
+          "intent": "concept",
+          "captionSeconds": 3.4169896159437485,
+          "firstAudioSeconds": null,
+          "totalSeconds": 3.491992878029123,
+          "modelTiming": {
+            "eval_count": 13,
+            "eval_duration": 325739000,
+            "prompt_eval_count": 192,
+            "prompt_eval_duration": 25534000
+          }
+        },
+        {
+          "client": 6,
+          "state": "done",
+          "planner": "ollama:qwen3:8b",
+          "status": "answered",
+          "intent": "concept",
+          "captionSeconds": 3.0635054449667223,
+          "firstAudioSeconds": null,
+          "totalSeconds": 3.1716949840192683,
+          "modelTiming": {
+            "eval_count": 13,
+            "eval_duration": 319808000,
+            "prompt_eval_count": 192,
+            "prompt_eval_duration": 38244000
+          }
+        },
+        {
+          "client": 7,
+          "state": "done",
+          "planner": "ollama:qwen3:8b",
+          "status": "answered",
+          "intent": "concept",
+          "captionSeconds": 1.4412320589763112,
+          "firstAudioSeconds": null,
+          "totalSeconds": 1.521068251982797,
+          "modelTiming": {
+            "eval_count": 13,
+            "eval_duration": 321767000,
+            "prompt_eval_count": 192,
+            "prompt_eval_duration": 26249000
+          }
+        }
+      ],
+      "medianCaptionSeconds": 1.7596466079703532,
+      "maxCaptionSeconds": 3.4169896159437485
+    }
+  ],
+  "loadVoice": [
+    {
+      "concurrency": 1,
+      "voice": true,
+      "turns": [
+        {
+          "client": 0,
+          "state": "done",
+          "planner": "ollama:qwen3:8b",
+          "status": "answered",
+          "intent": "concept",
+          "captionSeconds": 0.38479935796931386,
+          "firstAudioSeconds": 0.6898883139947429,
+          "totalSeconds": 1.096472982026171,
+          "modelTiming": {
+            "eval_count": 13,
+            "eval_duration": 324638000,
+            "prompt_eval_count": 192,
+            "prompt_eval_duration": 29337000
+          }
+        }
+      ],
+      "medianCaptionSeconds": 0.38479935796931386,
+      "maxCaptionSeconds": 0.38479935796931386
+    },
+    {
+      "concurrency": 2,
+      "voice": true,
+      "turns": [
+        {
+          "client": 0,
+          "state": "done",
+          "planner": "ollama:qwen3:8b",
+          "status": "answered",
+          "intent": "concept",
+          "captionSeconds": 0.6722741589765064,
+          "firstAudioSeconds": 1.0677548999665305,
+          "totalSeconds": 1.8597163330414332,
+          "modelTiming": {
+            "eval_count": 22,
+            "eval_duration": 594163000,
+            "prompt_eval_count": 232,
+            "prompt_eval_duration": 44171000
+          }
+        },
+        {
+          "client": 1,
+          "state": "done",
+          "planner": "ollama:qwen3:8b",
+          "status": "answered",
+          "intent": "concept",
+          "captionSeconds": 1.011576561955735,
+          "firstAudioSeconds": 1.2910707659902982,
+          "totalSeconds": 2.017693278961815,
+          "modelTiming": {
+            "eval_count": 13,
+            "eval_duration": 327859000,
+            "prompt_eval_count": 192,
+            "prompt_eval_duration": 39088000
+          }
+        }
+      ],
+      "medianCaptionSeconds": 0.8419253604661208,
+      "maxCaptionSeconds": 1.011576561955735
+    },
+    {
+      "concurrency": 4,
+      "voice": true,
+      "turns": [
+        {
+          "client": 0,
+          "state": "done",
+          "planner": "ollama:qwen3:8b",
+          "status": "answered",
+          "intent": "concept",
+          "captionSeconds": 0.4039504090324044,
+          "firstAudioSeconds": 0.8005459340056404,
+          "totalSeconds": 1.4958718050038442,
+          "modelTiming": {
+            "eval_count": 13,
+            "eval_duration": 310868000,
+            "prompt_eval_count": 272,
+            "prompt_eval_duration": 54750000
+          }
+        },
+        {
+          "client": 1,
+          "state": "done",
+          "planner": "ollama:qwen3:8b",
+          "status": "answered",
+          "intent": "concept",
+          "captionSeconds": 0.9975968250073493,
+          "firstAudioSeconds": 1.28743010800099,
+          "totalSeconds": 1.9481498600216582,
+          "modelTiming": {
+            "eval_count": 21,
+            "eval_duration": 570074000,
+            "prompt_eval_count": 232,
+            "prompt_eval_duration": 38458000
+          }
+        },
+        {
+          "client": 2,
+          "state": "done",
+          "planner": "ollama:qwen3:8b",
+          "status": "answered",
+          "intent": "concept",
+          "captionSeconds": 1.8227495099999942,
+          "firstAudioSeconds": 2.27772025502054,
+          "totalSeconds": 3.08425532997353,
+          "modelTiming": {
+            "eval_count": 13,
+            "eval_duration": 330329000,
+            "prompt_eval_count": 192,
+            "prompt_eval_duration": 37258000
+          }
+        },
+        {
+          "client": 3,
+          "state": "done",
+          "planner": "ollama:qwen3:8b",
+          "status": "answered",
+          "intent": "concept",
+          "captionSeconds": 2.2771719669690356,
+          "firstAudioSeconds": 2.523366998997517,
+          "totalSeconds": 3.2437718929722905,
+          "modelTiming": {
+            "eval_count": 13,
+            "eval_duration": 326315000,
+            "prompt_eval_count": 192,
+            "prompt_eval_duration": 26583000
+          }
+        }
+      ],
+      "medianCaptionSeconds": 1.4101731675036717,
+      "maxCaptionSeconds": 2.2771719669690356
+    }
+  ],
+  "syntheticSpeech": [
+    {
+      "language": "ko",
+      "input": "내 측정 확률을 알려 줘.",
+      "transcript": "내천적 확률을 알려줘.",
+      "asrSeconds": 1.2192932500038296,
+      "firstAudioAvailableSeconds": 1.3534511729958467,
+      "planner": "rules",
+      "status": "answered"
+    },
+    {
+      "language": "en",
+      "input": "What are my odds of getting zero?",
+      "transcript": "What are my odds of getting zero?",
+      "asrSeconds": 0.9227551780059002,
+      "firstAudioAvailableSeconds": 1.8262760890065692,
+      "planner": "ollama:qwen3:8b",
+      "status": "answered"
+    }
+  ],
+  "initialSpeechFailures": [
+    {
+      "language": "ko",
+      "input": "내 측정 확률을 알려 줘.",
+      "transcript": "내 측정 환규를 알려줘.",
+      "intent": "concept",
+      "asrSeconds": 0.9074870889890008
+    }
+  ],
+  "sourceSha256": {
+    "server/qixr_companion/__init__.py": "a74023d9b5db5816d821310b84fff4acb5cd24c5ee938430021c9dce095757a4",
+    "server/qixr_companion/api.py": "c48a1c2c5a1d950cb535e20457a94a7573b440cf1e27b42d73cc68776838aaf9",
+    "server/qixr_companion/contracts.py": "eeef388f5382b668c701958a9d2d6abb61483b875a73f3d0d092cfaf798848e5",
+    "server/qixr_companion/dialogue.py": "c55d133eb0b4ff5420442ef46a121419ccbb241415200cdf96132fce6ebdaeaf",
+    "server/qixr_companion/physics.py": "1b13f869bd287adc75fb8f57b148f0e9623eb3ade66a4c02cb7db7af902f8233",
+    "server/qixr_companion/service.py": "a4ba023a83e3b9bc8f096dcf1a6819c3a992874aae4d77df7c14f9da59f55dbe",
+    "server/qixr_companion/store.py": "3cc2ba6567130455a784b8d71c0a268ba9af9a52ddf38c31c32010e66707c476",
+    "server/qixr_companion/voice.py": "b02ab8c03c49a19442e831f2ae9ea38703a925ca50ecb7270ace0be494db6188"
+  }
+}

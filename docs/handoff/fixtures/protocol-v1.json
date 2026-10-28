@@ -1,0 +1,3587 @@
+{
+  "fixtureOnly": true,
+  "protocolVersion": 1,
+  "agentPolicy": "quantum-companion-en-1",
+  "notice": "Synthetic analytical states and constructed job envelopes; not live traces, timing, or model evaluation. No usable credentials.",
+  "sourceSha256": {
+    "server/qixr_companion/agent.py": "6d9245327f31eda0ab7d9485f6c84ccbe35a6cf48c18c98c4f7e2b8639cdb3a2",
+    "server/qixr_companion/api.py": "e67a4d709424472e0acfd3d0de763fb1c25e6e4f4b91c528009b06f94a53cf43",
+    "server/qixr_companion/contracts.py": "271592857d4ff4d17fb51cea8e491bd3794ddbe7f7085893f922a48a20f3d2e2",
+    "server/qixr_companion/dialogue.py": "977ea6334c62702b954f871f6ec06660ac3eb19d82bd846365588d9b27469c05",
+    "server/qixr_companion/physics.py": "1b13f869bd287adc75fb8f57b148f0e9623eb3ade66a4c02cb7db7af902f8233",
+    "server/qixr_companion/service.py": "5ce64ccd37b9510394d64e2d4c1bc1e4aa7fcd0e643da8158e69ae9d2628555f",
+    "Assets/Scripts/Companion/QuantumCompanionContracts.cs": "89ef324ca75176f4b7a09777e8614f05624aa273baee11d08005ee53d7ca756e"
+  },
+  "schemas": {
+    "Snapshot": {
+      "$defs": {
+        "Coupling": {
+          "additionalProperties": false,
+          "properties": {
+            "first": {
+              "maximum": 2,
+              "minimum": 0,
+              "title": "First",
+              "type": "integer"
+            },
+            "second": {
+              "maximum": 2,
+              "minimum": 0,
+              "title": "Second",
+              "type": "integer"
+            },
+            "strength": {
+              "title": "Strength",
+              "type": "number"
+            }
+          },
+          "required": [
+            "first",
+            "second",
+            "strength"
+          ],
+          "title": "Coupling",
+          "type": "object"
+        },
+        "Presentation": {
+          "additionalProperties": false,
+          "properties": {
+            "scene": {
+              "default": "unknown",
+              "maxLength": 128,
+              "title": "Scene",
+              "type": "string"
+            },
+            "ribbonOn": {
+              "default": 0.0001,
+              "minimum": 0,
+              "title": "Ribbonon",
+              "type": "number"
+            },
+            "ribbonOff": {
+              "default": 5e-05,
+              "minimum": 0,
+              "title": "Ribbonoff",
+              "type": "number"
+            },
+            "arpeggioOn": {
+              "default": 0.01,
+              "minimum": 0,
+              "title": "Arpeggioon",
+              "type": "number"
+            },
+            "mappingVersion": {
+              "default": "qixr-2026-09",
+              "title": "Mappingversion",
+              "type": "string"
+            },
+            "visiblePairs": {
+              "items": {
+                "type": "boolean"
+              },
+              "maxItems": 3,
+              "title": "Visiblepairs",
+              "type": "array"
+            },
+            "musicPlaying": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Musicplaying"
+            }
+          },
+          "title": "Presentation",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "schemaVersion": {
+          "const": 1,
+          "default": 1,
+          "title": "Schemaversion",
+          "type": "integer"
+        },
+        "roomId": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Roomid",
+          "type": "string"
+        },
+        "authorityEpoch": {
+          "minimum": 1,
+          "title": "Authorityepoch",
+          "type": "integer"
+        },
+        "snapshotId": {
+          "maxLength": 96,
+          "minLength": 1,
+          "title": "Snapshotid",
+          "type": "string"
+        },
+        "stateVersion": {
+          "minimum": 0,
+          "title": "Stateversion",
+          "type": "integer"
+        },
+        "eventSequence": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Eventsequence",
+          "type": "integer"
+        },
+        "simulationTime": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Simulationtime",
+          "type": "number"
+        },
+        "capturedAtUtc": {
+          "maxLength": 64,
+          "title": "Capturedatutc",
+          "type": "string"
+        },
+        "qubitCount": {
+          "default": 3,
+          "maximum": 3,
+          "minimum": 1,
+          "title": "Qubitcount",
+          "type": "integer"
+        },
+        "basisOrder": {
+          "const": "q0-msb",
+          "default": "q0-msb",
+          "title": "Basisorder",
+          "type": "string"
+        },
+        "densityEncoding": {
+          "default": "complex-row-major-f64",
+          "enum": [
+            "complex-row-major-f64",
+            "complex-row-major-f32"
+          ],
+          "title": "Densityencoding",
+          "type": "string"
+        },
+        "density": {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 128,
+          "title": "Density",
+          "type": "array"
+        },
+        "couplings": {
+          "items": {
+            "$ref": "#/$defs/Coupling"
+          },
+          "maxItems": 3,
+          "title": "Couplings",
+          "type": "array"
+        },
+        "presentation": {
+          "$ref": "#/$defs/Presentation"
+        }
+      },
+      "required": [
+        "roomId",
+        "authorityEpoch",
+        "snapshotId",
+        "stateVersion",
+        "density"
+      ],
+      "title": "Snapshot",
+      "type": "object"
+    },
+    "QuantumEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "eventId": {
+          "maxLength": 96,
+          "minLength": 1,
+          "title": "Eventid",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "authorityEpoch": {
+          "minimum": 1,
+          "title": "Authorityepoch",
+          "type": "integer"
+        },
+        "actor": {
+          "default": "authority",
+          "maxLength": 96,
+          "title": "Actor",
+          "type": "string"
+        },
+        "operation": {
+          "enum": [
+            "H",
+            "X",
+            "Z",
+            "S",
+            "measureZ"
+          ],
+          "title": "Operation",
+          "type": "string"
+        },
+        "target": {
+          "maximum": 2,
+          "minimum": 0,
+          "title": "Target",
+          "type": "integer"
+        },
+        "beforeSnapshotId": {
+          "maxLength": 96,
+          "title": "Beforesnapshotid",
+          "type": "string"
+        },
+        "afterSnapshotId": {
+          "maxLength": 96,
+          "title": "Aftersnapshotid",
+          "type": "string"
+        },
+        "outcome": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Outcome"
+        },
+        "probability": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Probability"
+        }
+      },
+      "required": [
+        "eventId",
+        "sequence",
+        "authorityEpoch",
+        "operation",
+        "target",
+        "beforeSnapshotId",
+        "afterSnapshotId"
+      ],
+      "title": "QuantumEvent",
+      "type": "object"
+    },
+    "Question": {
+      "additionalProperties": false,
+      "properties": {
+        "requestId": {
+          "maxLength": 96,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "title": "Requestid",
+          "type": "string"
+        },
+        "selectionId": {
+          "maxLength": 96,
+          "minLength": 1,
+          "title": "Selectionid",
+          "type": "string"
+        },
+        "targetQubitIds": {
+          "items": {
+            "type": "integer"
+          },
+          "maxItems": 2,
+          "title": "Targetqubitids",
+          "type": "array"
+        },
+        "referenceSnapshotId": {
+          "maxLength": 96,
+          "minLength": 1,
+          "title": "Referencesnapshotid",
+          "type": "string"
+        },
+        "referenceEventId": {
+          "anyOf": [
+            {
+              "maxLength": 96,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Referenceeventid"
+        },
+        "referenceMode": {
+          "default": "captured",
+          "enum": [
+            "captured",
+            "live"
+          ],
+          "title": "Referencemode",
+          "type": "string"
+        },
+        "language": {
+          "default": "en",
+          "enum": [
+            "ko",
+            "en"
+          ],
+          "title": "Language",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "speak": {
+          "default": false,
+          "title": "Speak",
+          "type": "boolean"
+        },
+        "visibility": {
+          "default": "private",
+          "enum": [
+            "private",
+            "room"
+          ],
+          "title": "Visibility",
+          "type": "string"
+        }
+      },
+      "required": [
+        "requestId",
+        "selectionId",
+        "referenceSnapshotId",
+        "text"
+      ],
+      "title": "Question",
+      "type": "object"
+    }
+  },
+  "joinResponse": {
+    "conversationId": "fixture-conversation",
+    "conversationToken": "FIXTURE_NOT_A_CREDENTIAL",
+    "authorityEpoch": 1
+  },
+  "contextResponse": {
+    "snapshot": {
+      "schemaVersion": 1,
+      "roomId": "offline-fixture-room",
+      "authorityEpoch": 1,
+      "snapshotId": "fixture-superposition",
+      "stateVersion": 1,
+      "eventSequence": 1,
+      "simulationTime": 0,
+      "capturedAtUtc": "2026-10-28T00:00:00Z",
+      "qubitCount": 3,
+      "basisOrder": "q0-msb",
+      "densityEncoding": "complex-row-major-f64",
+      "density": [
+        0.4999999999999999,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -0.4999999999999999,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -0.4999999999999999,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.4999999999999999,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "couplings": [],
+      "presentation": {
+        "scene": "unknown",
+        "ribbonOn": 0.0001,
+        "ribbonOff": 5e-05,
+        "arpeggioOn": 0.01,
+        "mappingVersion": "qixr-2026-09",
+        "visiblePairs": [],
+        "musicPlaying": null
+      }
+    },
+    "lastEventId": "fixture-real-H"
+  },
+  "snapshots": [
+    {
+      "schemaVersion": 1,
+      "roomId": "offline-fixture-room",
+      "authorityEpoch": 1,
+      "snapshotId": "fixture-initial",
+      "stateVersion": 0,
+      "eventSequence": 0,
+      "simulationTime": 0,
+      "capturedAtUtc": "2026-10-28T00:00:00Z",
+      "qubitCount": 3,
+      "basisOrder": "q0-msb",
+      "densityEncoding": "complex-row-major-f64",
+      "density": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "couplings": [],
+      "presentation": {
+        "scene": "unknown",
+        "ribbonOn": 0.0001,
+        "ribbonOff": 5e-05,
+        "arpeggioOn": 0.01,
+        "mappingVersion": "qixr-2026-09",
+        "visiblePairs": [],
+        "musicPlaying": null
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "roomId": "offline-fixture-room",
+      "authorityEpoch": 1,
+      "snapshotId": "fixture-superposition",
+      "stateVersion": 1,
+      "eventSequence": 1,
+      "simulationTime": 0,
+      "capturedAtUtc": "2026-10-28T00:00:00Z",
+      "qubitCount": 3,
+      "basisOrder": "q0-msb",
+      "densityEncoding": "complex-row-major-f64",
+      "density": [
+        0.4999999999999999,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -0.4999999999999999,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -0.4999999999999999,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.4999999999999999,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "couplings": [],
+      "presentation": {
+        "scene": "unknown",
+        "ribbonOn": 0.0001,
+        "ribbonOff": 5e-05,
+        "arpeggioOn": 0.01,
+        "mappingVersion": "qixr-2026-09",
+        "visiblePairs": [],
+        "musicPlaying": null
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "roomId": "offline-fixture-room",
+      "authorityEpoch": 1,
+      "snapshotId": "fixture-entangled-pair",
+      "stateVersion": 2,
+      "eventSequence": 1,
+      "simulationTime": 0,
+      "capturedAtUtc": "2026-10-28T00:00:00Z",
+      "qubitCount": 3,
+      "basisOrder": "q0-msb",
+      "densityEncoding": "complex-row-major-f64",
+      "density": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -0.0,
+        0.0,
+        -0.0,
+        0.0,
+        0.4999999999999999,
+        0.0,
+        -0.0,
+        0.0,
+        -0.0,
+        -0.4999999999999999,
+        -0.0,
+        0.0,
+        -0.0,
+        0.0,
+        -0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -0.0,
+        0.4999999999999999,
+        0.0,
+        0.0,
+        0.4999999999999999,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "couplings": [],
+      "presentation": {
+        "scene": "unknown",
+        "ribbonOn": 0.0001,
+        "ribbonOff": 5e-05,
+        "arpeggioOn": 0.01,
+        "mappingVersion": "qixr-2026-09",
+        "visiblePairs": [],
+        "musicPlaying": null
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "roomId": "offline-fixture-room",
+      "authorityEpoch": 1,
+      "snapshotId": "fixture-mixed-global",
+      "stateVersion": 3,
+      "eventSequence": 1,
+      "simulationTime": 0,
+      "capturedAtUtc": "2026-10-28T00:00:00Z",
+      "qubitCount": 3,
+      "basisOrder": "q0-msb",
+      "densityEncoding": "complex-row-major-f64",
+      "density": [
+        0.125,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.125,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.125,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.125,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.125,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.125,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.125,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.125,
+        0.0
+      ],
+      "couplings": [],
+      "presentation": {
+        "scene": "unknown",
+        "ribbonOn": 0.0001,
+        "ribbonOff": 5e-05,
+        "arpeggioOn": 0.01,
+        "mappingVersion": "qixr-2026-09",
+        "visiblePairs": [],
+        "musicPlaying": null
+      }
+    }
+  ],
+  "events": [
+    {
+      "eventId": "fixture-real-H",
+      "sequence": 1,
+      "authorityEpoch": 1,
+      "actor": "fixture-authority",
+      "operation": "H",
+      "target": 0,
+      "beforeSnapshotId": "fixture-initial",
+      "afterSnapshotId": "fixture-superposition",
+      "outcome": null,
+      "probability": null
+    }
+  ],
+  "cases": [
+    {
+      "name": "greeting",
+      "request": {
+        "requestId": "fixture-greeting",
+        "selectionId": "fixture-selection",
+        "targetQubitIds": [
+          0
+        ],
+        "referenceSnapshotId": "fixture-superposition",
+        "referenceEventId": null,
+        "referenceMode": "captured",
+        "language": "en",
+        "text": "Who are you?",
+        "speak": false,
+        "visibility": "private"
+      },
+      "job": {
+        "requestId": "fixture-greeting",
+        "generation": 1,
+        "state": "done",
+        "result": {
+          "status": "answered",
+          "referenceSnapshotId": "fixture-superposition",
+          "authorityEpoch": 1,
+          "stateVersion": 1,
+          "selectionId": "fixture-selection",
+          "targetQubitIds": [
+            0
+          ],
+          "referenceMode": "captured",
+          "factIds": [],
+          "sources": [],
+          "facts": {
+            "calculationVersion": "density-reference-1",
+            "snapshotId": "fixture-superposition",
+            "stateVersion": 1,
+            "authorityEpoch": 1,
+            "tolerance": 1e-07,
+            "globalPurity": 0.9999999999999996,
+            "globallyPure": true,
+            "nodes": [
+              {
+                "qubitId": 0,
+                "label": "Q1",
+                "bloch": [
+                  -0.9999999999999998,
+                  -0.0,
+                  0.0
+                ],
+                "blochRadius": 0.9999999999999998,
+                "purity": 0.9999999999999996,
+                "renyi2Nats": 4.440892098500627e-16,
+                "entropyBits": 3.2034265038149176e-16,
+                "p0": 0.4999999999999999,
+                "p1": 0.4999999999999999,
+                "entangledWithRest": false
+              },
+              {
+                "qubitId": 1,
+                "label": "Q2",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.9999999999999998
+                ],
+                "blochRadius": 0.9999999999999998,
+                "purity": 0.9999999999999996,
+                "renyi2Nats": 4.440892098500627e-16,
+                "entropyBits": 3.2034265038149176e-16,
+                "p0": 0.9999999999999998,
+                "p1": 0.0,
+                "entangledWithRest": false
+              },
+              {
+                "qubitId": 2,
+                "label": "Q3",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.9999999999999998
+                ],
+                "blochRadius": 0.9999999999999998,
+                "purity": 0.9999999999999996,
+                "renyi2Nats": 4.440892098500627e-16,
+                "entropyBits": 3.2034265038149176e-16,
+                "p0": 0.9999999999999998,
+                "p1": 0.0,
+                "entangledWithRest": false
+              }
+            ],
+            "pairs": [
+              {
+                "first": 0,
+                "second": 1,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 3.2034265038149176e-16,
+                "entanglementStatus": "below_resolution"
+              },
+              {
+                "first": 0,
+                "second": 2,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 3.2034265038149176e-16,
+                "entanglementStatus": "below_resolution"
+              },
+              {
+                "first": 1,
+                "second": 2,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 3.2034265038149176e-16,
+                "entanglementStatus": "below_resolution"
+              }
+            ],
+            "genuineTripartitePureCriterion": false
+          },
+          "preview": null,
+          "text": "I'm Quantum, your guide to the qubits you're exploring. These spheres let you see and handle simulated quantum states.",
+          "detailText": "",
+          "nextAction": {
+            "label": "What can I try?",
+            "question": "What can I try?",
+            "kind": "ask"
+          },
+          "referenceCue": {
+            "label": "At your question",
+            "snapshotId": "fixture-superposition",
+            "stateVersion": 1,
+            "eventSequence": 1,
+            "targetQubitIds": [
+              0
+            ],
+            "showState": false
+          },
+          "agentPolicy": "quantum-companion-en-1",
+          "responseLanguage": "en",
+          "planner": "offline-fixture",
+          "intent": "identity",
+          "visibility": "private",
+          "segments": []
+        },
+        "audioCount": 0
+      }
+    },
+    {
+      "name": "probability",
+      "request": {
+        "requestId": "fixture-probability",
+        "selectionId": "fixture-selection",
+        "targetQubitIds": [
+          0
+        ],
+        "referenceSnapshotId": "fixture-superposition",
+        "referenceEventId": null,
+        "referenceMode": "captured",
+        "language": "en",
+        "text": "What are the Z probabilities?",
+        "speak": false,
+        "visibility": "private"
+      },
+      "job": {
+        "requestId": "fixture-probability",
+        "generation": 1,
+        "state": "done",
+        "result": {
+          "status": "answered",
+          "referenceSnapshotId": "fixture-superposition",
+          "authorityEpoch": 1,
+          "stateVersion": 1,
+          "selectionId": "fixture-selection",
+          "targetQubitIds": [
+            0
+          ],
+          "referenceMode": "captured",
+          "factIds": [
+            "fixture-superposition:q0:Z",
+            "fixture-superposition:q0:mixedness"
+          ],
+          "sources": [],
+          "facts": {
+            "calculationVersion": "density-reference-1",
+            "snapshotId": "fixture-superposition",
+            "stateVersion": 1,
+            "authorityEpoch": 1,
+            "tolerance": 1e-07,
+            "globalPurity": 0.9999999999999996,
+            "globallyPure": true,
+            "nodes": [
+              {
+                "qubitId": 0,
+                "label": "Q1",
+                "bloch": [
+                  -0.9999999999999998,
+                  -0.0,
+                  0.0
+                ],
+                "blochRadius": 0.9999999999999998,
+                "purity": 0.9999999999999996,
+                "renyi2Nats": 4.440892098500627e-16,
+                "entropyBits": 3.2034265038149176e-16,
+                "p0": 0.4999999999999999,
+                "p1": 0.4999999999999999,
+                "entangledWithRest": false
+              },
+              {
+                "qubitId": 1,
+                "label": "Q2",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.9999999999999998
+                ],
+                "blochRadius": 0.9999999999999998,
+                "purity": 0.9999999999999996,
+                "renyi2Nats": 4.440892098500627e-16,
+                "entropyBits": 3.2034265038149176e-16,
+                "p0": 0.9999999999999998,
+                "p1": 0.0,
+                "entangledWithRest": false
+              },
+              {
+                "qubitId": 2,
+                "label": "Q3",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.9999999999999998
+                ],
+                "blochRadius": 0.9999999999999998,
+                "purity": 0.9999999999999996,
+                "renyi2Nats": 4.440892098500627e-16,
+                "entropyBits": 3.2034265038149176e-16,
+                "p0": 0.9999999999999998,
+                "p1": 0.0,
+                "entangledWithRest": false
+              }
+            ],
+            "pairs": [
+              {
+                "first": 0,
+                "second": 1,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 3.2034265038149176e-16,
+                "entanglementStatus": "below_resolution"
+              },
+              {
+                "first": 0,
+                "second": 2,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 3.2034265038149176e-16,
+                "entanglementStatus": "below_resolution"
+              },
+              {
+                "first": 1,
+                "second": 2,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 3.2034265038149176e-16,
+                "entanglementStatus": "below_resolution"
+              }
+            ],
+            "genuineTripartitePureCriterion": false
+          },
+          "preview": null,
+          "text": "For Q1, a Z measurement would give 0 with 50.0% probability and 1 with 50.0%. Asking leaves the live state unchanged.",
+          "detailText": "I am Q1. For the captured state, a Z measurement gives 0 with 50.0% probability and 1 with 50.0%. I calculated probabilities without measuring the live state.",
+          "nextAction": {
+            "label": "See possible measurement results",
+            "question": "Preview a Z measurement",
+            "kind": "ask"
+          },
+          "referenceCue": {
+            "label": "At your question",
+            "snapshotId": "fixture-superposition",
+            "stateVersion": 1,
+            "eventSequence": 1,
+            "targetQubitIds": [
+              0
+            ],
+            "showState": true
+          },
+          "agentPolicy": "quantum-companion-en-1",
+          "responseLanguage": "en",
+          "planner": "offline-fixture",
+          "intent": "probability",
+          "visibility": "private",
+          "segments": []
+        },
+        "audioCount": 0
+      }
+    },
+    {
+      "name": "preview-H",
+      "request": {
+        "requestId": "fixture-preview-H",
+        "selectionId": "fixture-selection",
+        "targetQubitIds": [
+          0
+        ],
+        "referenceSnapshotId": "fixture-superposition",
+        "referenceEventId": null,
+        "referenceMode": "captured",
+        "language": "en",
+        "text": "What if I use H again?",
+        "speak": false,
+        "visibility": "private"
+      },
+      "job": {
+        "requestId": "fixture-preview-H",
+        "generation": 1,
+        "state": "done",
+        "result": {
+          "status": "answered",
+          "referenceSnapshotId": "fixture-superposition",
+          "authorityEpoch": 1,
+          "stateVersion": 1,
+          "selectionId": "fixture-selection",
+          "targetQubitIds": [
+            0
+          ],
+          "referenceMode": "captured",
+          "factIds": [
+            "fixture-superposition:sandbox:H"
+          ],
+          "sources": [],
+          "facts": {
+            "calculationVersion": "density-reference-1",
+            "snapshotId": "fixture-superposition",
+            "stateVersion": 1,
+            "authorityEpoch": 1,
+            "tolerance": 1e-07,
+            "globalPurity": 0.9999999999999996,
+            "globallyPure": true,
+            "nodes": [
+              {
+                "qubitId": 0,
+                "label": "Q1",
+                "bloch": [
+                  -0.9999999999999998,
+                  -0.0,
+                  0.0
+                ],
+                "blochRadius": 0.9999999999999998,
+                "purity": 0.9999999999999996,
+                "renyi2Nats": 4.440892098500627e-16,
+                "entropyBits": 3.2034265038149176e-16,
+                "p0": 0.4999999999999999,
+                "p1": 0.4999999999999999,
+                "entangledWithRest": false
+              },
+              {
+                "qubitId": 1,
+                "label": "Q2",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.9999999999999998
+                ],
+                "blochRadius": 0.9999999999999998,
+                "purity": 0.9999999999999996,
+                "renyi2Nats": 4.440892098500627e-16,
+                "entropyBits": 3.2034265038149176e-16,
+                "p0": 0.9999999999999998,
+                "p1": 0.0,
+                "entangledWithRest": false
+              },
+              {
+                "qubitId": 2,
+                "label": "Q3",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.9999999999999998
+                ],
+                "blochRadius": 0.9999999999999998,
+                "purity": 0.9999999999999996,
+                "renyi2Nats": 4.440892098500627e-16,
+                "entropyBits": 3.2034265038149176e-16,
+                "p0": 0.9999999999999998,
+                "p1": 0.0,
+                "entangledWithRest": false
+              }
+            ],
+            "pairs": [
+              {
+                "first": 0,
+                "second": 1,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 3.2034265038149176e-16,
+                "entanglementStatus": "below_resolution"
+              },
+              {
+                "first": 0,
+                "second": 2,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 3.2034265038149176e-16,
+                "entanglementStatus": "below_resolution"
+              },
+              {
+                "first": 1,
+                "second": 2,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 3.2034265038149176e-16,
+                "entanglementStatus": "below_resolution"
+              }
+            ],
+            "genuineTripartitePureCriterion": false
+          },
+          "preview": {
+            "kind": "sandbox",
+            "sourceSnapshotId": "fixture-superposition",
+            "operation": "H",
+            "target": 0,
+            "density": [
+              5.9779208748350985e-34,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              3.251767952832689e-17,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              6.223285321735373e-19,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.9999999999999997,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "facts": {
+              "calculationVersion": "density-reference-1",
+              "snapshotId": "sandbox-fixture-superposition",
+              "stateVersion": 1,
+              "authorityEpoch": 1,
+              "tolerance": 1e-07,
+              "globalPurity": 0.9999999999999993,
+              "globallyPure": true,
+              "nodes": [
+                {
+                  "qubitId": 0,
+                  "label": "Q1",
+                  "bloch": [
+                    6.503535905665378e-17,
+                    -0.0,
+                    -0.9999999999999997
+                  ],
+                  "blochRadius": 0.9999999999999997,
+                  "purity": 0.9999999999999993,
+                  "renyi2Nats": 6.661338147750941e-16,
+                  "entropyBits": 4.805139755722375e-16,
+                  "p0": 5.9779208748350985e-34,
+                  "p1": 0.9999999999999997,
+                  "entangledWithRest": false
+                },
+                {
+                  "qubitId": 1,
+                  "label": "Q2",
+                  "bloch": [
+                    0.0,
+                    -0.0,
+                    0.9999999999999997
+                  ],
+                  "blochRadius": 0.9999999999999997,
+                  "purity": 0.9999999999999993,
+                  "renyi2Nats": 6.661338147750941e-16,
+                  "entropyBits": 4.805139755722375e-16,
+                  "p0": 0.9999999999999997,
+                  "p1": 0.0,
+                  "entangledWithRest": false
+                },
+                {
+                  "qubitId": 2,
+                  "label": "Q3",
+                  "bloch": [
+                    0.0,
+                    -0.0,
+                    0.9999999999999997
+                  ],
+                  "blochRadius": 0.9999999999999997,
+                  "purity": 0.9999999999999993,
+                  "renyi2Nats": 6.661338147750941e-16,
+                  "entropyBits": 4.805139755722375e-16,
+                  "p0": 0.9999999999999997,
+                  "p1": 0.0,
+                  "entangledWithRest": false
+                }
+              ],
+              "pairs": [
+                {
+                  "first": 0,
+                  "second": 1,
+                  "negativity": 0.0,
+                  "logarithmicNegativityBits": 0.0,
+                  "mutualInformationBits": 4.805139755722375e-16,
+                  "entanglementStatus": "below_resolution"
+                },
+                {
+                  "first": 0,
+                  "second": 2,
+                  "negativity": 0.0,
+                  "logarithmicNegativityBits": 0.0,
+                  "mutualInformationBits": 4.805139755722375e-16,
+                  "entanglementStatus": "below_resolution"
+                },
+                {
+                  "first": 1,
+                  "second": 2,
+                  "negativity": 0.0,
+                  "logarithmicNegativityBits": 0.0,
+                  "mutualInformationBits": 4.805139755722375e-16,
+                  "entanglementStatus": "below_resolution"
+                }
+              ],
+              "genuineTripartitePureCriterion": false
+            }
+          },
+          "text": "With H on a copy of Q1, the chance of 0 becomes 0.0% and 1 becomes 100.0%. The live qubit stays as it was.",
+          "detailText": "This is a sandbox preview of H on Q1, calculated on a copy of the captured state. The live qubits were not changed.",
+          "nextAction": null,
+          "referenceCue": {
+            "label": "At your question",
+            "snapshotId": "fixture-superposition",
+            "stateVersion": 1,
+            "eventSequence": 1,
+            "targetQubitIds": [
+              0
+            ],
+            "showState": true
+          },
+          "agentPolicy": "quantum-companion-en-1",
+          "responseLanguage": "en",
+          "planner": "offline-fixture",
+          "intent": "preview",
+          "visibility": "private",
+          "segments": []
+        },
+        "audioCount": 0
+      }
+    },
+    {
+      "name": "preview-measure",
+      "request": {
+        "requestId": "fixture-preview-measure",
+        "selectionId": "fixture-selection",
+        "targetQubitIds": [
+          0
+        ],
+        "referenceSnapshotId": "fixture-entangled-pair",
+        "referenceEventId": null,
+        "referenceMode": "captured",
+        "language": "en",
+        "text": "What if I measure?",
+        "speak": false,
+        "visibility": "private"
+      },
+      "job": {
+        "requestId": "fixture-preview-measure",
+        "generation": 1,
+        "state": "done",
+        "result": {
+          "status": "answered",
+          "referenceSnapshotId": "fixture-entangled-pair",
+          "authorityEpoch": 1,
+          "stateVersion": 2,
+          "selectionId": "fixture-selection",
+          "targetQubitIds": [
+            0
+          ],
+          "referenceMode": "captured",
+          "factIds": [
+            "fixture-entangled-pair:sandbox:measureZ"
+          ],
+          "sources": [],
+          "facts": {
+            "calculationVersion": "density-reference-1",
+            "snapshotId": "fixture-entangled-pair",
+            "stateVersion": 2,
+            "authorityEpoch": 1,
+            "tolerance": 1e-07,
+            "globalPurity": 0.9999999999999996,
+            "globallyPure": true,
+            "nodes": [
+              {
+                "qubitId": 0,
+                "label": "Q1",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "blochRadius": 0.0,
+                "purity": 0.4999999999999998,
+                "renyi2Nats": 0.6931471805599457,
+                "entropyBits": 1.0,
+                "p0": 0.4999999999999999,
+                "p1": 0.4999999999999999,
+                "entangledWithRest": true
+              },
+              {
+                "qubitId": 1,
+                "label": "Q2",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "blochRadius": 0.0,
+                "purity": 0.4999999999999998,
+                "renyi2Nats": 0.6931471805599457,
+                "entropyBits": 1.0,
+                "p0": 0.4999999999999999,
+                "p1": 0.4999999999999999,
+                "entangledWithRest": true
+              },
+              {
+                "qubitId": 2,
+                "label": "Q3",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.9999999999999998
+                ],
+                "blochRadius": 0.9999999999999998,
+                "purity": 0.9999999999999996,
+                "renyi2Nats": 4.440892098500627e-16,
+                "entropyBits": 3.2034265038149176e-16,
+                "p0": 0.9999999999999998,
+                "p1": 0.0,
+                "entangledWithRest": false
+              }
+            ],
+            "pairs": [
+              {
+                "first": 0,
+                "second": 1,
+                "negativity": 0.4999999999999999,
+                "logarithmicNegativityBits": 0.9999999999999999,
+                "mutualInformationBits": 1.9999999999999998,
+                "entanglementStatus": "detected"
+              },
+              {
+                "first": 0,
+                "second": 2,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 2.220446049250313e-16,
+                "entanglementStatus": "below_resolution"
+              },
+              {
+                "first": 1,
+                "second": 2,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 2.220446049250313e-16,
+                "entanglementStatus": "below_resolution"
+              }
+            ],
+            "genuineTripartitePureCriterion": false
+          },
+          "preview": {
+            "kind": "sandbox",
+            "sourceSnapshotId": "fixture-entangled-pair",
+            "operation": "measureZ",
+            "target": 0,
+            "branches": [
+              {
+                "outcome": 0,
+                "probability": 0.4999999999999999,
+                "density": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  1.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  -0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "outcome": 1,
+                "probability": 0.4999999999999999,
+                "density": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  -0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  1.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              }
+            ]
+          },
+          "text": "On a copy of Q1, the possible Z results are 0: 50.0%, 1: 50.0%. I haven't measured the live qubit.",
+          "detailText": "This is a sandbox preview of measureZ on Q1, calculated on a copy of the captured state. The live qubits were not changed.",
+          "nextAction": null,
+          "referenceCue": {
+            "label": "At your question",
+            "snapshotId": "fixture-entangled-pair",
+            "stateVersion": 2,
+            "eventSequence": 1,
+            "targetQubitIds": [
+              0
+            ],
+            "showState": true
+          },
+          "agentPolicy": "quantum-companion-en-1",
+          "responseLanguage": "en",
+          "planner": "offline-fixture",
+          "intent": "preview",
+          "visibility": "private",
+          "segments": []
+        },
+        "audioCount": 0
+      }
+    },
+    {
+      "name": "pair",
+      "request": {
+        "requestId": "fixture-pair",
+        "selectionId": "fixture-selection",
+        "targetQubitIds": [
+          0,
+          1
+        ],
+        "referenceSnapshotId": "fixture-entangled-pair",
+        "referenceEventId": null,
+        "referenceMode": "captured",
+        "language": "en",
+        "text": "Are you two friends?",
+        "speak": false,
+        "visibility": "private"
+      },
+      "job": {
+        "requestId": "fixture-pair",
+        "generation": 1,
+        "state": "done",
+        "result": {
+          "status": "answered",
+          "referenceSnapshotId": "fixture-entangled-pair",
+          "authorityEpoch": 1,
+          "stateVersion": 2,
+          "selectionId": "fixture-selection",
+          "targetQubitIds": [
+            0,
+            1
+          ],
+          "referenceMode": "captured",
+          "factIds": [
+            "fixture-entangled-pair:pair:01:PPT"
+          ],
+          "sources": [
+            "https://arxiv.org/abs/quant-ph/9605038"
+          ],
+          "facts": {
+            "calculationVersion": "density-reference-1",
+            "snapshotId": "fixture-entangled-pair",
+            "stateVersion": 2,
+            "authorityEpoch": 1,
+            "tolerance": 1e-07,
+            "globalPurity": 0.9999999999999996,
+            "globallyPure": true,
+            "nodes": [
+              {
+                "qubitId": 0,
+                "label": "Q1",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "blochRadius": 0.0,
+                "purity": 0.4999999999999998,
+                "renyi2Nats": 0.6931471805599457,
+                "entropyBits": 1.0,
+                "p0": 0.4999999999999999,
+                "p1": 0.4999999999999999,
+                "entangledWithRest": true
+              },
+              {
+                "qubitId": 1,
+                "label": "Q2",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "blochRadius": 0.0,
+                "purity": 0.4999999999999998,
+                "renyi2Nats": 0.6931471805599457,
+                "entropyBits": 1.0,
+                "p0": 0.4999999999999999,
+                "p1": 0.4999999999999999,
+                "entangledWithRest": true
+              },
+              {
+                "qubitId": 2,
+                "label": "Q3",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.9999999999999998
+                ],
+                "blochRadius": 0.9999999999999998,
+                "purity": 0.9999999999999996,
+                "renyi2Nats": 4.440892098500627e-16,
+                "entropyBits": 3.2034265038149176e-16,
+                "p0": 0.9999999999999998,
+                "p1": 0.0,
+                "entangledWithRest": false
+              }
+            ],
+            "pairs": [
+              {
+                "first": 0,
+                "second": 1,
+                "negativity": 0.4999999999999999,
+                "logarithmicNegativityBits": 0.9999999999999999,
+                "mutualInformationBits": 1.9999999999999998,
+                "entanglementStatus": "detected"
+              },
+              {
+                "first": 0,
+                "second": 2,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 2.220446049250313e-16,
+                "entanglementStatus": "below_resolution"
+              },
+              {
+                "first": 1,
+                "second": 2,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 2.220446049250313e-16,
+                "entanglementStatus": "below_resolution"
+              }
+            ],
+            "genuineTripartitePureCriterion": false
+          },
+          "preview": null,
+          "text": "These two share a quantum relationship here. We call it entanglement.",
+          "detailText": "For the captured pair Q1 and Q2, logarithmic negativity is 1.0000 bits. Pair entanglement is numerically detected. Mutual information of 2.0000 bits measures total correlation, not only entanglement.",
+          "nextAction": {
+            "label": "What if I move them apart?",
+            "question": "What if I move them apart?",
+            "kind": "ask"
+          },
+          "referenceCue": {
+            "label": "At your question",
+            "snapshotId": "fixture-entangled-pair",
+            "stateVersion": 2,
+            "eventSequence": 1,
+            "targetQubitIds": [
+              0,
+              1
+            ],
+            "showState": true
+          },
+          "agentPolicy": "quantum-companion-en-1",
+          "responseLanguage": "en",
+          "planner": "offline-fixture",
+          "intent": "pair",
+          "visibility": "private",
+          "segments": []
+        },
+        "audioCount": 0
+      }
+    },
+    {
+      "name": "missing-pair-selection",
+      "request": {
+        "requestId": "fixture-missing-pair-selection",
+        "selectionId": "fixture-selection",
+        "targetQubitIds": [
+          0
+        ],
+        "referenceSnapshotId": "fixture-entangled-pair",
+        "referenceEventId": null,
+        "referenceMode": "captured",
+        "language": "en",
+        "text": "Are you two friends?",
+        "speak": false,
+        "visibility": "private"
+      },
+      "job": {
+        "requestId": "fixture-missing-pair-selection",
+        "generation": 1,
+        "state": "done",
+        "result": {
+          "status": "needs_selection",
+          "referenceSnapshotId": "fixture-entangled-pair",
+          "authorityEpoch": 1,
+          "stateVersion": 2,
+          "selectionId": "fixture-selection",
+          "targetQubitIds": [
+            0
+          ],
+          "referenceMode": "captured",
+          "factIds": [],
+          "sources": [],
+          "facts": {
+            "calculationVersion": "density-reference-1",
+            "snapshotId": "fixture-entangled-pair",
+            "stateVersion": 2,
+            "authorityEpoch": 1,
+            "tolerance": 1e-07,
+            "globalPurity": 0.9999999999999996,
+            "globallyPure": true,
+            "nodes": [
+              {
+                "qubitId": 0,
+                "label": "Q1",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "blochRadius": 0.0,
+                "purity": 0.4999999999999998,
+                "renyi2Nats": 0.6931471805599457,
+                "entropyBits": 1.0,
+                "p0": 0.4999999999999999,
+                "p1": 0.4999999999999999,
+                "entangledWithRest": true
+              },
+              {
+                "qubitId": 1,
+                "label": "Q2",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "blochRadius": 0.0,
+                "purity": 0.4999999999999998,
+                "renyi2Nats": 0.6931471805599457,
+                "entropyBits": 1.0,
+                "p0": 0.4999999999999999,
+                "p1": 0.4999999999999999,
+                "entangledWithRest": true
+              },
+              {
+                "qubitId": 2,
+                "label": "Q3",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.9999999999999998
+                ],
+                "blochRadius": 0.9999999999999998,
+                "purity": 0.9999999999999996,
+                "renyi2Nats": 4.440892098500627e-16,
+                "entropyBits": 3.2034265038149176e-16,
+                "p0": 0.9999999999999998,
+                "p1": 0.0,
+                "entangledWithRest": false
+              }
+            ],
+            "pairs": [
+              {
+                "first": 0,
+                "second": 1,
+                "negativity": 0.4999999999999999,
+                "logarithmicNegativityBits": 0.9999999999999999,
+                "mutualInformationBits": 1.9999999999999998,
+                "entanglementStatus": "detected"
+              },
+              {
+                "first": 0,
+                "second": 2,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 2.220446049250313e-16,
+                "entanglementStatus": "below_resolution"
+              },
+              {
+                "first": 1,
+                "second": 2,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 2.220446049250313e-16,
+                "entanglementStatus": "below_resolution"
+              }
+            ],
+            "genuineTripartitePureCriterion": false
+          },
+          "preview": null,
+          "text": "Select both qubits so I can check their relationship.",
+          "detailText": "",
+          "nextAction": null,
+          "referenceCue": {
+            "label": "At your question",
+            "snapshotId": "fixture-entangled-pair",
+            "stateVersion": 2,
+            "eventSequence": 1,
+            "targetQubitIds": [
+              0
+            ],
+            "showState": false
+          },
+          "agentPolicy": "quantum-companion-en-1",
+          "responseLanguage": "en",
+          "planner": "offline-fixture",
+          "intent": "pair",
+          "visibility": "private",
+          "segments": []
+        },
+        "audioCount": 0
+      }
+    },
+    {
+      "name": "quiet",
+      "request": {
+        "requestId": "fixture-quiet",
+        "selectionId": "fixture-selection",
+        "targetQubitIds": [
+          0
+        ],
+        "referenceSnapshotId": "fixture-superposition",
+        "referenceEventId": null,
+        "referenceMode": "captured",
+        "language": "en",
+        "text": "Let me try",
+        "speak": false,
+        "visibility": "private"
+      },
+      "job": {
+        "requestId": "fixture-quiet",
+        "generation": 1,
+        "state": "done",
+        "result": {
+          "status": "quiet",
+          "referenceSnapshotId": "fixture-superposition",
+          "authorityEpoch": 1,
+          "stateVersion": 1,
+          "selectionId": "fixture-selection",
+          "targetQubitIds": [
+            0
+          ],
+          "referenceMode": "captured",
+          "factIds": [],
+          "sources": [],
+          "facts": {
+            "calculationVersion": "density-reference-1",
+            "snapshotId": "fixture-superposition",
+            "stateVersion": 1,
+            "authorityEpoch": 1,
+            "tolerance": 1e-07,
+            "globalPurity": 0.9999999999999996,
+            "globallyPure": true,
+            "nodes": [
+              {
+                "qubitId": 0,
+                "label": "Q1",
+                "bloch": [
+                  -0.9999999999999998,
+                  -0.0,
+                  0.0
+                ],
+                "blochRadius": 0.9999999999999998,
+                "purity": 0.9999999999999996,
+                "renyi2Nats": 4.440892098500627e-16,
+                "entropyBits": 3.2034265038149176e-16,
+                "p0": 0.4999999999999999,
+                "p1": 0.4999999999999999,
+                "entangledWithRest": false
+              },
+              {
+                "qubitId": 1,
+                "label": "Q2",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.9999999999999998
+                ],
+                "blochRadius": 0.9999999999999998,
+                "purity": 0.9999999999999996,
+                "renyi2Nats": 4.440892098500627e-16,
+                "entropyBits": 3.2034265038149176e-16,
+                "p0": 0.9999999999999998,
+                "p1": 0.0,
+                "entangledWithRest": false
+              },
+              {
+                "qubitId": 2,
+                "label": "Q3",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.9999999999999998
+                ],
+                "blochRadius": 0.9999999999999998,
+                "purity": 0.9999999999999996,
+                "renyi2Nats": 4.440892098500627e-16,
+                "entropyBits": 3.2034265038149176e-16,
+                "p0": 0.9999999999999998,
+                "p1": 0.0,
+                "entangledWithRest": false
+              }
+            ],
+            "pairs": [
+              {
+                "first": 0,
+                "second": 1,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 3.2034265038149176e-16,
+                "entanglementStatus": "below_resolution"
+              },
+              {
+                "first": 0,
+                "second": 2,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 3.2034265038149176e-16,
+                "entanglementStatus": "below_resolution"
+              },
+              {
+                "first": 1,
+                "second": 2,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 3.2034265038149176e-16,
+                "entanglementStatus": "below_resolution"
+              }
+            ],
+            "genuineTripartitePureCriterion": false
+          },
+          "preview": null,
+          "text": "",
+          "detailText": "",
+          "nextAction": null,
+          "referenceCue": {
+            "label": "At your question",
+            "snapshotId": "fixture-superposition",
+            "stateVersion": 1,
+            "eventSequence": 1,
+            "targetQubitIds": [
+              0
+            ],
+            "showState": false
+          },
+          "agentPolicy": "quantum-companion-en-1",
+          "responseLanguage": "en",
+          "planner": "offline-fixture",
+          "intent": "stop",
+          "visibility": "private",
+          "segments": []
+        },
+        "audioCount": 0
+      }
+    },
+    {
+      "name": "vague-preview",
+      "request": {
+        "requestId": "fixture-vague-preview",
+        "selectionId": "fixture-selection",
+        "targetQubitIds": [
+          0
+        ],
+        "referenceSnapshotId": "fixture-superposition",
+        "referenceEventId": null,
+        "referenceMode": "captured",
+        "language": "en",
+        "text": "What if I do that?",
+        "speak": false,
+        "visibility": "private"
+      },
+      "job": {
+        "requestId": "fixture-vague-preview",
+        "generation": 1,
+        "state": "done",
+        "result": {
+          "status": "needs_clarification",
+          "referenceSnapshotId": "fixture-superposition",
+          "authorityEpoch": 1,
+          "stateVersion": 1,
+          "selectionId": "fixture-selection",
+          "targetQubitIds": [
+            0
+          ],
+          "referenceMode": "captured",
+          "factIds": [],
+          "sources": [],
+          "facts": {
+            "calculationVersion": "density-reference-1",
+            "snapshotId": "fixture-superposition",
+            "stateVersion": 1,
+            "authorityEpoch": 1,
+            "tolerance": 1e-07,
+            "globalPurity": 0.9999999999999996,
+            "globallyPure": true,
+            "nodes": [
+              {
+                "qubitId": 0,
+                "label": "Q1",
+                "bloch": [
+                  -0.9999999999999998,
+                  -0.0,
+                  0.0
+                ],
+                "blochRadius": 0.9999999999999998,
+                "purity": 0.9999999999999996,
+                "renyi2Nats": 4.440892098500627e-16,
+                "entropyBits": 3.2034265038149176e-16,
+                "p0": 0.4999999999999999,
+                "p1": 0.4999999999999999,
+                "entangledWithRest": false
+              },
+              {
+                "qubitId": 1,
+                "label": "Q2",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.9999999999999998
+                ],
+                "blochRadius": 0.9999999999999998,
+                "purity": 0.9999999999999996,
+                "renyi2Nats": 4.440892098500627e-16,
+                "entropyBits": 3.2034265038149176e-16,
+                "p0": 0.9999999999999998,
+                "p1": 0.0,
+                "entangledWithRest": false
+              },
+              {
+                "qubitId": 2,
+                "label": "Q3",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.9999999999999998
+                ],
+                "blochRadius": 0.9999999999999998,
+                "purity": 0.9999999999999996,
+                "renyi2Nats": 4.440892098500627e-16,
+                "entropyBits": 3.2034265038149176e-16,
+                "p0": 0.9999999999999998,
+                "p1": 0.0,
+                "entangledWithRest": false
+              }
+            ],
+            "pairs": [
+              {
+                "first": 0,
+                "second": 1,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 3.2034265038149176e-16,
+                "entanglementStatus": "below_resolution"
+              },
+              {
+                "first": 0,
+                "second": 2,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 3.2034265038149176e-16,
+                "entanglementStatus": "below_resolution"
+              },
+              {
+                "first": 1,
+                "second": 2,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 3.2034265038149176e-16,
+                "entanglementStatus": "below_resolution"
+              }
+            ],
+            "genuineTripartitePureCriterion": false
+          },
+          "preview": null,
+          "text": "Which operation would you like to try on a copy: H, X, Z, S, or a Z measurement?",
+          "detailText": "",
+          "nextAction": null,
+          "referenceCue": {
+            "label": "At your question",
+            "snapshotId": "fixture-superposition",
+            "stateVersion": 1,
+            "eventSequence": 1,
+            "targetQubitIds": [
+              0
+            ],
+            "showState": true
+          },
+          "agentPolicy": "quantum-companion-en-1",
+          "responseLanguage": "en",
+          "planner": "offline-fixture",
+          "intent": "preview",
+          "visibility": "private",
+          "segments": []
+        },
+        "audioCount": 0
+      }
+    },
+    {
+      "name": "comparison",
+      "request": {
+        "requestId": "fixture-comparison",
+        "selectionId": "fixture-selection",
+        "targetQubitIds": [
+          0
+        ],
+        "referenceSnapshotId": "fixture-entangled-pair",
+        "referenceEventId": null,
+        "referenceMode": "captured",
+        "language": "en",
+        "text": "Why is it shorter than before?",
+        "speak": false,
+        "visibility": "private"
+      },
+      "job": {
+        "requestId": "fixture-comparison",
+        "generation": 1,
+        "state": "done",
+        "result": {
+          "status": "answered",
+          "referenceSnapshotId": "fixture-entangled-pair",
+          "authorityEpoch": 1,
+          "stateVersion": 2,
+          "selectionId": "fixture-selection",
+          "targetQubitIds": [
+            0
+          ],
+          "referenceMode": "captured",
+          "factIds": [
+            "fixture-superposition:comparison",
+            "fixture-entangled-pair:comparison"
+          ],
+          "sources": [],
+          "facts": {
+            "calculationVersion": "density-reference-1",
+            "snapshotId": "fixture-entangled-pair",
+            "stateVersion": 2,
+            "authorityEpoch": 1,
+            "tolerance": 1e-07,
+            "globalPurity": 0.9999999999999996,
+            "globallyPure": true,
+            "nodes": [
+              {
+                "qubitId": 0,
+                "label": "Q1",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "blochRadius": 0.0,
+                "purity": 0.4999999999999998,
+                "renyi2Nats": 0.6931471805599457,
+                "entropyBits": 1.0,
+                "p0": 0.4999999999999999,
+                "p1": 0.4999999999999999,
+                "entangledWithRest": true
+              },
+              {
+                "qubitId": 1,
+                "label": "Q2",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "blochRadius": 0.0,
+                "purity": 0.4999999999999998,
+                "renyi2Nats": 0.6931471805599457,
+                "entropyBits": 1.0,
+                "p0": 0.4999999999999999,
+                "p1": 0.4999999999999999,
+                "entangledWithRest": true
+              },
+              {
+                "qubitId": 2,
+                "label": "Q3",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.9999999999999998
+                ],
+                "blochRadius": 0.9999999999999998,
+                "purity": 0.9999999999999996,
+                "renyi2Nats": 4.440892098500627e-16,
+                "entropyBits": 3.2034265038149176e-16,
+                "p0": 0.9999999999999998,
+                "p1": 0.0,
+                "entangledWithRest": false
+              }
+            ],
+            "pairs": [
+              {
+                "first": 0,
+                "second": 1,
+                "negativity": 0.4999999999999999,
+                "logarithmicNegativityBits": 0.9999999999999999,
+                "mutualInformationBits": 1.9999999999999998,
+                "entanglementStatus": "detected"
+              },
+              {
+                "first": 0,
+                "second": 2,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 2.220446049250313e-16,
+                "entanglementStatus": "below_resolution"
+              },
+              {
+                "first": 1,
+                "second": 2,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 2.220446049250313e-16,
+                "entanglementStatus": "below_resolution"
+              }
+            ],
+            "genuineTripartitePureCriterion": false
+          },
+          "preview": null,
+          "text": "Q1 has the same Z probabilities as before, but a shorter arrow. In this pure joint state, the qubit is now entangled with the rest.",
+          "detailText": "Q1 has the same Z probabilities as before, but a shorter arrow. In this pure joint state, the qubit is now entangled with the rest. These are two captured states; they do not identify which unrecorded action caused the change.",
+          "nextAction": null,
+          "referenceCue": {
+            "label": "At your question",
+            "snapshotId": "fixture-entangled-pair",
+            "stateVersion": 2,
+            "eventSequence": 1,
+            "targetQubitIds": [
+              0
+            ],
+            "showState": true
+          },
+          "comparison": {
+            "snapshotId": "fixture-superposition",
+            "nodes": [
+              {
+                "qubitId": 0,
+                "label": "Q1",
+                "bloch": [
+                  -0.9999999999999998,
+                  -0.0,
+                  0.0
+                ],
+                "blochRadius": 0.9999999999999998,
+                "purity": 0.9999999999999996,
+                "renyi2Nats": 4.440892098500627e-16,
+                "entropyBits": 3.2034265038149176e-16,
+                "p0": 0.4999999999999999,
+                "p1": 0.4999999999999999,
+                "entangledWithRest": false
+              }
+            ]
+          },
+          "agentPolicy": "quantum-companion-en-1",
+          "responseLanguage": "en",
+          "planner": "offline-fixture",
+          "intent": "compare",
+          "visibility": "private",
+          "segments": []
+        },
+        "audioCount": 0
+      }
+    },
+    {
+      "name": "repeat",
+      "request": {
+        "requestId": "fixture-repeat",
+        "selectionId": "fixture-selection",
+        "targetQubitIds": [
+          0
+        ],
+        "referenceSnapshotId": "fixture-entangled-pair",
+        "referenceEventId": null,
+        "referenceMode": "captured",
+        "language": "en",
+        "text": "Say that again",
+        "speak": false,
+        "visibility": "private"
+      },
+      "job": {
+        "requestId": "fixture-repeat",
+        "generation": 1,
+        "state": "done",
+        "result": {
+          "text": "For Q1, a Z measurement would give 0 with 50.0% probability and 1 with 50.0%. Asking leaves the live state unchanged.",
+          "status": "answered",
+          "detailText": "I am Q1. For the captured state, a Z measurement gives 0 with 50.0% probability and 1 with 50.0%. I calculated probabilities without measuring the live state.",
+          "facts": {
+            "calculationVersion": "density-reference-1",
+            "snapshotId": "fixture-superposition",
+            "stateVersion": 1,
+            "authorityEpoch": 1,
+            "tolerance": 1e-07,
+            "globalPurity": 0.9999999999999996,
+            "globallyPure": true,
+            "nodes": [
+              {
+                "qubitId": 0,
+                "label": "Q1",
+                "bloch": [
+                  -0.9999999999999998,
+                  -0.0,
+                  0.0
+                ],
+                "blochRadius": 0.9999999999999998,
+                "purity": 0.9999999999999996,
+                "renyi2Nats": 4.440892098500627e-16,
+                "entropyBits": 3.2034265038149176e-16,
+                "p0": 0.4999999999999999,
+                "p1": 0.4999999999999999,
+                "entangledWithRest": false
+              },
+              {
+                "qubitId": 1,
+                "label": "Q2",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.9999999999999998
+                ],
+                "blochRadius": 0.9999999999999998,
+                "purity": 0.9999999999999996,
+                "renyi2Nats": 4.440892098500627e-16,
+                "entropyBits": 3.2034265038149176e-16,
+                "p0": 0.9999999999999998,
+                "p1": 0.0,
+                "entangledWithRest": false
+              },
+              {
+                "qubitId": 2,
+                "label": "Q3",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.9999999999999998
+                ],
+                "blochRadius": 0.9999999999999998,
+                "purity": 0.9999999999999996,
+                "renyi2Nats": 4.440892098500627e-16,
+                "entropyBits": 3.2034265038149176e-16,
+                "p0": 0.9999999999999998,
+                "p1": 0.0,
+                "entangledWithRest": false
+              }
+            ],
+            "pairs": [
+              {
+                "first": 0,
+                "second": 1,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 3.2034265038149176e-16,
+                "entanglementStatus": "below_resolution"
+              },
+              {
+                "first": 0,
+                "second": 2,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 3.2034265038149176e-16,
+                "entanglementStatus": "below_resolution"
+              },
+              {
+                "first": 1,
+                "second": 2,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 3.2034265038149176e-16,
+                "entanglementStatus": "below_resolution"
+              }
+            ],
+            "genuineTripartitePureCriterion": false
+          },
+          "factIds": [
+            "fixture-superposition:q0:Z",
+            "fixture-superposition:q0:mixedness"
+          ],
+          "sources": [],
+          "referenceSnapshotId": "fixture-superposition",
+          "authorityEpoch": 1,
+          "stateVersion": 1,
+          "targetQubitIds": [
+            0
+          ],
+          "referenceMode": "captured",
+          "referenceCue": {
+            "label": "Earlier answer",
+            "snapshotId": "fixture-superposition",
+            "stateVersion": 1,
+            "eventSequence": 1,
+            "targetQubitIds": [
+              0
+            ],
+            "showState": true
+          },
+          "preview": null,
+          "selectionId": "fixture-selection",
+          "repeated": true,
+          "nextAction": null,
+          "agentPolicy": "quantum-companion-en-1",
+          "responseLanguage": "en",
+          "planner": "offline-fixture",
+          "intent": "probability",
+          "visibility": "private",
+          "segments": []
+        },
+        "audioCount": 0
+      }
+    },
+    {
+      "name": "detail",
+      "request": {
+        "requestId": "fixture-detail",
+        "selectionId": "fixture-selection",
+        "targetQubitIds": [
+          0
+        ],
+        "referenceSnapshotId": "fixture-entangled-pair",
+        "referenceEventId": null,
+        "referenceMode": "captured",
+        "language": "en",
+        "text": "Tell me more",
+        "speak": false,
+        "visibility": "private"
+      },
+      "job": {
+        "requestId": "fixture-detail",
+        "generation": 1,
+        "state": "done",
+        "result": {
+          "text": "I am Q1. For the captured state, a Z measurement gives 0 with 50.0% probability and 1 with 50.0%. I calculated probabilities without measuring the live state.",
+          "status": "answered",
+          "detailText": "I am Q1. For the captured state, a Z measurement gives 0 with 50.0% probability and 1 with 50.0%. I calculated probabilities without measuring the live state.",
+          "facts": {
+            "calculationVersion": "density-reference-1",
+            "snapshotId": "fixture-superposition",
+            "stateVersion": 1,
+            "authorityEpoch": 1,
+            "tolerance": 1e-07,
+            "globalPurity": 0.9999999999999996,
+            "globallyPure": true,
+            "nodes": [
+              {
+                "qubitId": 0,
+                "label": "Q1",
+                "bloch": [
+                  -0.9999999999999998,
+                  -0.0,
+                  0.0
+                ],
+                "blochRadius": 0.9999999999999998,
+                "purity": 0.9999999999999996,
+                "renyi2Nats": 4.440892098500627e-16,
+                "entropyBits": 3.2034265038149176e-16,
+                "p0": 0.4999999999999999,
+                "p1": 0.4999999999999999,
+                "entangledWithRest": false
+              },
+              {
+                "qubitId": 1,
+                "label": "Q2",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.9999999999999998
+                ],
+                "blochRadius": 0.9999999999999998,
+                "purity": 0.9999999999999996,
+                "renyi2Nats": 4.440892098500627e-16,
+                "entropyBits": 3.2034265038149176e-16,
+                "p0": 0.9999999999999998,
+                "p1": 0.0,
+                "entangledWithRest": false
+              },
+              {
+                "qubitId": 2,
+                "label": "Q3",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.9999999999999998
+                ],
+                "blochRadius": 0.9999999999999998,
+                "purity": 0.9999999999999996,
+                "renyi2Nats": 4.440892098500627e-16,
+                "entropyBits": 3.2034265038149176e-16,
+                "p0": 0.9999999999999998,
+                "p1": 0.0,
+                "entangledWithRest": false
+              }
+            ],
+            "pairs": [
+              {
+                "first": 0,
+                "second": 1,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 3.2034265038149176e-16,
+                "entanglementStatus": "below_resolution"
+              },
+              {
+                "first": 0,
+                "second": 2,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 3.2034265038149176e-16,
+                "entanglementStatus": "below_resolution"
+              },
+              {
+                "first": 1,
+                "second": 2,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 3.2034265038149176e-16,
+                "entanglementStatus": "below_resolution"
+              }
+            ],
+            "genuineTripartitePureCriterion": false
+          },
+          "factIds": [
+            "fixture-superposition:q0:Z",
+            "fixture-superposition:q0:mixedness"
+          ],
+          "sources": [],
+          "referenceSnapshotId": "fixture-superposition",
+          "authorityEpoch": 1,
+          "stateVersion": 1,
+          "targetQubitIds": [
+            0
+          ],
+          "referenceMode": "captured",
+          "referenceCue": {
+            "label": "Earlier answer · details",
+            "snapshotId": "fixture-superposition",
+            "stateVersion": 1,
+            "eventSequence": 1,
+            "targetQubitIds": [
+              0
+            ],
+            "showState": true
+          },
+          "preview": null,
+          "selectionId": "fixture-selection",
+          "nextAction": null,
+          "expanded": true,
+          "agentPolicy": "quantum-companion-en-1",
+          "responseLanguage": "en",
+          "planner": "offline-fixture",
+          "intent": "probability",
+          "visibility": "private",
+          "segments": []
+        },
+        "audioCount": 0
+      }
+    },
+    {
+      "name": "event",
+      "request": {
+        "requestId": "fixture-event",
+        "selectionId": "fixture-selection",
+        "targetQubitIds": [
+          0
+        ],
+        "referenceSnapshotId": "fixture-superposition",
+        "referenceEventId": "fixture-real-H",
+        "referenceMode": "captured",
+        "language": "en",
+        "text": "What just happened?",
+        "speak": false,
+        "visibility": "private"
+      },
+      "job": {
+        "requestId": "fixture-event",
+        "generation": 1,
+        "state": "done",
+        "result": {
+          "status": "answered",
+          "referenceSnapshotId": "fixture-superposition",
+          "authorityEpoch": 1,
+          "stateVersion": 1,
+          "selectionId": "fixture-selection",
+          "targetQubitIds": [
+            0
+          ],
+          "referenceMode": "captured",
+          "factIds": [
+            "fixture-real-H"
+          ],
+          "sources": [],
+          "facts": {
+            "calculationVersion": "density-reference-1",
+            "snapshotId": "fixture-superposition",
+            "stateVersion": 1,
+            "authorityEpoch": 1,
+            "tolerance": 1e-07,
+            "globalPurity": 0.9999999999999996,
+            "globallyPure": true,
+            "nodes": [
+              {
+                "qubitId": 0,
+                "label": "Q1",
+                "bloch": [
+                  -0.9999999999999998,
+                  -0.0,
+                  0.0
+                ],
+                "blochRadius": 0.9999999999999998,
+                "purity": 0.9999999999999996,
+                "renyi2Nats": 4.440892098500627e-16,
+                "entropyBits": 3.2034265038149176e-16,
+                "p0": 0.4999999999999999,
+                "p1": 0.4999999999999999,
+                "entangledWithRest": false
+              },
+              {
+                "qubitId": 1,
+                "label": "Q2",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.9999999999999998
+                ],
+                "blochRadius": 0.9999999999999998,
+                "purity": 0.9999999999999996,
+                "renyi2Nats": 4.440892098500627e-16,
+                "entropyBits": 3.2034265038149176e-16,
+                "p0": 0.9999999999999998,
+                "p1": 0.0,
+                "entangledWithRest": false
+              },
+              {
+                "qubitId": 2,
+                "label": "Q3",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.9999999999999998
+                ],
+                "blochRadius": 0.9999999999999998,
+                "purity": 0.9999999999999996,
+                "renyi2Nats": 4.440892098500627e-16,
+                "entropyBits": 3.2034265038149176e-16,
+                "p0": 0.9999999999999998,
+                "p1": 0.0,
+                "entangledWithRest": false
+              }
+            ],
+            "pairs": [
+              {
+                "first": 0,
+                "second": 1,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 3.2034265038149176e-16,
+                "entanglementStatus": "below_resolution"
+              },
+              {
+                "first": 0,
+                "second": 2,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 3.2034265038149176e-16,
+                "entanglementStatus": "below_resolution"
+              },
+              {
+                "first": 1,
+                "second": 2,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 3.2034265038149176e-16,
+                "entanglementStatus": "below_resolution"
+              }
+            ],
+            "genuineTripartitePureCriterion": false
+          },
+          "preview": null,
+          "text": "The recorded H changed Q1's chance of 0 from 0.0% to 50.0%.",
+          "detailText": "Recorded event 1 applied H to Q1.This describes the recorded event; later interactions may change the state again.",
+          "nextAction": null,
+          "referenceCue": {
+            "label": "Recorded operation",
+            "snapshotId": "fixture-superposition",
+            "stateVersion": 1,
+            "eventSequence": 1,
+            "targetQubitIds": [
+              0
+            ],
+            "showState": true
+          },
+          "agentPolicy": "quantum-companion-en-1",
+          "responseLanguage": "en",
+          "planner": "offline-fixture",
+          "intent": "event",
+          "visibility": "private",
+          "segments": []
+        },
+        "audioCount": 0
+      }
+    },
+    {
+      "name": "mixed-guard",
+      "request": {
+        "requestId": "fixture-mixed-guard",
+        "selectionId": "fixture-selection",
+        "targetQubitIds": [
+          0
+        ],
+        "referenceSnapshotId": "fixture-mixed-global",
+        "referenceEventId": null,
+        "referenceMode": "captured",
+        "language": "en",
+        "text": "Explain this arrow",
+        "speak": false,
+        "visibility": "private"
+      },
+      "job": {
+        "requestId": "fixture-mixed-guard",
+        "generation": 1,
+        "state": "done",
+        "result": {
+          "status": "answered",
+          "referenceSnapshotId": "fixture-mixed-global",
+          "authorityEpoch": 1,
+          "stateVersion": 3,
+          "selectionId": "fixture-selection",
+          "targetQubitIds": [
+            0
+          ],
+          "referenceMode": "captured",
+          "factIds": [
+            "fixture-mixed-global:q0:Z",
+            "fixture-mixed-global:q0:mixedness"
+          ],
+          "sources": [],
+          "facts": {
+            "calculationVersion": "density-reference-1",
+            "snapshotId": "fixture-mixed-global",
+            "stateVersion": 3,
+            "authorityEpoch": 1,
+            "tolerance": 1e-07,
+            "globalPurity": 0.125,
+            "globallyPure": false,
+            "nodes": [
+              {
+                "qubitId": 0,
+                "label": "Q1",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "blochRadius": 0.0,
+                "purity": 0.5,
+                "renyi2Nats": 0.6931471805599453,
+                "entropyBits": 1.0,
+                "p0": 0.5,
+                "p1": 0.5,
+                "entangledWithRest": null
+              },
+              {
+                "qubitId": 1,
+                "label": "Q2",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "blochRadius": 0.0,
+                "purity": 0.5,
+                "renyi2Nats": 0.6931471805599453,
+                "entropyBits": 1.0,
+                "p0": 0.5,
+                "p1": 0.5,
+                "entangledWithRest": null
+              },
+              {
+                "qubitId": 2,
+                "label": "Q3",
+                "bloch": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ],
+                "blochRadius": 0.0,
+                "purity": 0.5,
+                "renyi2Nats": 0.6931471805599453,
+                "entropyBits": 1.0,
+                "p0": 0.5,
+                "p1": 0.5,
+                "entangledWithRest": null
+              }
+            ],
+            "pairs": [
+              {
+                "first": 0,
+                "second": 1,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 0.0,
+                "entanglementStatus": "below_resolution"
+              },
+              {
+                "first": 0,
+                "second": 2,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 0.0,
+                "entanglementStatus": "below_resolution"
+              },
+              {
+                "first": 1,
+                "second": 2,
+                "negativity": 0.0,
+                "logarithmicNegativityBits": 0.0,
+                "mutualInformationBits": 0.0,
+                "entanglementStatus": "below_resolution"
+              }
+            ],
+            "genuineTripartitePureCriterion": false
+          },
+          "preview": null,
+          "text": "Q1's arrow length is 0.00. For this mixed joint state, that length alone cannot establish entanglement.",
+          "detailText": "I am Q1. My captured Bloch radius is 0.000 and local purity is 0.500. The joint state is mixed, so this radius alone cannot establish entanglement.",
+          "nextAction": {
+            "label": "What would measurement show?",
+            "question": "What are the Z probabilities?",
+            "kind": "ask"
+          },
+          "referenceCue": {
+            "label": "At your question",
+            "snapshotId": "fixture-mixed-global",
+            "stateVersion": 3,
+            "eventSequence": 1,
+            "targetQubitIds": [
+              0
+            ],
+            "showState": true
+          },
+          "agentPolicy": "quantum-companion-en-1",
+          "responseLanguage": "en",
+          "planner": "offline-fixture",
+          "intent": "qubit",
+          "visibility": "private",
+          "segments": []
+        },
+        "audioCount": 0
+      }
+    }
+  ]
+}

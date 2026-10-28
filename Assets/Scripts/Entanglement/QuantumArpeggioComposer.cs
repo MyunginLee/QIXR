@@ -7,6 +7,7 @@ using UnityEngine;
 /// </summary>
 public sealed class QuantumArpeggioComposer : MonoBehaviour
 {
+    public float EntryThreshold => entryThreshold;
     private static readonly int[] CircleOfFifths = { 0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5 };
 
     [Header("Arpeggio")]

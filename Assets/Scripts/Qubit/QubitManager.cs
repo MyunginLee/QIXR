@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ArtsOfEntanglement.Colocation;
 using TMPro;
 using UnityEngine;
+using Qixr.Companion;
 
 /// <summary>
 /// Scene adapter for QuantumStateEngine. Qubit IDs, rather than discovery order,
@@ -20,6 +21,7 @@ public class QubitManager : MonoBehaviour
     /// <summary>Raised after a locally-authoritative Z measurement collapses the state.</summary>
     public static event Action<MeasurementResult> MeasurementCompleted;
     public static event Action MeasurementDisentangled;
+    public static event Action<QuantumMutation> MutationCompleted;
 
     public static bool IsQubitEntangled(int qubitId)
     {
@@ -124,6 +126,7 @@ public class QubitManager : MonoBehaviour
             qubitLookup.Clear();
             MeasurementCompleted = null;
             MeasurementDisentangled = null;
+            MutationCompleted = null;
         }
     }
 
@@ -224,9 +227,11 @@ public class QubitManager : MonoBehaviour
     }
 
     /// <summary>Called only by the local single-player path or Fusion state authority.</summary>
-    public static void ApplyGateLocally(int qubitId, QuantumGateOperation operation)
+    public static void ApplyGateLocally(int qubitId, QuantumGateOperation operation, string actor = "local")
     {
         EnsureInitialized();
+        ComplexMatrix before = MutationCompleted != null ? engine.DensityMatrix.Clone() : null;
+        long beforeVersion = engine.StateVersion;
         switch (operation)
         {
             case QuantumGateOperation.Hadamard:
@@ -245,6 +250,13 @@ public class QubitManager : MonoBehaviour
                 throw new ArgumentOutOfRangeException(nameof(operation));
         }
         RefreshSnapshot();
+        if (before != null)
+        {
+            string gate = operation == QuantumGateOperation.Hadamard ? "H" :
+                operation == QuantumGateOperation.PauliX ? "X" : operation == QuantumGateOperation.PauliZ ? "Z" : "S";
+            MutationCompleted?.Invoke(new QuantumMutation { Actor = actor, Operation = gate, Target = qubitId,
+                Before = before, After = engine.DensityMatrix.Clone(), BeforeVersion = beforeVersion, AfterVersion = engine.StateVersion });
+        }
     }
 
     public static void Measure(Qubit qubit)
@@ -269,9 +281,11 @@ public class QubitManager : MonoBehaviour
     }
 
     /// <summary>Called only by the local single-player path or Fusion state authority.</summary>
-    public static MeasurementResult MeasureLocally(int qubitId, double randomSample)
+    public static MeasurementResult MeasureLocally(int qubitId, double randomSample, string actor = "local")
     {
         EnsureInitialized();
+        ComplexMatrix before = MutationCompleted != null ? engine.DensityMatrix.Clone() : null;
+        long beforeVersion = engine.StateVersion;
         bool wasEntangled = IsQubitEntangled(qubitId);
         MeasurementResult result = engine.MeasureZ(qubitId, randomSample);
         RefreshSnapshot();
@@ -280,6 +294,10 @@ public class QubitManager : MonoBehaviour
             NotifyMeasurementDisentangled();
         }
         MeasurementCompleted?.Invoke(result);
+        if (before != null)
+            MutationCompleted?.Invoke(new QuantumMutation { Actor = actor, Operation = "measureZ", Target = qubitId,
+                Outcome = result.Outcome, Probability = result.Probability, Before = before, After = engine.DensityMatrix.Clone(),
+                BeforeVersion = beforeVersion, AfterVersion = engine.StateVersion });
         return result;
     }
 

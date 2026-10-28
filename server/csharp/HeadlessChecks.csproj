@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings><Nullable>disable</Nullable>
+    <DefineConstants>UNITY_EDITOR</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../Assets/Scripts/Math/ComplexMatrix.cs" />
+    <Compile Include="../../Assets/Scripts/Qubit/Gates.cs" />
+    <Compile Include="../../Assets/Scripts/QuantumStateEngine.cs" />
+    <Compile Include="../../Assets/Scripts/EntanglementSnapshot.cs" />
+    <Compile Include="../../Assets/Scripts/Companion/QuantumWav.cs" />
+    <Compile Include="../../Assets/Scripts/Companion/QuantumCompanionContracts.cs" />
+    <Compile Include="../../Assets/Editor/QixrTwoQubitBaselineChecks.cs" />
+    <Compile Include="../../Assets/Editor/QixrThreeQubitEngineChecks.cs" />
+    <Compile Include="../../Assets/Editor/QixrPhase2MetricChecks.cs" />
+    <Reference Include="Microsoft.CodeAnalysis"><HintPath>$(MSBuildSDKsPath)/../Roslyn/bincore/Microsoft.CodeAnalysis.dll</HintPath></Reference>
+    <Reference Include="Microsoft.CodeAnalysis.CSharp"><HintPath>$(MSBuildSDKsPath)/../Roslyn/bincore/Microsoft.CodeAnalysis.CSharp.dll</HintPath></Reference>
+  </ItemGroup>
+</Project>

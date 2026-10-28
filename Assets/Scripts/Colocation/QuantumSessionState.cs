@@ -304,7 +304,7 @@ namespace ArtsOfEntanglement.Colocation
                 return;
             }
 
-            QubitManager.ApplyGateLocally(qubitId, operation);
+            QubitManager.ApplyGateLocally(qubitId, operation, source.PlayerId.ToString());
             LastEventSequence++;
             PublishDensityMatrix(force: true);
         }
@@ -317,7 +317,7 @@ namespace ArtsOfEntanglement.Colocation
             }
 
             bool wasEntangled = QubitManager.IsQubitEntangled(qubitId);
-            MeasurementResult result = QubitManager.MeasureLocally(qubitId, UnityEngine.Random.value);
+            MeasurementResult result = QubitManager.MeasureLocally(qubitId, UnityEngine.Random.value, source.PlayerId.ToString());
             if (wasEntangled && !QubitManager.IsQubitEntangled(qubitId))
             {
                 RPC_NotifyMeasurementDisentangled();
